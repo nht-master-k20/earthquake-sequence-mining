@@ -40,38 +40,73 @@ pip install -r requirements.txt
 ### Crawl dữ liệu
 
 ```bash
-# Crawl tất cả events M>=6.0 năm 2023
+# Crawl 1 năm
 python main.py 2023
 
-# Crawl với độ lớn lớn hơn
-python main.py 2023 --min-mag 6.5
+# Crawl nhiều năm
+python main.py --start-year 2020 --end-year 2023
 
-# Giới hạn số lượng (test)
+# Crawl từ năm X đến hiện tại
+python main.py --all --start-year 2010
+
+# Kết hợp với các tùy chọn khác
+python main.py --start-year 2020 --end-year 2023 --min-mag 6.5
+
+# Test với giới hạn số lượng
 python main.py 2023 --limit 10
 
 # Không lưu JSON, chỉ CSV
-python main.py 2023 --no-json
+python main.py --start-year 2020 --end-year 2023 --no-json
 ```
 
 ### Tham số
 
 | Tham số | Mô tả | Mặc định |
 |---------|-------|----------|
-| `year` | Năm cần crawl | *(bắt buộc)* |
+| `year` | Năm cần crawl (single year) | *(tùy chọn)* |
+| `--start-year` | Năm bắt đầu | `None` |
+| `--end-year` | Năm kết thúc | `None` |
+| `--all` | Crawl đến năm hiện tại | `False` |
 | `--min-mag` | Độ lớn tối thiểu | `6.0` |
-| `--limit` | Giới hạn số lượng | Không giới hạn |
+| `--limit` | Giới hạn số lượng mỗi năm | Không giới hạn |
 | `--output-dir` | Thư mục lưu file | `data` |
 | `--no-json` | Không lưu JSON | `False` |
 | `--delay` | Delay giữa requests (giây) | `0.5` |
+
+### Chế độ hoạt động
+
+**Mode 1: Single year** - Crawl 1 năm
+```bash
+python main.py 2023
+```
+
+**Mode 2: Year range** - Crawl khoảng năm
+```bash
+python main.py --start-year 2020 --end-year 2023
+```
+
+**Mode 3: All years** - Crawl từ start-year đến hiện tại
+```bash
+python main.py --all --start-year 2010
+```
 
 ## Cấu trúc output
 
 ```
 data/
-├── event_us6000m0n6.json         # Chi tiết từng event (GeoJSON)
-├── event_us6000m05c.json
-├── ...
-└── earthquakes_2023_M6.0+.csv    # Tổng hợp
+├── 2020/
+│   ├── event_us6000m0n6.json         # Chi tiết từng event
+│   ├── event_us6000m05c.json
+│   ├── ...
+│   └── earthquakes_2020_M6.0+.csv    # CSV riêng năm 2020
+├── 2021/
+│   ├── event_*.json
+│   └── earthquakes_2021_M6.0+.csv
+├── 2022/
+│   └── ...
+├── 2023/
+│   └── ...
+└── earthquakes_2020-2023_M6.0+.csv   # CSV tổng hợp tất cả năm
 ```
 
 ## USGS API

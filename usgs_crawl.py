@@ -159,52 +159,36 @@ def crawl_multiple_events(event_ids, output_dir="data", save_json=True, delay=0.
     return results
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="USGS Earthquake Event Crawler",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  python usgs_crawl.py 2023
-  python usgs_crawl.py 2023 --min-mag 6.5
-  python usgs_crawl.py 2022 --min-mag 7.0 --limit 50
-  python usgs_crawl.py 2023 --no-json --output-dir results
-        """
-    )
+def crawl_year(year, min_mag, output_dir, save_json, delay, limit=None):
+    """
+    Crawl dữ liệu cho một năm
 
-    parser.add_argument("year", type=int, help="Năm cần crawl")
-    parser.add_argument("--min-mag", type=float, default=6.0,
-                        help="Độ lớn tối thiểu (default: 6.0)")
-    parser.add_argument("--limit", type=int, default=None,
-                        help="Giới hạn số lượng events (default: không giới hạn)")
-    parser.add_argument("--output-dir", type=str, default="data",
-                        help="Thư mục lưu file (default: data)")
-    parser.add_argument("--no-json", action="store_true",
-                        help="Không lưu file JSON cho từng event")
-    parser.add_argument("--delay", type=float, default=0.5,
-                        help="Delay giữa requests (giây, default: 0.5)")
+    Args:
+        year: Năm cần crawl
+        min_mag: Độ lớn tối thiểu
+        output_dir: Thư mục output gốc
+        save_json: Có lưu JSON không
+        delay: Delay giữa requests
+        limit: Giới hạn số lượng events
 
-    args = parser.parse_args()
+    Returns:
+        DataFrame: Kết quả hoặc None
+    """
+    # Tạo thư mục theo năm: data/2023/
+    year_dir = os.path.join(output_dir, str(year))
+    os.makedirs(year_dir, exist_ok=True)
 
-    # Tạo output directory
-    os.makedirs(args.output_dir, exist_ok=True)
-
-    print("=" * 60)
-    print(f"USGS EARTHQUAKE CRAWLER - {args.year}")
-    print("=" * 60)
-    print(f"Year: {args.year}")
-    print(f"Min Magnitude: {args.min_mag}")
-    print(f"Limit: {args.limit if args.limit else 'No limit'}")
-    print(f"Output: {args.output_dir}/")
-    print(f"Save JSON: {not args.no_json}")
+    print(f"\n{'=' * 60}")
+    print(f"CRAWLING YEAR: {year}")
+    print(f"Output: {year_dir}/")
     print("=" * 60)
 
     # Lấy danh sách event IDs
-    df = get_event_ids(args.year, args.min_mag, args.limit)
+    df = get_event_ids(year, min_mag, limit)
 
     if df is None or len(df) == 0:
-        print("✗ No events found!")
-        return 1
+        print(f"✗ No events found for {year}!")
+        return None
 
     print(f"\nEvent IDs:")
     print(df[['time', 'id', 'place', 'mag']].to_string(index=False))
@@ -216,30 +200,163 @@ Examples:
 
     all_results = crawl_multiple_events(
         df['id'].tolist(),
-        output_dir=args.output_dir,
-        save_json=not args.no_json,
-        delay=args.delay
+        output_dir=year_dir,  # Lưu vào thư mục năm
+        save_json=save_json,
+        delay=delay
     )
 
     # Báo cáo kết quả
     print(f"\n{'=' * 60}")
-    print(f"SUMMARY")
+    print(f"SUMMARY FOR {year}")
     print("=" * 60)
     print(f"Total events found: {len(df)}")
     print(f"Successfully crawled: {len(all_results)}")
     print(f"Failed: {len(df) - len(all_results)}")
 
-    # Lưu CSV
+    # Lưu CSV riêng cho từng năm
     if all_results:
         results_df = pd.DataFrame(all_results)
+        csv_name = f"earthquakes_{year}_M{min_mag}+.csv"
+        csv_path = os.path.join(year_dir, csv_name)
+        results_df.to_csv(csv_path, index=False, encoding='utf-8')
+        print(f"✓ Saved CSV: {csv_path}")
+
+        # Thêm cột year
+        results_df['year'] = year
+        return results_df
+
+    return None
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="USGS Earthquake Event Crawler",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Crawl 1 năm
+  python usgs_crawl.py 2023
+
+  # Crawl nhiều năm
+  python usgs_crawl.py --start-year 2020 --end-year 2023
+
+  # Crawl tất cả các năm
+  python usgs_crawl.py --all --start-year 2010
+
+  # Tùy chọn khác
+  python usgs_crawl.py --start-year 2020 --end-year 2023 --min-mag 6.5
+  python usgs_crawl.py 2023 --min-mag 7.0 --limit 50 --no-json
+        """
+    )
+
+    parser.add_argument("year", type=int, nargs='?', help="Năm cần crawl (để trống nếu dùng --start-year/--end-year)")
+    parser.add_argument("--start-year", type=int, default=None,
+                        help="Năm bắt đầu (dùng với --end-year)")
+    parser.add_argument("--end-year", type=int, default=None,
+                        help="Năm kết thúc (dùng với --start-year)")
+    parser.add_argument("--all", action="store_true",
+                        help="Crawl từ start-year đến năm hiện tại")
+    parser.add_argument("--min-mag", type=float, default=6.0,
+                        help="Độ lớn tối thiểu (default: 6.0)")
+    parser.add_argument("--limit", type=int, default=None,
+                        help="Giới hạn số lượng events mỗi năm (default: không giới hạn)")
+    parser.add_argument("--output-dir", type=str, default="data",
+                        help="Thư mục lưu file (default: data)")
+    parser.add_argument("--no-json", action="store_true",
+                        help="Không lưu file JSON cho từng event")
+    parser.add_argument("--delay", type=float, default=0.5,
+                        help="Delay giữa requests (giây, default: 0.5)")
+
+    args = parser.parse_args()
+
+    # Xác định danh sách năm cần crawl
+    years = []
+
+    # Mode 1: --all (từ start-year đến năm hiện tại)
+    if args.all:
+        if not args.start_year:
+            print("✗ --all requires --start-year")
+            return 1
+        end_year = datetime.now().year
+        years = list(range(args.start_year, end_year + 1))
+
+    # Mode 2: --start-year và --end-year
+    elif args.start_year and args.end_year:
+        years = list(range(args.start_year, args.end_year + 1))
+
+    # Mode 3: Chỉ 1 năm (single year mode)
+    elif args.year:
+        years = [args.year]
+
+    # Mode 4: Chỉ --start-year (từ start-year đến năm hiện tại)
+    elif args.start_year:
+        years = list(range(args.start_year, datetime.now().year + 1))
+
+    else:
+        parser.print_help()
+        print("\n✗ Vui lòng指定 năm hoặc khoảng năm!")
+        return 1
+
+    # Tạo output directory
+    os.makedirs(args.output_dir, exist_ok=True)
+
+    print("=" * 60)
+    print(f"USGS EARTHQUAKE CRAWLER")
+    print("=" * 60)
+    print(f"Years: {years[0]} - {years[-1]} ({len(years)} years)")
+    print(f"Min Magnitude: {args.min_mag}")
+    print(f"Limit: {args.limit if args.limit else 'No limit'}")
+    print(f"Output: {args.output_dir}/{{year}}/")
+    print(f"Save JSON: {not args.no_json}")
+    print("=" * 60)
+
+    # Crawl từng năm
+    all_dataframes = []
+
+    for year in years:
+        df = crawl_year(
+            year=year,
+            min_mag=args.min_mag,
+            output_dir=args.output_dir,
+            save_json=not args.no_json,
+            delay=args.delay,
+            limit=args.limit
+        )
+
+        if df is not None:
+            all_dataframes.append(df)
+
+    # Gộp tất cả và lưu CSV tổng hợp
+    print(f"\n{'=' * 60}")
+    print(f"FINAL SUMMARY")
+    print("=" * 60)
+
+    if all_dataframes:
+        combined_df = pd.concat(all_dataframes, ignore_index=True)
 
         # Lưu CSV tổng hợp
-        csv_name = f"earthquakes_{args.year}_M{args.min_mag}+.csv"
+        csv_name = f"earthquakes_{years[0]}-{years[-1]}_M{args.min_mag}+.csv"
         csv_path = os.path.join(args.output_dir, csv_name)
-        results_df.to_csv(csv_path, index=False, encoding='utf-8')
-        print(f"\n✓ Saved CSV: {csv_path}")
-        print(f"  Records: {len(results_df)}")
-        print(f"  Columns: {len(results_df.columns)}")
+        combined_df.to_csv(csv_path, index=False, encoding='utf-8')
+
+        total_records = len(combined_df)
+        print(f"✓ Total years crawled: {len(all_dataframes)}")
+        print(f"✓ Total records: {total_records}")
+        print(f"✓ Combined CSV: {csv_path}")
+        print(f"\nPer-directory structure:")
+        print(f"  {args.output_dir}/")
+        for year in years:
+            print(f"    ├── {year}/")
+            print(f"    │   ├── earthquakes_{year}_M{args.min_mag}+.csv")
+            if not args.no_json:
+                print(f"    │   ├── event_*.json")
+            print(f"    │   └── ...")
+        print(f"    └── {csv_name} (combined)")
+
+        return 0
+    else:
+        print("✗ No data collected!")
+        return 1
 
     return 0
 

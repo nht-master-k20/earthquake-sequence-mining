@@ -23,17 +23,18 @@ def main():
     if len(sys.argv) < 2:
         print("USGS Earthquake Crawler - Multi-Year Support")
         print("\nUsage:")
-        print("  # Crawl 1 năm:")
+        print("  # Crawl 1 năm (tất cả độ lớn):")
         print("  python main.py 2023")
-        print("\n  # Crawl nhiều năm:")
-        print("  python main.py --start-year 2020 --end-year 2023")
+        print("\n  # Crawl nhiều năm với độ lớn tối thiểu:")
+        print("  python main.py --start-year 2020 --end-year 2023 --min-mag 5.0")
         print("\n  # Crawl tất cả các năm (từ start-year đến hiện tại):")
         print("  python main.py --all --start-year 2010")
         print("\nOptions:")
-        print("  --min-mag float  Minimum magnitude (default: 6.0)")
+        print("  --min-mag float  Minimum magnitude (default: tất cả)")
         print("  --limit int      Limit number of events per year")
         print("  --no-json        Don't save JSON files")
         print("  --delay float    Delay between requests (default: 0.5s)")
+        print("\nJSON format: event_<mag>_<id>.json (e.g., event_6.3_us70006vkq.json)")
         return 1
 
     # Gọi usgs_crawl.py với các tham số

@@ -75,8 +75,12 @@ def crawl_event(event_id, output_dir="data", save_json=True):
         print(f"  ✓ {result['place']} - M{result['mag']}")
 
         # Lưu JSON nếu được yêu cầu
+        # Format: event_<mag>_<id>.json (ví dụ: event_6.3_us70006vkq.json)
         if save_json:
-            json_path = os.path.join(output_dir, f"event_{event_id}.json")
+            mag = result.get('mag', 'unknown')
+            mag_str = f"{mag:.1f}" if mag is not None else "unknown"
+            json_filename = f"event_{mag_str}_{result['id']}.json"
+            json_path = os.path.join(output_dir, json_filename)
             with open(json_path, 'w', encoding='utf-8') as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
 
@@ -87,13 +91,13 @@ def crawl_event(event_id, output_dir="data", save_json=True):
         return None
 
 
-def get_event_ids(year, min_magnitude=6.0, limit=None):
+def get_event_ids(year, min_magnitude=None, limit=None):
     """
     Lấy danh sách event IDs theo năm
 
     Args:
         year: Năm cần crawl
-        min_magnitude: Độ lớn tối thiểu
+        min_magnitude: Độ lớn tối thiểu (None = tất cả)
         limit: Giới hạn số lượng (None = không giới hạn)
 
     Returns:
@@ -105,9 +109,12 @@ def get_event_ids(year, min_magnitude=6.0, limit=None):
         "format": "csv",
         "starttime": f"{year}-01-01",
         "endtime": f"{year}-12-31",
-        "minmagnitude": min_magnitude,
         "orderby": "time-asc"
     }
+
+    # Chỉ thêm minmagnitude nếu được chỉ định
+    if min_magnitude is not None:
+        params["minmagnitude"] = min_magnitude
 
     if limit:
         params["limit"] = limit
@@ -121,7 +128,8 @@ def get_event_ids(year, min_magnitude=6.0, limit=None):
             return None
 
         df = pd.read_csv(StringIO(r.text))
-        print(f"✓ Found {len(df)} events (M>={min_magnitude})")
+        mag_str = f"M>={min_magnitude}" if min_magnitude is not None else "all magnitudes"
+        print(f"✓ Found {len(df)} events ({mag_str})")
         return df
 
     except Exception as e:
@@ -165,7 +173,7 @@ def crawl_year(year, min_mag, output_dir, save_json, delay, limit=None):
 
     Args:
         year: Năm cần crawl
-        min_mag: Độ lớn tối thiểu
+        min_mag: Độ lớn tối thiểu (None = tất cả)
         output_dir: Thư mục output gốc
         save_json: Có lưu JSON không
         delay: Delay giữa requests
@@ -178,8 +186,11 @@ def crawl_year(year, min_mag, output_dir, save_json, delay, limit=None):
     year_dir = os.path.join(output_dir, str(year))
     os.makedirs(year_dir, exist_ok=True)
 
+    # Tạo chuỗi mô tả min_mag
+    mag_str = f"M{min_mag}+" if min_mag is not None else "all"
     print(f"\n{'=' * 60}")
     print(f"CRAWLING YEAR: {year}")
+    print(f"Min Magnitude: {mag_str}")
     print(f"Output: {year_dir}/")
     print("=" * 60)
 
@@ -216,7 +227,8 @@ def crawl_year(year, min_mag, output_dir, save_json, delay, limit=None):
     # Lưu CSV riêng cho từng năm
     if all_results:
         results_df = pd.DataFrame(all_results)
-        csv_name = f"earthquakes_{year}_M{min_mag}+.csv"
+        # Tên file CSV: earthquakes_2023_all.csv hoặc earthquakes_2023_M6.0+.csv
+        csv_name = f"earthquakes_{year}_{mag_str}.csv"
         csv_path = os.path.join(year_dir, csv_name)
         results_df.to_csv(csv_path, index=False, encoding='utf-8')
         print(f"✓ Saved CSV: {csv_path}")
@@ -234,18 +246,18 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Crawl 1 năm
+  # Crawl 1 năm (tất cả độ lớn)
   python usgs_crawl.py 2023
 
-  # Crawl nhiều năm
-  python usgs_crawl.py --start-year 2020 --end-year 2023
+  # Crawl nhiều năm với độ lớn tối thiểu
+  python usgs_crawl.py --start-year 2020 --end-year 2023 --min-mag 5.0
 
   # Crawl tất cả các năm
   python usgs_crawl.py --all --start-year 2010
 
   # Tùy chọn khác
-  python usgs_crawl.py --start-year 2020 --end-year 2023 --min-mag 6.5
-  python usgs_crawl.py 2023 --min-mag 7.0 --limit 50 --no-json
+  python usgs_crawl.py --start-year 2020 --end-year 2023 --min-mag 6.5 --limit 50
+  python usgs_crawl.py 2023 --no-json --delay 1.0
         """
     )
 
@@ -256,8 +268,8 @@ Examples:
                         help="Năm kết thúc (dùng với --start-year)")
     parser.add_argument("--all", action="store_true",
                         help="Crawl từ start-year đến năm hiện tại")
-    parser.add_argument("--min-mag", type=float, default=6.0,
-                        help="Độ lớn tối thiểu (default: 6.0)")
+    parser.add_argument("--min-mag", type=float, default=None,
+                        help="Độ lớn tối thiểu (default: tất cả)")
     parser.add_argument("--limit", type=int, default=None,
                         help="Giới hạn số lượng events mỗi năm (default: không giới hạn)")
     parser.add_argument("--output-dir", type=str, default="data",
@@ -300,14 +312,19 @@ Examples:
     # Tạo output directory
     os.makedirs(args.output_dir, exist_ok=True)
 
+    # Chuỗi mô tả min_mag
+    mag_str = f"M{args.min_mag}+" if args.min_mag is not None else "all"
+    mag_display = args.min_mag if args.min_mag is not None else "tất cả"
+
     print("=" * 60)
     print(f"USGS EARTHQUAKE CRAWLER")
     print("=" * 60)
     print(f"Years: {years[0]} - {years[-1]} ({len(years)} years)")
-    print(f"Min Magnitude: {args.min_mag}")
+    print(f"Min Magnitude: {mag_display}")
     print(f"Limit: {args.limit if args.limit else 'No limit'}")
     print(f"Output: {args.output_dir}/{{year}}/")
     print(f"Save JSON: {not args.no_json}")
+    print(f"JSON format: event_<mag>_<id>.json")
     print("=" * 60)
 
     # Crawl từng năm
@@ -335,7 +352,8 @@ Examples:
         combined_df = pd.concat(all_dataframes, ignore_index=True)
 
         # Lưu CSV tổng hợp
-        csv_name = f"earthquakes_{years[0]}-{years[-1]}_M{args.min_mag}+.csv"
+        mag_str = f"M{args.min_mag}+" if args.min_mag is not None else "all"
+        csv_name = f"earthquakes_{years[0]}-{years[-1]}_{mag_str}.csv"
         csv_path = os.path.join(args.output_dir, csv_name)
         combined_df.to_csv(csv_path, index=False, encoding='utf-8')
 
@@ -347,7 +365,7 @@ Examples:
         print(f"  {args.output_dir}/")
         for year in years:
             print(f"    ├── {year}/")
-            print(f"    │   ├── earthquakes_{year}_M{args.min_mag}+.csv")
+            print(f"    │   ├── earthquakes_{year}_{mag_str}.csv")
             if not args.no_json:
                 print(f"    │   ├── event_*.json")
             print(f"    │   └── ...")

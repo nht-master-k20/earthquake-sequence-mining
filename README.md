@@ -12,6 +12,7 @@ Crawl dữ liệu động đất theo năm từ USGS Earthquake Hazards Program.
 ## Dữ liệu đầu ra
 
 - **File JSON**: Chi tiết từng sự kiện (GeoJSON format)
+  - Format: `event_<mag>_<id>.json` (ví dụ: `event_6.3_us70006vkq.json`)
 - **File CSV**: Dữ liệu tổng hợp để xử lý tiếp
 
 ## Môi trường
@@ -40,7 +41,7 @@ pip install -r requirements.txt
 ### Crawl dữ liệu
 
 ```bash
-# Crawl 1 năm
+# Crawl 1 năm (tất cả độ lớn)
 python main.py 2023
 
 # Crawl nhiều năm
@@ -49,8 +50,8 @@ python main.py --start-year 2020 --end-year 2023
 # Crawl từ năm X đến hiện tại
 python main.py --all --start-year 2010
 
-# Kết hợp với các tùy chọn khác
-python main.py --start-year 2020 --end-year 2023 --min-mag 6.5
+# Kết hợp với độ lớn tối thiểu
+python main.py --start-year 2020 --end-year 2023 --min-mag 5.0
 
 # Test với giới hạn số lượng
 python main.py 2023 --limit 10
@@ -67,7 +68,7 @@ python main.py --start-year 2020 --end-year 2023 --no-json
 | `--start-year` | Năm bắt đầu | `None` |
 | `--end-year` | Năm kết thúc | `None` |
 | `--all` | Crawl đến năm hiện tại | `False` |
-| `--min-mag` | Độ lớn tối thiểu | `6.0` |
+| `--min-mag` | Độ lớn tối thiểu (không có = tất cả) | `None` |
 | `--limit` | Giới hạn số lượng mỗi năm | Không giới hạn |
 | `--output-dir` | Thư mục lưu file | `data` |
 | `--no-json` | Không lưu JSON | `False` |
@@ -95,18 +96,18 @@ python main.py --all --start-year 2010
 ```
 data/
 ├── 2020/
-│   ├── event_us6000m0n6.json         # Chi tiết từng event
-│   ├── event_us6000m05c.json
+│   ├── event_6.3_us6000m0n6.json    # Format: event_<mag>_<id>.json
+│   ├── event_5.8_us6000m05c.json
 │   ├── ...
-│   └── earthquakes_2020_M6.0+.csv    # CSV riêng năm 2020
+│   └── earthquakes_2020_all.csv      # CSV riêng năm 2020 (hoặc _M6.0+.csv)
 ├── 2021/
 │   ├── event_*.json
-│   └── earthquakes_2021_M6.0+.csv
+│   └── earthquakes_2021_all.csv
 ├── 2022/
 │   └── ...
 ├── 2023/
 │   └── ...
-└── earthquakes_2020-2023_M6.0+.csv   # CSV tổng hợp tất cả năm
+└── earthquakes_2020-2023_all.csv      # CSV tổng hợp tất cả năm
 ```
 
 ## USGS API

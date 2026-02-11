@@ -9,6 +9,8 @@ Crawl dữ liệu động đất theo năm từ USGS Earthquake Hazards Program.
 - **Data Source**: [https://www.usgs.gov/programs/earthquake-hazards/science/earthquake-data](https://www.usgs.gov/programs/earthquake-hazards/science/earthquake-data)
 - **API Documentation**: [https://earthquake.usgs.gov/fdsnws/event/1/](https://earthquake.usgs.gov/fdsnws/event/1/)
 
+> **Lưu ý**: Mặc định crawler sẽ lấy **tất cả độ lớn**. Số lượng data có thể rất lớn (~16,000 events/năm với M≥4.0). Nên sử dụng `--min-mag` để giới hạn nếu cần.
+
 ## Dữ liệu đầu ra
 
 - **File JSON**: Chi tiết từng sự kiện (GeoJSON format)
@@ -41,17 +43,17 @@ pip install -r requirements.txt
 ### Crawl dữ liệu
 
 ```bash
-# Crawl 1 năm (tất cả độ lớn)
+# Crawl 1 năm (tất cả độ lớn - có thể rất nhiều data!)
 python main.py 2023
 
-# Crawl nhiều năm
+# Crawl nhiều năm (tất cả độ lớn)
 python main.py --start-year 2020 --end-year 2023
+
+# Crawl với giới hạn độ lớn (khuyên dùng)
+python main.py --start-year 2020 --end-year 2023 --min-mag 5.0
 
 # Crawl từ năm X đến hiện tại
 python main.py --all --start-year 2010
-
-# Kết hợp với độ lớn tối thiểu
-python main.py --start-year 2020 --end-year 2023 --min-mag 5.0
 
 # Test với giới hạn số lượng
 python main.py 2023 --limit 10
@@ -78,17 +80,20 @@ python main.py --start-year 2020 --end-year 2023 --no-json
 
 **Mode 1: Single year** - Crawl 1 năm
 ```bash
-python main.py 2023
+python main.py 2023              # Tất cả độ lớn
+python main.py 2023 --min-mag 5.0  # Chỉ M ≥ 5.0
 ```
 
 **Mode 2: Year range** - Crawl khoảng năm
 ```bash
-python main.py --start-year 2020 --end-year 2023
+python main.py --start-year 2020 --end-year 2023              # Tất cả độ lớn
+python main.py --start-year 2020 --end-year 2023 --min-mag 5.0  # Chỉ M ≥ 5.0
 ```
 
 **Mode 3: All years** - Crawl từ start-year đến hiện tại
 ```bash
-python main.py --all --start-year 2010
+python main.py --all --start-year 2010              # Tất cả độ lớn
+python main.py --all --start-year 2010 --min-mag 5.0  # Chỉ M ≥ 5.0
 ```
 
 ## Cấu trúc output

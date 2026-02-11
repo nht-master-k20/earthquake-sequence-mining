@@ -182,16 +182,11 @@ def crawl_year(year, min_mag, output_dir, save_json, delay, limit=None):
     Returns:
         DataFrame: Kết quả hoặc None
     """
-    # Tạo thư mục theo năm: data/2023/
-    year_dir = os.path.join(output_dir, str(year))
-    os.makedirs(year_dir, exist_ok=True)
-
     # Tạo chuỗi mô tả min_mag
     mag_str = f"M{min_mag}+" if min_mag is not None else "all"
     print(f"\n{'=' * 60}")
     print(f"CRAWLING YEAR: {year}")
     print(f"Min Magnitude: {mag_str}")
-    print(f"Output: {year_dir}/")
     print("=" * 60)
 
     # Lấy danh sách event IDs
@@ -200,6 +195,11 @@ def crawl_year(year, min_mag, output_dir, save_json, delay, limit=None):
     if df is None or len(df) == 0:
         print(f"✗ No events found for {year}!")
         return None
+
+    # Chỉ tạo thư mục khi có events
+    year_dir = os.path.join(output_dir, str(year))
+    os.makedirs(year_dir, exist_ok=True)
+    print(f"Output: {year_dir}/")
 
     print(f"\nEvent IDs:")
     print(df[['time', 'id', 'place', 'mag']].to_string(index=False))

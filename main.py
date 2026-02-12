@@ -32,8 +32,10 @@ def main():
         print("\nOptions:")
         print("  --min-mag float  Minimum magnitude (default: tất cả)")
         print("  --limit int      Limit number of events per year")
-        print("  --no-json        Don't save JSON files")
-        print("  --delay float    Delay between requests (default: 0.5s)")
+        print("\nDefault settings (không thể thay đổi):")
+        print("  --save-json      Always save JSON files")
+        print("  --delay          0.5s between requests")
+        print("  --max-retries    3 retries for network errors")
         print("\nJSON format: event_<mag>_<id>.json (e.g., event_6.3_us70006vkq.json)")
         return 1
 

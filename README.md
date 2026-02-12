@@ -1,26 +1,21 @@
-# PHẦN 1: CRAWL DỮ LIỆU ĐỘNG ĐẤT TỪ USGS
+# Earthquake Sequence Mining - Phase 1: Data Crawler
 
-> Đây là bước 1 trong đồ án: Thu thập dữ liệu động đất từ USGS API
+> Thu thập dữ liệu động đất từ USGS API
 
 ## Mục tiêu
 
 Crawl dữ liệu động đất theo năm từ USGS Earthquake Hazards Program.
 
-- **Data Source**: [https://www.usgs.gov/programs/earthquake-hazards/science/earthquake-data](https://www.usgs.gov/programs/earthquake-hazards/science/earthquake-data)
-- **API Documentation**: [https://earthquake.usgs.gov/fdsnws/event/1/](https://earthquake.usgs.gov/fdsnws/event/1/)
+- **Data Source**: [USGS Earthquake Data](https://www.usgs.gov/programs/earthquake-hazards/science/earthquake-data)
+- **API**: [USGS Earthquake API](https://earthquake.usgs.gov/fdsnws/event/1/)
 
-> **Lưu ý**: Mặc định crawler sẽ lấy **tất cả độ lớn**. Số lượng data có thể rất lớn (~16,000 events/năm với M≥4.0). Nên sử dụng `--min-mag` để giới hạn nếu cần.
+> **Lưu ý**: Mặc định crawler lấy **tất cả độ lớn**. Số lượng data rất lớn (~16,000 events/năm với M≥4.0). Nên dùng `--min-mag` để giới hạn.
 
 ## Dữ liệu đầu ra
 
-- **File JSON**: Chi tiết từng sự kiện (GeoJSON format)
+- **File JSON**: Chi tiết từng sự kiện (GeoJSON)
   - Format: `event_<mag>_<id>.json` (ví dụ: `event_6.3_us70006vkq.json`)
-- **File CSV**: Dữ liệu tổng hợp để xử lý tiếp
-
-## Môi trường
-
-- **OS**: Ubuntu 24.04.3 LTS
-- **Python**: 3.12
+- **File CSV**: Dữ liệu tổng hợp
 
 ## Cài đặt
 
@@ -36,14 +31,12 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-> **Lưu ý**: Có thể có lỗi phát sinh trong quá trình cài đặt thư viện do khác biệt môi trường.
-
 ## Sử dụng
 
 ### Crawl dữ liệu
 
 ```bash
-# Crawl 1 năm (tất cả độ lớn - có thể rất nhiều data!)
+# Crawl 1 năm (tất cả độ lớn)
 python main.py 2023
 
 # Crawl nhiều năm (tất cả độ lớn)
@@ -55,71 +48,67 @@ python main.py --start-year 2020 --end-year 2023 --min-mag 5.0
 # Crawl từ năm X đến hiện tại
 python main.py --all --start-year 2010
 
-# Test với giới hạn số lượng
+# Giới hạn số lượng (test)
 python main.py 2023 --limit 10
-
-# Không lưu JSON, chỉ CSV
-python main.py --start-year 2020 --end-year 2023 --no-json
 ```
 
 ### Tham số
 
-| Tham số | Mô tả | Mặc định |
+| Tham số | Mặc định | Mô tả |
 |---------|-------|----------|
-| `year` | Năm cần crawl (single year) | *(tùy chọn)* |
-| `--start-year` | Năm bắt đầu | `None` |
-| `--end-year` | Năm kết thúc | `None` |
-| `--all` | Crawl đến năm hiện tại | `False` |
-| `--min-mag` | Độ lớn tối thiểu (không có = tất cả) | `None` |
-| `--limit` | Giới hạn số lượng mỗi năm | Không giới hạn |
-| `--output-dir` | Thư mục lưu file | `data` |
-| `--no-json` | Không lưu JSON | `False` |
-| `--delay` | Delay giữa requests (giây) | `0.5` |
+| `year` | - | Năm cần crawl (single year) |
+| `--start-year` | `None` | Năm bắt đầu |
+| `--end-year` | `None` | Năm kết thúc |
+| `--all` | `False` | Crawl đến năm hiện tại |
+| `--min-mag` | `None` | Độ lớn tối thiểu (None = tất cả) |
+| `--limit` | Không giới hạn | Giới hạn số lượng mỗi năm |
+| `--output-dir` | `data` | Thư mục lưu file |
 
-### Chế độ hoạt động
+**Tham số ẩn (set cố định):**
+- `--save-json`: `True` (luôn lưu JSON)
+- `--delay`: `0.5s` (delay giữa requests)
+- `--max-retries`: `3` (số lần retry khi lỗi mạng)
 
-**Mode 1: Single year** - Crawl 1 năm
+### Crawl lại các event bị fail
+
 ```bash
-python main.py 2023              # Tất cả độ lớn
-python main.py 2023 --min-mag 5.0  # Chỉ M ≥ 5.0
+python retry_failed_events.py <năm> <event_id1> <event_id2> ...
 ```
 
-**Mode 2: Year range** - Crawl khoảng năm
+**Ví dụ:**
 ```bash
-python main.py --start-year 2020 --end-year 2023              # Tất cả độ lớn
-python main.py --start-year 2020 --end-year 2023 --min-mag 5.0  # Chỉ M ≥ 5.0
+python retry_failed_events.py 1969 iscgem811607 uw10835138 iscgem811616 hv19690506 hv19690507 iscgemsup811630
 ```
 
-**Mode 3: All years** - Crawl từ start-year đến hiện tại
-```bash
-python main.py --all --start-year 2010              # Tất cả độ lớn
-python main.py --all --start-year 2010 --min-mag 5.0  # Chỉ M ≥ 5.0
-```
+**Tính năng:**
+- Retry tối đa 5 lần với exponential backoff
+- Lưu file JSON vào thư mục năm chỉ định
 
 ## Cấu trúc output
 
 ```
 data/
-├── 2020/
-│   ├── event_6.3_us6000m0n6.json    # Format: event_<mag>_<id>.json
-│   ├── event_5.8_us6000m05c.json
-│   ├── ...
-│   └── earthquakes_2020_all.csv      # CSV riêng năm 2020 (hoặc _M6.0+.csv)
-├── 2021/
-│   ├── event_*.json
-│   └── earthquakes_2021_all.csv
-├── 2022/
+├── 1969/
+│   ├── event_5.4_iscgem811607.json
+│   ├── event_6.8_iscgem811616.json
+│   └── earthquakes_1969_all.csv
+├── 1970/
 │   └── ...
-├── 2023/
-│   └── ...
-└── earthquakes_2020-2023_all.csv      # CSV tổng hợp tất cả năm
+└── earthquakes_1969-1970_all.csv
 ```
+
+**Lưu ý:** Thư mục năm chỉ được tạo khi có data.
+
+## Retry logic
+
+Khi gặp lỗi mạng (DNS, timeout, connection), crawler **tự động retry** với exponential backoff:
+- Retry 1: chờ 2s
+- Retry 2: chờ 4s
+- Retry 3: chờ 8s
 
 ## USGS API
 
 **Endpoint:** `https://earthquake.usgs.gov/fdsnws/event/1/query`
-
-### Tham số API
 
 | Tham số | Mô tả | Ví dụ |
 |---------|-------|-------|
@@ -129,22 +118,13 @@ data/
 | `minmagnitude` | Độ lớn tối thiểu | `6.0` |
 | `eventid` | ID cụ thể | `us6000m0n6` |
 
-### Ví dụ
-
-```bash
-# Query theo event ID
-curl "https://earthquake.usgs.gov/fdsnws/event/1/query?eventid=us6000m0n6&format=geojson"
-
-# Query theo năm, độ lớn
-curl "https://earthquake.usgs.gov/fdsnws/event/1/query?format=csv&starttime=2023-01-01&endtime=2023-12-31&minmagnitude=6.0"
-```
-
 ## File
 
 | File | Mô tả |
 |------|-------|
 | `main.py` | Entry point |
 | `usgs_crawl.py` | Script crawl chính |
+| `retry_failed_events.py` | Script crawl lại các event bị fail |
 | `usgs_crawl.ipynb` | Notebook development |
 | `requirements.txt` | Danh sách thư viện |
 

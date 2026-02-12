@@ -17,78 +17,104 @@ import requests
 import pandas as pd
 from io import StringIO
 from datetime import datetime
+from requests.exceptions import RequestException, ConnectionError, Timeout
 
 
-def crawl_event(event_id, output_dir="data", save_json=True):
+def crawl_event(event_id, output_dir="data"):
     """
     Crawl chi tiết event bằng USGS API
 
     Args:
         event_id: ID của sự kiện (ví dụ: us6000s4z9)
         output_dir: Thư mục lưu file
-        save_json: Có lưu file JSON không
 
     Returns:
         dict: Thông tin event hoặc None nếu lỗi
     """
+    # Default values
+    save_json = True
+    max_retries = 3
     url = "https://earthquake.usgs.gov/fdsnws/event/1/query"
 
-    try:
-        params = {"eventid": event_id, "format": "geojson"}
-        r = requests.get(url, params=params, timeout=30)
+    # Retry logic cho lỗi mạng
+    for attempt in range(max_retries):
+        try:
+            params = {"eventid": event_id, "format": "geojson"}
+            r = requests.get(url, params=params, timeout=30)
 
-        if r.status_code != 200:
-            print(f"  ✗ HTTP {r.status_code}")
+            if r.status_code != 200:
+                print(f"  ✗ HTTP {r.status_code}")
+                return None
+
+            data = r.json()
+
+            # Xử lý 2 format response khác nhau
+            if "features" in data and data["features"]:
+                feature = data["features"][0]
+            elif data.get("type") == "Feature":
+                feature = data
+            else:
+                print(f"  ✗ Not found: {event_id}")
+                return None
+
+            props = feature["properties"]
+            coords = feature["geometry"]["coordinates"]
+
+            result = {
+                "id": props.get("id"),
+                "time": pd.to_datetime(props.get("time", 0), unit="ms"),
+                "place": props.get("place"),
+                "mag": props.get("mag"),
+                "depth": coords[2],
+                "lat": coords[1],
+                "lon": coords[0],
+                "felt": props.get("felt"),
+                "cdi": props.get("cdi"),
+                "mmi": props.get("mmi"),
+                "alert": props.get("alert"),
+                "tsunami": props.get("tsunami"),
+                "sig": props.get("sig"),
+                "url": props.get("url")
+            }
+
+            print(f"  ✓ {result['place']} - M{result['mag']}")
+
+            # Lưu JSON nếu được yêu cầu
+            # Format: event_<mag>_<id>.json (ví dụ: event_6.3_us70006vkq.json)
+            if save_json:
+                mag = result.get('mag', 'unknown')
+                mag_str = f"{mag:.1f}" if mag is not None else "unknown"
+                json_filename = f"event_{mag_str}_{result['id']}.json"
+                json_path = os.path.join(output_dir, json_filename)
+                with open(json_path, 'w', encoding='utf-8') as f:
+                    json.dump(data, f, indent=2, ensure_ascii=False)
+
+            return result
+
+        except (ConnectionError, Timeout) as e:
+            # Lỗi mạng/timeout - retry với exponential backoff
+            if attempt < max_retries - 1:
+                wait_time = 2 ** attempt  # 2s, 4s, 8s...
+                print(f"  ⏳ Retry {attempt + 1}/{max_retries} after {wait_time}s (network error)")
+                time.sleep(wait_time)
+            else:
+                print(f"  ✗ Failed after {max_retries} retries: {e}")
+                return None
+
+        except RequestException as e:
+            # Lỗi request khác (DNS, etc.)
+            if attempt < max_retries - 1:
+                wait_time = 2 ** attempt
+                print(f"  ⏳ Retry {attempt + 1}/{max_retries} after {wait_time}s (request error)")
+                time.sleep(wait_time)
+            else:
+                print(f"  ✗ Failed after {max_retries} retries: {e}")
+                return None
+
+        except Exception as e:
+            # Lỗi khác không retry
+            print(f"  ✗ Error: {e}")
             return None
-
-        data = r.json()
-
-        # Xử lý 2 format response khác nhau
-        if "features" in data and data["features"]:
-            feature = data["features"][0]
-        elif data.get("type") == "Feature":
-            feature = data
-        else:
-            print(f"  ✗ Not found: {event_id}")
-            return None
-
-        props = feature["properties"]
-        coords = feature["geometry"]["coordinates"]
-
-        result = {
-            "id": props.get("id"),
-            "time": pd.to_datetime(props.get("time", 0), unit="ms"),
-            "place": props.get("place"),
-            "mag": props.get("mag"),
-            "depth": coords[2],
-            "lat": coords[1],
-            "lon": coords[0],
-            "felt": props.get("felt"),
-            "cdi": props.get("cdi"),
-            "mmi": props.get("mmi"),
-            "alert": props.get("alert"),
-            "tsunami": props.get("tsunami"),
-            "sig": props.get("sig"),
-            "url": props.get("url")
-        }
-
-        print(f"  ✓ {result['place']} - M{result['mag']}")
-
-        # Lưu JSON nếu được yêu cầu
-        # Format: event_<mag>_<id>.json (ví dụ: event_6.3_us70006vkq.json)
-        if save_json:
-            mag = result.get('mag', 'unknown')
-            mag_str = f"{mag:.1f}" if mag is not None else "unknown"
-            json_filename = f"event_{mag_str}_{result['id']}.json"
-            json_path = os.path.join(output_dir, json_filename)
-            with open(json_path, 'w', encoding='utf-8') as f:
-                json.dump(data, f, indent=2, ensure_ascii=False)
-
-        return result
-
-    except Exception as e:
-        print(f"  ✗ Error: {e}")
-        return None
 
 
 def get_event_ids(year, min_magnitude=None, limit=None):
@@ -137,25 +163,27 @@ def get_event_ids(year, min_magnitude=None, limit=None):
         return None
 
 
-def crawl_multiple_events(event_ids, output_dir="data", save_json=True, delay=0.5):
+def crawl_multiple_events(event_ids, output_dir="data"):
     """
     Crawl nhiều event IDs
 
     Args:
         event_ids: List các event ID
         output_dir: Thư mục lưu file
-        save_json: Có lưu tất cả JSON không
-        delay: Delay giữa các requests (giây)
 
     Returns:
         list: Danh sách kết quả
     """
+    # Default values
+    save_json = True
+    delay = 0.5
+    max_retries = 3
     results = []
     total = len(event_ids)
 
     for i, event_id in enumerate(event_ids, 1):
         print(f"[{i}/{total}] {event_id}", end=" ")
-        result = crawl_event(event_id, output_dir=output_dir, save_json=save_json)
+        result = crawl_event(event_id, output_dir=output_dir, save_json=save_json, max_retries=max_retries)
 
         if result:
             results.append(result)
@@ -167,7 +195,7 @@ def crawl_multiple_events(event_ids, output_dir="data", save_json=True, delay=0.
     return results
 
 
-def crawl_year(year, min_mag, output_dir, save_json, delay, limit=None):
+def crawl_year(year, min_mag, output_dir, limit=None):
     """
     Crawl dữ liệu cho một năm
 
@@ -175,13 +203,15 @@ def crawl_year(year, min_mag, output_dir, save_json, delay, limit=None):
         year: Năm cần crawl
         min_mag: Độ lớn tối thiểu (None = tất cả)
         output_dir: Thư mục output gốc
-        save_json: Có lưu JSON không
-        delay: Delay giữa requests
         limit: Giới hạn số lượng events
 
     Returns:
         DataFrame: Kết quả hoặc None
     """
+    # Default values (không còn tham số CLI)
+    save_json = True
+    delay = 0.5
+    max_retries = 3
     # Tạo chuỗi mô tả min_mag
     mag_str = f"M{min_mag}+" if min_mag is not None else "all"
     print(f"\n{'=' * 60}")
@@ -213,7 +243,8 @@ def crawl_year(year, min_mag, output_dir, save_json, delay, limit=None):
         df['id'].tolist(),
         output_dir=year_dir,  # Lưu vào thư mục năm
         save_json=save_json,
-        delay=delay
+        delay=delay,
+        max_retries=max_retries
     )
 
     # Báo cáo kết quả
@@ -257,7 +288,6 @@ Examples:
 
   # Tùy chọn khác
   python usgs_crawl.py --start-year 2020 --end-year 2023 --min-mag 6.5 --limit 50
-  python usgs_crawl.py 2023 --no-json --delay 1.0
         """
     )
 
@@ -274,10 +304,6 @@ Examples:
                         help="Giới hạn số lượng events mỗi năm (default: không giới hạn)")
     parser.add_argument("--output-dir", type=str, default="data",
                         help="Thư mục lưu file (default: data)")
-    parser.add_argument("--no-json", action="store_true",
-                        help="Không lưu file JSON cho từng event")
-    parser.add_argument("--delay", type=float, default=0.5,
-                        help="Delay giữa requests (giây, default: 0.5)")
 
     args = parser.parse_args()
 
@@ -323,7 +349,6 @@ Examples:
     print(f"Min Magnitude: {mag_display}")
     print(f"Limit: {args.limit if args.limit else 'No limit'}")
     print(f"Output: {args.output_dir}/{{year}}/")
-    print(f"Save JSON: {not args.no_json}")
     print(f"JSON format: event_<mag>_<id>.json")
     print("=" * 60)
 
@@ -335,9 +360,10 @@ Examples:
             year=year,
             min_mag=args.min_mag,
             output_dir=args.output_dir,
-            save_json=not args.no_json,
-            delay=args.delay,
-            limit=args.limit
+            save_json=True,  # Luôn lưu JSON
+            delay=0.5,      # Default
+            limit=args.limit,
+            max_retries=3    # Default
         )
 
         if df is not None:

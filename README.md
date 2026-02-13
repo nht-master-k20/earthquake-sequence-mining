@@ -15,7 +15,7 @@ Crawl dữ liệu động đất theo năm từ USGS Earthquake Hazards Program.
 
 - **File JSON**: Chi tiết từng sự kiện (GeoJSON format)
   - Format: `event_<mag>_<id>.json` (ví dụ: `event_6.3_us70006vkq.json`)
-  - **File CSV**: Dữ liệu tổng hợp
+- **File CSV**: Dữ liệu tổng hợp
 
 ## Môi trường
 
@@ -67,9 +67,6 @@ python main.py --all --start-year 2010
 | `--min-mag` | `None` | Độ lớn tối thiểu (None = tất cả) |
 | `--limit` | Không giới hạn | Giới hạn số lượng mỗi năm |
 | `--output-dir` | `data` | Thư mục lưu file |
-| `--no-json` | `False` | Không lưu JSON |
-| `--delay` | `0.5` | Delay giữa requests (giây) |
-| `--max-retries` | `3` | Số lần retry khi lỗi mạng |
 
 ### Chế độ hoạt động
 
@@ -91,14 +88,46 @@ python main.py --all --start-year 2010              # Tất cả độ lớn
 python main.py --all --start-year 2010 --min-mag 5.0  # Chỉ M ≥ 5.0
 ```
 
+### Kiểm tra event thiếu JSON
+
+```bash
+# Kiểm tra tất cả các năm
+python check_missing_events.py --all
+
+# Kiểm tra 1 năm
+python check_missing_events.py 1900
+
+# Kiểm tra nhiều năm
+python check_missing_events.py 1900 1910 1920
+```
+
+**Output format:**
+```
+year: csv=<số dòng CSV>, json=<số file JSON>, missing=<số thiếu>
+year: event_id_1
+year: event_id_2
+...
+```
+
 ### Crawl lại các event bị fail
 
 ```bash
-python check_missing_events.py 1969 iscgem811607 uw10835138 iscgem811616 hv19690506 hv19690507 iscgemsup811630
+# Retry specific events
+python retry_failed_events.py <year_dir> <event_id1> <event_id2> ...
+
+# Ví dụ:
+python retry_failed_events.py data/1969 iscgem811607 uw10835138 iscgem811616
 ```
 
-**Ví dụ:**
-```bash
-python check_missing_events.py 1900
-python check_missing_events.py 1900 1950  # Kiểm tra khoảng năm
+## Cấu trúc thư mục
+
+```
+data/
+├── 1900/
+│   ├── earthquakes_1900_all.csv
+│   ├── event_7.0_cent19000105190000000.json
+│   └── ...
+├── 1901/
+│   └── ...
+└── earthquakes_1900-1962_all.csv  (file tổng hợp)
 ```

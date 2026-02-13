@@ -84,7 +84,9 @@ def crawl_event(event_id, output_dir="data"):
             if save_json:
                 mag = result.get('mag', 'unknown')
                 mag_str = f"{mag:.1f}" if mag is not None else "unknown"
-                json_filename = f"event_{mag_str}_{result['id']}.json"
+                # Dùng event_id tham số thay vì result['id'] có thể None
+                event_id_for_filename = result.get('id') or event_id
+                json_filename = f"event_{mag_str}_{event_id_for_filename}.json"
                 json_path = os.path.join(output_dir, json_filename)
                 with open(json_path, 'w', encoding='utf-8') as f:
                     json.dump(data, f, indent=2, ensure_ascii=False)
@@ -183,7 +185,7 @@ def crawl_multiple_events(event_ids, output_dir="data"):
 
     for i, event_id in enumerate(event_ids, 1):
         print(f"[{i}/{total}] {event_id}", end=" ")
-        result = crawl_event(event_id, output_dir=output_dir, save_json=save_json, max_retries=max_retries)
+        result = crawl_event(event_id, output_dir=output_dir)
 
         if result:
             results.append(result)
@@ -241,10 +243,7 @@ def crawl_year(year, min_mag, output_dir, limit=None):
 
     all_results = crawl_multiple_events(
         df['id'].tolist(),
-        output_dir=year_dir,  # Lưu vào thư mục năm
-        save_json=save_json,
-        delay=delay,
-        max_retries=max_retries
+        output_dir=year_dir  # Lưu vào thư mục năm
     )
 
     # Báo cáo kết quả
@@ -360,10 +359,7 @@ Examples:
             year=year,
             min_mag=args.min_mag,
             output_dir=args.output_dir,
-            save_json=True,  # Luôn lưu JSON
-            delay=0.5,      # Default
-            limit=args.limit,
-            max_retries=3    # Default
+            limit=args.limit
         )
 
         if df is not None:

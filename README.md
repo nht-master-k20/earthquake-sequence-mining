@@ -9,13 +9,18 @@ Crawl dữ liệu động đất theo năm từ USGS Earthquake Hazards Program.
 - **Data Source**: [USGS Earthquake Data](https://www.usgs.gov/programs/earthquake-hazards/science/earthquake-data)
 - **API**: [USGS Earthquake API](https://earthquake.usgs.gov/fdsnws/event/1/)
 
-> **Lưu ý**: Mặc định crawler lấy **tất cả độ lớn**. Số lượng data rất lớn (~16,000 events/năm với M≥4.0). Nên dùng `--min-mag` để giới hạn.
+> **Lưu ý**: Mặc định crawler sẽ lấy **tất cả độ lớn**. Số lượng data có thể rất lớn (~16,000 events/năm với M≥4.0). Nên dùng `--min-mag` để giới hạn nếu cần.
 
 ## Dữ liệu đầu ra
 
-- **File JSON**: Chi tiết từng sự kiện (GeoJSON)
+- **File JSON**: Chi tiết từng sự kiện (GeoJSON format)
   - Format: `event_<mag>_<id>.json` (ví dụ: `event_6.3_us70006vkq.json`)
-- **File CSV**: Dữ liệu tổng hợp
+  - **File CSV**: Dữ liệu tổng hợp
+
+## Môi trường
+
+- **OS**: Ubuntu 24.04.3 LTS
+- **Python**: 3.12
 
 ## Cài đặt
 
@@ -31,30 +36,29 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+> **Lưu ý**: Có thể có lỗi phát sinh trong quá trình cài đặt thư viện do khác biệt môi trường.
+
 ## Sử dụng
 
 ### Crawl dữ liệu
 
 ```bash
-# Crawl 1 năm (tất cả độ lớn)
+# Crawl 1 năm
 python main.py 2023
 
-# Crawl nhiều năm (tất cả độ lớn)
+# Crawl nhiều năm
 python main.py --start-year 2020 --end-year 2023
 
 # Crawl với giới hạn độ lớn (khuyên dùng)
-python main.py --start-year 2020 --end-year 2023 --min-mag 5.0
+python main.py --start-year 2020 --end-year 2023 --min-mag 6.5
 
-# Crawl từ năm X đến hiện tại
+# Crawl tất cả các năm
 python main.py --all --start-year 2010
-
-# Giới hạn số lượng (test)
-python main.py 2023 --limit 10
 ```
 
 ### Tham số
 
-| Tham số | Mặc định | Mô tả |
+| Tham số | Mô tả | Mặc định |
 |---------|-------|----------|
 | `year` | - | Năm cần crawl (single year) |
 | `--start-year` | `None` | Năm bắt đầu |
@@ -63,72 +67,38 @@ python main.py 2023 --limit 10
 | `--min-mag` | `None` | Độ lớn tối thiểu (None = tất cả) |
 | `--limit` | Không giới hạn | Giới hạn số lượng mỗi năm |
 | `--output-dir` | `data` | Thư mục lưu file |
+| `--no-json` | `False` | Không lưu JSON |
+| `--delay` | `0.5` | Delay giữa requests (giây) |
+| `--max-retries` | `3` | Số lần retry khi lỗi mạng |
 
-**Tham số ẩn (set cố định):**
-- `--save-json`: `True` (luôn lưu JSON)
-- `--delay`: `0.5s` (delay giữa requests)
-- `--max-retries`: `3` (số lần retry khi lỗi mạng)
+### Chế độ hoạt động
+
+**Mode 1: Single year** - Crawl 1 năm
+```bash
+python main.py 2023              # Tất cả độ lớn
+python main.py 2023 --min-mag 5.0  # Chỉ M ≥ 5.0
+```
+
+**Mode 2: Year range** - Crawl khoảng năm
+```bash
+python main.py --start-year 2020 --end-year 2023              # Tất cả độ lớn
+python main.py --start-year 2020 --end-year 2023 --min-mag 5.0  # Chỉ M ≥ 5.0
+```
+
+**Mode 3: All years** - Crawl từ start-year đến hiện tại
+```bash
+python main.py --all --start-year 2010              # Tất cả độ lớn
+python main.py --all --start-year 2010 --min-mag 5.0  # Chỉ M ≥ 5.0
+```
 
 ### Crawl lại các event bị fail
 
 ```bash
-python retry_failed_events.py <năm> <event_id1> <event_id2> ...
+python check_missing_events.py 1969 iscgem811607 uw10835138 iscgem811616 hv19690506 hv19690507 iscgemsup811630
 ```
 
 **Ví dụ:**
 ```bash
-python retry_failed_events.py 1969 iscgem811607 uw10835138 iscgem811616 hv19690506 hv19690507 iscgemsup811630
+python check_missing_events.py 1900
+python check_missing_events.py 1900 1950  # Kiểm tra khoảng năm
 ```
-
-**Tính năng:**
-- Retry tối đa 5 lần với exponential backoff
-- Lưu file JSON vào thư mục năm chỉ định
-
-## Cấu trúc output
-
-```
-data/
-├── 1969/
-│   ├── event_5.4_iscgem811607.json
-│   ├── event_6.8_iscgem811616.json
-│   └── earthquakes_1969_all.csv
-├── 1970/
-│   └── ...
-└── earthquakes_1969-1970_all.csv
-```
-
-**Lưu ý:** Thư mục năm chỉ được tạo khi có data.
-
-## Retry logic
-
-Khi gặp lỗi mạng (DNS, timeout, connection), crawler **tự động retry** với exponential backoff:
-- Retry 1: chờ 2s
-- Retry 2: chờ 4s
-- Retry 3: chờ 8s
-
-## USGS API
-
-**Endpoint:** `https://earthquake.usgs.gov/fdsnws/event/1/query`
-
-| Tham số | Mô tả | Ví dụ |
-|---------|-------|-------|
-| `format` | `geojson`, `csv`, `text` | `geojson` |
-| `starttime` | Thời gian bắt đầu | `2023-01-01` |
-| `endtime` | Thời gian kết thúc | `2023-12-31` |
-| `minmagnitude` | Độ lớn tối thiểu | `6.0` |
-| `eventid` | ID cụ thể | `us6000m0n6` |
-
-## File
-
-| File | Mô tả |
-|------|-------|
-| `main.py` | Entry point |
-| `usgs_crawl.py` | Script crawl chính |
-| `retry_failed_events.py` | Script crawl lại các event bị fail |
-| `usgs_crawl.ipynb` | Notebook development |
-| `requirements.txt` | Danh sách thư viện |
-
-## Tài liệu
-
-- [USGS Earthquake API](https://earthquake.usgs.gov/fdsnws/event/1/)
-- [GeoJSON Spec](https://geojson.org/)

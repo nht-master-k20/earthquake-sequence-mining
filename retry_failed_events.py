@@ -4,6 +4,7 @@ Crawl lại các event bị fail từ danh sách ID
 """
 
 import sys
+import os
 import time
 import json
 import argparse
@@ -139,5 +140,4 @@ def main():
 
 
 if __name__ == "__main__":
-    import os
     main()

@@ -19,6 +19,9 @@
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
+        .chart-container {
+            height: 500px;
+        }
         .stats-card {
             text-align: center;
             transition: transform 0.3s;
@@ -61,44 +64,36 @@
 
                 <!-- Summary Stats -->
                 <div class="row mb-4" id="statsSection">
-                    <div class="col-md-3 col-sm-6">
-                        <div class="card text-center stats-card">
-                            <div class="card-body">
-                                <h3 class="text-primary" id="statTotalEvents">0</h3>
-                                <p class="text-muted mb-0">Total Events</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-sm-6">
-                        <div class="card text-center stats-card">
-                            <div class="card-body">
-                                <h3 class="text-success" id="statAvgMagnitude">0</h3>
-                                <p class="text-muted mb-0">Avg Magnitude</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-sm-6">
-                        <div class="card text-center stats-card">
-                            <div class="card-body">
-                                <h3 class="text-info" id="statAvgDepth">0</h3>
-                                <p class="text-muted mb-0">Avg Depth (km)</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-sm-6">
-                        <div class="card text-center stats-card">
-                            <div class="card-body">
-                                <h3 class="text-warning" id="statMaxMagnitude">0</h3>
-                                <p class="text-muted mb-0">Max Magnitude</p>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- Stats will be dynamically loaded here -->
                 </div>
 
                 <!-- DataTable -->
                 <div class="row">
                     <div class="col-12">
-                        <div id="mainTable" style="height: 600px;"></div>
+                        <table id="dataTable" class="table table-striped table-hover">
+                            <thead class="table-dark position-sticky top-0">
+                                <tr>
+                                                <th>Time</th>
+                                                <th>Place</th>
+                                                <th>Magnitude</th>
+                                                <th>Depth (km)</th>
+                                                <th>Latitude</th>
+                                                <th>Longitude</th>
+                                                <th>Location</th>
+                                                <th>Year</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tableBody">
+                                            <tr>
+                                                <td colspan="9" class="text-center">
+                                                    <div class="spinner-border text-primary" role="status">
+                                                        <span class="visually-hidden">Loading data...</span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -131,7 +126,7 @@
 
         function populateYearSelector() {
             const yearSelect = $('#yearSelect');
-            if (!earthquakeData || !earthquakeData.data) {
+            if (!earthquakeData || !earthquakeData.data.years) {
                 yearSelect.prop('disabled', true);
                 return;
             }
@@ -150,41 +145,38 @@
             } else {
                 // Flatten all events
                 for (let yr in earthquakeData.data.years) {
-                    if (earthquakeData.data.data[yr]) {
-                        data = data.concat(earthquakeData.data.data[yr]);
-                    }
+                    data = data.concat(earthquakeData.data.data[yr]);
                 }
                 $('#currentYearLabel').text(' (All Years)');
             }
 
-            // Sort by time descending
-            data.sort((a, b) => {
-                const timeA = a.time ? a.time : '';
-                const timeB = b.time ? b.time : '';
-                return timeB.localeCompare(timeA);
-            });
+            // Sort by time
+            data.sort((a, b) => a.time.localeCompare(b.time));
 
-            // Initialize DataTable
+            // Destroy existing DataTable
             if ($.fn.DataTable.isDataTable('#dataTable')) {
                 $('#dataTable').DataTable().destroy();
             }
 
-            dataTable = $('#mainTable').DataTable({
-                data: data,
+            // Initialize DataTable with filtered data
+            dataTable = $('#dataTable').DataTable({
+                data: data.map(d => [
+                    d.time || '',
+                    d.place || 'Unknown',
+                    d.mag || 0,
+                    d.depth || 0,
+                    d.lat || 0,
+                    d.lon || 0,
+                    d.year || ''
+                ]),
                 columns: [
-                    { data: 'time', title: 'Time' },
-                    { data: 'place', title: 'Place' },
-                    { data: 'mag', title: 'Magnitude', className: 'dt-body-center' },
-                    { data: 'depth', title: 'Depth (km)', className: 'dt-body-center', render: function(data, type, row) {
-                        return data ? data.toFixed(1) : '';
-                    }},
-                    { data: 'lat', title: 'Latitude', className: 'dt-body-center', render: function(data, type, row) {
-                        return data ? data.toFixed(2) : '';
-                    }},
-                    { data: 'lon', title: 'Longitude', className: 'dt-body-center', render: function(data, type, row) {
-                        return data ? data.toFixed(2) : '';
-                    }},
-                    { data: 'year', title: 'Year', visible: false }
+                    {data: 'time', title: 'Time'},
+                    {data: 'place', title: 'Place'},
+                    {data: 'mag', title: 'Magnitude'},
+                    {data: 'depth', title: 'Depth (km)'},
+                    {data: 'lat', title: 'Latitude'},
+                    {data: 'lon', title: 'Longitude'},
+                    {data: 'year', title: 'Year', visible: false}
                 ],
                 pageLength: 25,
                 lengthMenu: [[10, 25, 50, 100, -1]],
@@ -192,15 +184,7 @@
                 dom: 'Bfrtip',
                 responsive: true,
                 language: {
-                    search: '_INPUT_',
-                    paginate: {
-                        previous: 'Trước',
-                        next: 'Sau'
-                    },
-                    aria: {
-                        sortAscending: ': sắp xếp tăng dần',
-                        sortDescending: ': sắp xếp giảm dần',
-                    }
+                    search: '_INPUT_'
                 }
             });
         }
@@ -215,6 +199,12 @@
             $('#statAvgMagnitude').text(stats.avg_mag);
             $('#statAvgDepth').text(stats.avg_depth + ' km');
             $('#statMaxMagnitude').text(stats.max_mag);
+        }
+
+        function initDataTable() {
+            if ($.fn.DataTable.isDataTable('#dataTable')) {
+                $('#dataTable').DataTable().destroy();
+            }
         }
 
         // Year change handler

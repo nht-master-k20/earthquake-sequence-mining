@@ -54,6 +54,9 @@ python main.py --start-year 2020 --end-year 2023
 # Crawl với giới hạn độ lớn (khuyên dùng)
 python main.py --start-year 2020 --end-year 2023 --min-mag 6.5
 
+# Crawl với khoảng độ lớn (ví dụ: chỉ M 5.0 - 6.5)
+python main.py --start-year 2020 --end-year 2023 --min-mag 5.0 --max-mag 6.5
+
 # Crawl tất cả các năm
 python main.py --all --start-year 2010
 ```

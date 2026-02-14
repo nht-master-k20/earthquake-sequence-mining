@@ -44,19 +44,19 @@ pip install -r requirements.txt
 
 ```bash
 # Crawl 1 năm
-python main.py 2023
+python usgs_crawl.py 2023
 
 # Crawl nhiều năm
-python main.py --start-year 2020 --end-year 2023
+python usgs_crawl.py --start-year 2020 --end-year 2023
 
 # Crawl với độ lớn tối thiểu
-python main.py --start-year 2020 --end-year 2023 --min-mag 5.0
+python usgs_crawl.py --start-year 2020 --end-year 2023 --min-mag 5.0
 
 # Crawl với khoảng độ lớn
-python main.py --start-year 2020 --end-year 2023 --min-mag 5.0 --max-mag 6.5
+python usgs_crawl.py --start-year 2020 --end-year 2023 --min-mag 5.0 --max-mag 6.5
 
 # Crawl tất cả các năm
-python main.py --all --start-year 2010
+python usgs_crawl.py --all --start-year 2010
 ```
 
 | Tham số | Mô tả |

@@ -42,6 +42,8 @@ pip install -r requirements.txt
 
 ### Crawl dữ liệu
 
+> **Lưu ý**: Crawler sẽ tự động skip các event đã có file JSON (không crawl lại).
+
 ```bash
 # Crawl 1 năm
 python main.py 2023

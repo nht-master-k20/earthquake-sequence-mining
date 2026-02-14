@@ -19,8 +19,17 @@
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
-        .chart-container {
-            height: 500px;
+        .stats-card {
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+        .mag-badge {
+            font-size: 0.9em;
+            padding: 4px 8px;
+            border-radius: 20px;
         }
     </style>
 </head>
@@ -39,6 +48,16 @@
                 <h1 class="card-title text-center mb-5">
                     <i class="bi bi-table-fill text-primary"></i> Earthquake Events Data
                 </h1>
+
+                <!-- Year Selector -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <label class="form-label">Select Year:</label>
+                        <select id="yearSelect" class="form-select form-select-lg">
+                            <option value="">-- All Years --</option>
+                        </select>
+                    </div>
+                </div>
 
                 <!-- Summary Stats -->
                 <div class="row mb-4" id="statsSection">
@@ -77,7 +96,7 @@
                 </div>
 
                 <!-- DataTable -->
-                <div class="row mt-4">
+                <div class="row">
                     <div class="col-12">
                         <div id="mainTable" style="height: 600px;"></div>
                     </div>
@@ -97,10 +116,11 @@
         });
 
         function initPage() {
-            if (!earthquakeData || !earthquakeData.data) {
-                $('#mainTable').html('<div class="alert alert-warning">No data found. Run: python generate_web_data.py</div>');
-                return;
-            }
+            // Populate year selector
+            populateYearSelector();
+
+            // Load all data by default
+            loadTable('');
 
             // Load stats
             loadStats();
@@ -109,8 +129,84 @@
             initDataTable();
         }
 
+        function populateYearSelector() {
+            const yearSelect = $('#yearSelect');
+            if (!earthquakeData || !earthquakeData.data) {
+                yearSelect.prop('disabled', true);
+                return;
+            }
+
+            earthquakeData.years.sort().forEach(year => {
+                yearSelect.append(`<option value="${year}">${year}</option>`);
+            });
+            yearSelect.prop('disabled', false);
+        }
+
+        function loadTable(year) {
+            let data = [];
+            if (year && earthquakeData.data.data[year]) {
+                data = earthquakeData.data.data[year];
+                $('#currentYearLabel').text(`- ${year}`);
+            } else {
+                // Flatten all events
+                for (let yr in earthquakeData.data.years) {
+                    if (earthquakeData.data.data[yr]) {
+                        data = data.concat(earthquakeData.data.data[yr]);
+                    }
+                }
+                $('#currentYearLabel').text(' (All Years)');
+            }
+
+            // Sort by time descending
+            data.sort((a, b) => {
+                const timeA = a.time ? a.time : '';
+                const timeB = b.time ? b.time : '';
+                return timeB.localeCompare(timeA);
+            });
+
+            // Initialize DataTable
+            if ($.fn.DataTable.isDataTable('#dataTable')) {
+                $('#dataTable').DataTable().destroy();
+            }
+
+            dataTable = $('#mainTable').DataTable({
+                data: data,
+                columns: [
+                    { data: 'time', title: 'Time' },
+                    { data: 'place', title: 'Place' },
+                    { data: 'mag', title: 'Magnitude', className: 'dt-body-center' },
+                    { data: 'depth', title: 'Depth (km)', className: 'dt-body-center', render: function(data, type, row) {
+                        return data ? data.toFixed(1) : '';
+                    }},
+                    { data: 'lat', title: 'Latitude', className: 'dt-body-center', render: function(data, type, row) {
+                        return data ? data.toFixed(2) : '';
+                    }},
+                    { data: 'lon', title: 'Longitude', className: 'dt-body-center', render: function(data, type, row) {
+                        return data ? data.toFixed(2) : '';
+                    }},
+                    { data: 'year', title: 'Year', visible: false }
+                ],
+                pageLength: 25,
+                lengthMenu: [[10, 25, 50, 100, -1]],
+                order: [[0, 'desc']],
+                dom: 'Bfrtip',
+                responsive: true,
+                language: {
+                    search: '_INPUT_',
+                    paginate: {
+                        previous: 'Trước',
+                        next: 'Sau'
+                    },
+                    aria: {
+                        sortAscending: ': sắp xếp tăng dần',
+                        sortDescending: ': sắp xếp giảm dần',
+                    }
+                }
+            });
+        }
+
         function loadStats() {
-            if (!earthquakeData.stats) {
+            if (!earthquakeData || !earthquakeData.stats) {
                 return;
             }
 
@@ -121,58 +217,10 @@
             $('#statMaxMagnitude').text(stats.max_mag);
         }
 
-        function initDataTable() {
-            // Prepare all data with year column
-            const allData = [];
-            for (let year in earthquakeData.data.years) {
-                if (earthquakeData.data.data[year]) {
-                    earthquakeData.data.data[year].forEach(event => {
-                        event.year = year;
-                        allData.push(event);
-                    });
-                }
-            }
-
-            // Sort by time descending
-            allData.sort((a, b) => {
-                const timeA = a.time ? a.time : '';
-                const timeB = b.time ? b.time : '';
-                return timeB.localeCompare(timeA);
-            });
-
-            dataTable = echarts.init(document.getElementById('mainTable'), {
-                height: 600,
-                dataset: {
-                    dimensions: [
-                        'time', {displayName: 'Time', type: 'time'},
-                        'place', {displayName: 'Place', type: 'category'},
-                        'mag', {displayName: 'Mag', type: 'number'},
-                        'depth', {displayName: 'Depth (km)', type: 'number'},
-                        'lat', {displayName: 'Latitude', type: 'number'},
-                        'lon', {displayName: 'Longitude', type: 'number'},
-                        'year', {displayName: 'Year', type: 'number'}
-                    ],
-                    source: allData.map(d => [
-                        d.time || '',
-                        d.place || 'Unknown',
-                        d.mag || 0,
-                        d.depth || 0,
-                        d.lat || 0,
-                        d.lon || 0,
-                        d.year || ''
-                    ])
-                },
-                dimensions: [
-                    {dims: ['time', 'place', 'mag', 'depth', 'lat', 'lon', 'year']}
-                ],
-                grid: {
-                    rowHeight: 40
-                },
-                tooltip: {
-                    show: true
-                }
-            });
-        }
+        // Year change handler
+        $('#yearSelect').on('change', function() {
+            loadTable($(this).val());
+        });
     </script>
 </body>
 </html>

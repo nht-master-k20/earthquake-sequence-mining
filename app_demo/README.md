@@ -1,30 +1,30 @@
 # Web Demo
 
-Trang web demo sử dụng Bootstrap 5, jQuery và Chart.js.
+A web demo using Bootstrap 5, jQuery and Chart.js.
 
-## Các trang
+## Pages
 
-| Trang | Mô tả |
+| Page | Description |
 |------|----------|
-| `index.html` | Trang chủ với 2 buttons |
-| `instruction.html` | Hướng dẫn sử dụng Python scripts |
-| `visualize.html` | Biểu đồ dữ liệu |
+| `index.html` | Homepage with 2 buttons |
+| `instruction.html` | User guide for Python scripts |
+| `visualize.html` | Data visualization |
 
-## Cách chạy
+## How to Run
 
-Mở `index.html` trong browser:
+Open `index.html` in your browser:
 
 ```bash
 xdg-open index.html
-# hoặc
+# or
 firefox index.html
 ```
 
-## Công nghệ
+## Tech Stack
 
 - Bootstrap 5.3.3
 - jQuery 3.7.1
 - Chart.js 4.4.2
 - Bootstrap Icons 1.11.3
 
-Tất cả load từ CDN, không cần cài đặt gì thêm.
+All loaded from CDN, no installation required.

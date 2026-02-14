@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -44,7 +44,7 @@
         <div class="card instruction-card">
             <div class="card-body p-5">
                 <h1 class="card-title text-center mb-5">
-                    <i class="bi bi-book-fill text-primary"></i> Hướng Dẫn Sử Dụng
+                    <i class="bi bi-book-fill text-primary"></i> User Guide
                 </h1>
 
                 <div class="row g-4">
@@ -52,8 +52,8 @@
                         <div class="card h-100 border-0 bg-light">
                             <div class="card-body">
                                 <div class="step-number mb-3">1</div>
-                                <h5 class="card-title">Crawl Dữ Liệu</h5>
-                                <p class="card-text">Sử dụng <code>usgs_crawl.py</code> để thu thập dữ liệu động đất từ USGS API.</p>
+                                <h5 class="card-title">Crawl Data</h5>
+                                <p class="card-text">Use <code>usgs_crawl.py</code> to fetch earthquake data from USGS API.</p>
                                 <pre class="bg-dark text-light p-3 rounded mt-3"><small>python usgs_crawl.py --start-year 1900 --end-year 1962 --min-mag 5.0</small></pre>
                             </div>
                         </div>
@@ -63,8 +63,8 @@
                         <div class="card h-100 border-0 bg-light">
                             <div class="card-body">
                                 <div class="step-number mb-3">2</div>
-                                <h5 class="card-title">Kiểm Tra Thiếu</h5>
-                                <p class="card-text">Dùng <code>check_missing_events.py</code> để kiểm tra các event thiếu.</p>
+                                <h5 class="card-title">Check Missing</h5>
+                                <p class="card-text">Use <code>check_missing_events.py</code> to check for missing events.</p>
                                 <pre class="bg-dark text-light p-3 rounded mt-3"><small>python check_missing_events.py --all</small></pre>
                             </div>
                         </div>
@@ -75,7 +75,7 @@
                             <div class="card-body">
                                 <div class="step-number mb-3">3</div>
                                 <h5 class="card-title">Visualize</h5>
-                                <p class="card-text">Vào tab "Visualize Data" để xem biểu đồ dữ liệu.</p>
+                                <p class="card-text">Go to "Visualize Data" tab to view data charts.</p>
                             </div>
                         </div>
                     </div>
@@ -83,31 +83,31 @@
 
                 <hr class="my-5">
 
-                <h4 class="mb-3"><i class="bi bi-gear-fill"></i> Các Script Khác</h4>
+                <h4 class="mb-3"><i class="bi bi-gear-fill"></i> Other Scripts</h4>
                 <div class="table-responsive">
                     <table class="table table-hover">
                         <thead class="table-dark">
                             <tr>
                                 <th>Script</th>
-                                <th>Chức Năng</th>
+                                <th>Purpose</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <td><code>usgs_crawl.py</code></td>
-                                <td>Crawl dữ liệu từ USGS API</td>
+                                <td>Crawl data from USGS API</td>
                             </tr>
                             <tr>
                                 <td><code>check_missing_events.py</code></td>
-                                <td>Kiểm tra event thiếu JSON</td>
+                                <td>Check for missing JSON events</td>
                             </tr>
                             <tr>
                                 <td><code>retry_failed_events.py</code></td>
-                                <td>Retry lại các event bị fail</td>
+                                <td>Retry failed events</td>
                             </tr>
                             <tr>
                                 <td><code>create_csv_from_json.py</code></td>
-                                <td>Tạo CSV từ JSON files</td>
+                                <td>Create CSV from JSON files</td>
                             </tr>
                         </tbody>
                     </table>

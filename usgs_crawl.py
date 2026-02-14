@@ -182,8 +182,17 @@ def crawl_multiple_events(event_ids, output_dir="data"):
     max_retries = 3
     results = []
     total = len(event_ids)
+    skipped = 0
 
     for i, event_id in enumerate(event_ids, 1):
+        # Check nếu JSON file đã tồn tại
+        import glob
+        existing_files = glob.glob(os.path.join(output_dir, f"event_*_{event_id}.json"))
+        if existing_files:
+            print(f"[{i}/{total}] {event_id} - skip (exists)")
+            skipped += 1
+            continue
+
         print(f"[{i}/{total}] {event_id}", end=" ")
         result = crawl_event(event_id, output_dir=output_dir)
 
@@ -193,6 +202,9 @@ def crawl_multiple_events(event_ids, output_dir="data"):
         # Delay để tránh rate limit
         if i < total and delay > 0:
             time.sleep(delay)
+
+    if skipped > 0:
+        print(f"\n✓ Skipped {skipped}/{total} events (already have JSON)")
 
     return results
 

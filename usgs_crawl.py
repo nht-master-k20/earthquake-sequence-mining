@@ -119,13 +119,14 @@ def crawl_event(event_id, output_dir="data"):
             return None
 
 
-def get_event_ids(year, min_magnitude=None, limit=None):
+def get_event_ids(year, min_magnitude=None, max_magnitude=None, limit=None):
     """
     Lấy danh sách event IDs theo năm
 
     Args:
         year: Năm cần crawl
         min_magnitude: Độ lớn tối thiểu (None = tất cả)
+        max_magnitude: Độ lớn tối đa (None = tất cả)
         limit: Giới hạn số lượng (None = không giới hạn)
 
     Returns:
@@ -140,9 +141,11 @@ def get_event_ids(year, min_magnitude=None, limit=None):
         "orderby": "time-asc"
     }
 
-    # Chỉ thêm minmagnitude nếu được chỉ định
+    # Chỉ thêm min/max magnitude nếu được chỉ định
     if min_magnitude is not None:
         params["minmagnitude"] = min_magnitude
+    if max_magnitude is not None:
+        params["maxmagnitude"] = max_magnitude
 
     if limit:
         params["limit"] = limit
@@ -156,12 +159,16 @@ def get_event_ids(year, min_magnitude=None, limit=None):
             return None
 
         df = pd.read_csv(StringIO(r.text))
-        mag_str = f"M>={min_magnitude}" if min_magnitude is not None else "all magnitudes"
+        mag_str = f"M{min_magnitude}+" if min_magnitude is not None else ""
+        if max_magnitude is not None:
+            mag_str += f"-M{max_magnitude}"
+        if not mag_str:
+            mag_str = "all magnitudes"
 
         # Check nếu API limit reached (USGS limit = 20000)
         if len(df) >= 20000:
             print(f"⚠ Found {len(df)} events ({mag_str}) - API limit reached!")
-            print(f"  Tip: Use --min-mag to filter by magnitude, or we'll split by month...")
+            print(f"  Tip: Use --min-mag/--max-mag to filter by magnitude, or we'll split by month...")
             # Note: Could implement pagination with offset, but splitting by month is more reliable
         else:
             print(f"✓ Found {len(df)} events ({mag_str})")
@@ -173,13 +180,14 @@ def get_event_ids(year, min_magnitude=None, limit=None):
         return None
 
 
-def get_event_ids_by_month(year, min_magnitude=None, limit=None):
+def get_event_ids_by_month(year, min_magnitude=None, max_magnitude=None, limit=None):
     """
     Lấy danh sách event IDs theo năm, chia nhỏ theo tháng (cho năm có >20k events)
 
     Args:
         year: Năm cần crawl
         min_magnitude: Độ lớn tối thiểu (None = tất cả)
+        max_magnitude: Độ lớn tối đa (None = tất cả)
         limit: Giới hạn số lượng (None = không giới hạn)
 
     Returns:
@@ -204,6 +212,8 @@ def get_event_ids_by_month(year, min_magnitude=None, limit=None):
 
         if min_magnitude is not None:
             params["minmagnitude"] = min_magnitude
+        if max_magnitude is not None:
+            params["maxmagnitude"] = max_magnitude
 
         if limit:
             params["limit"] = limit
@@ -225,7 +235,11 @@ def get_event_ids_by_month(year, min_magnitude=None, limit=None):
 
     if all_dfs:
         combined_df = pd.concat(all_dfs, ignore_index=True)
-        mag_str = f"M>={min_magnitude}" if min_magnitude is not None else "all magnitudes"
+        mag_str = f"M{min_magnitude}+" if min_magnitude is not None else ""
+        if max_magnitude is not None:
+            mag_str += f"-M{max_magnitude}"
+        if not mag_str:
+            mag_str = "all magnitudes"
         print(f"\n✓ Total: {len(combined_df)} events ({mag_str})")
         return combined_df
     else:
@@ -276,13 +290,14 @@ def crawl_multiple_events(event_ids, output_dir="data"):
     return results
 
 
-def crawl_year(year, min_mag, output_dir, limit=None):
+def crawl_year(year, min_mag, max_mag, output_dir, limit=None):
     """
     Crawl dữ liệu cho một năm
 
     Args:
         year: Năm cần crawl
         min_mag: Độ lớn tối thiểu (None = tất cả)
+        max_mag: Độ lớn tối đa (None = tất cả)
         output_dir: Thư mục output gốc
         limit: Giới hạn số lượng events
 
@@ -293,15 +308,19 @@ def crawl_year(year, min_mag, output_dir, limit=None):
     save_json = True
     delay = 0.5
     max_retries = 3
-    # Tạo chuỗi mô tả min_mag
-    mag_str = f"M{min_mag}+" if min_mag is not None else "all"
+    # Tạo chuỗi mô tả magnitude range
+    mag_str = f"M{min_mag}+" if min_mag is not None else ""
+    if max_mag is not None:
+        mag_str += f"-M{max_mag}"
+    if not mag_str:
+        mag_str = "all"
     print(f"\n{'=' * 60}")
     print(f"CRAWLING YEAR: {year}")
-    print(f"Min Magnitude: {mag_str}")
+    print(f"Magnitude: {mag_str}")
     print("=" * 60)
 
     # Lấy danh sách event IDs
-    df = get_event_ids(year, min_mag, limit)
+    df = get_event_ids(year, min_mag, max_mag, limit)
 
     if df is None or len(df) == 0:
         print(f"✗ No events found for {year}!")
@@ -310,7 +329,7 @@ def crawl_year(year, min_mag, output_dir, limit=None):
     # Nếu API limit reached (>=20000), dùng method chia theo tháng
     if len(df) >= 20000:
         print(f"\n⚠ API limit reached, switching to month-by-month fetching...")
-        df = get_event_ids_by_month(year, min_mag, limit)
+        df = get_event_ids_by_month(year, min_mag, max_mag, limit)
         if df is None or len(df) == 0:
             print(f"✗ Failed to fetch events by month!")
             return None
@@ -369,11 +388,14 @@ Examples:
   # Crawl nhiều năm với độ lớn tối thiểu
   python usgs_crawl.py --start-year 2020 --end-year 2023 --min-mag 5.0
 
+  # Crawl với khoảng độ lớn (ví dụ: chỉ M 5.0 - 6.5)
+  python usgs_crawl.py --start-year 2020 --end-year 2023 --min-mag 5.0 --max-mag 6.5
+
   # Crawl tất cả các năm
   python usgs_crawl.py --all --start-year 2010
 
   # Tùy chọn khác
-  python usgs_crawl.py --start-year 2020 --end-year 2023 --min-mag 6.5 --limit 50
+  python usgs_crawl.py --start-year 2020 --end-year 2023 --min-mag 6.5 --max-mag 7.0 --limit 50
         """
     )
 
@@ -386,6 +408,8 @@ Examples:
                         help="Crawl từ start-year đến năm hiện tại")
     parser.add_argument("--min-mag", type=float, default=None,
                         help="Độ lớn tối thiểu (default: tất cả)")
+    parser.add_argument("--max-mag", type=float, default=None,
+                        help="Độ lớn tối đa (default: tất cả)")
     parser.add_argument("--limit", type=int, default=None,
                         help="Giới hạn số lượng events mỗi năm (default: không giới hạn)")
     parser.add_argument("--output-dir", type=str, default="data",
@@ -424,15 +448,19 @@ Examples:
     # Tạo output directory
     os.makedirs(args.output_dir, exist_ok=True)
 
-    # Chuỗi mô tả min_mag
-    mag_str = f"M{args.min_mag}+" if args.min_mag is not None else "all"
-    mag_display = args.min_mag if args.min_mag is not None else "tất cả"
+    # Chuỗi mô tả magnitude range
+    mag_str = f"M{args.min_mag}+" if args.min_mag is not None else ""
+    if args.max_mag is not None:
+        mag_str += f"-M{args.max_mag}"
+    if not mag_str:
+        mag_str = "all"
+    mag_display = mag_str if mag_str != "all" else "tất cả"
 
     print("=" * 60)
     print(f"USGS EARTHQUAKE CRAWLER")
     print("=" * 60)
     print(f"Years: {years[0]} - {years[-1]} ({len(years)} years)")
-    print(f"Min Magnitude: {mag_display}")
+    print(f"Magnitude: {mag_display}")
     print(f"Limit: {args.limit if args.limit else 'No limit'}")
     print(f"Output: {args.output_dir}/{{year}}/")
     print(f"JSON format: event_<mag>_<id>.json")
@@ -445,6 +473,7 @@ Examples:
         df = crawl_year(
             year=year,
             min_mag=args.min_mag,
+            max_mag=args.max_mag,
             output_dir=args.output_dir,
             limit=args.limit
         )

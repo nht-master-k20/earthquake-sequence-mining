@@ -366,10 +366,6 @@ Examples:
             all_dataframes.append(df)
 
     # Gộp tất cả và lưu CSV tổng hợp
-    print(f"\n{'=' * 60}")
-    print(f"FINAL SUMMARY")
-    print("=" * 60)
-
     if all_dataframes:
         combined_df = pd.concat(all_dataframes, ignore_index=True)
 
@@ -379,19 +375,8 @@ Examples:
         csv_path = os.path.join(args.output_dir, csv_name)
         combined_df.to_csv(csv_path, index=False, encoding='utf-8')
 
-        total_records = len(combined_df)
-        print(f"✓ Total years crawled: {len(all_dataframes)}")
-        print(f"✓ Total records: {total_records}")
         print(f"✓ Combined CSV: {csv_path}")
-        print(f"\nPer-directory structure:")
-        print(f"  {args.output_dir}/")
-        for year in years:
-            print(f"    ├── {year}/")
-            print(f"    │   ├── earthquakes_{year}_{mag_str}.csv")
-            if not args.no_json:
-                print(f"    │   ├── event_*.json")
-            print(f"    │   └── ...")
-        print(f"    └── {csv_name} (combined)")
+        print(f"✓ Total records: {len(combined_df)}")
 
         return 0
     else:

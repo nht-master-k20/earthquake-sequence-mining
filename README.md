@@ -77,6 +77,7 @@ python main.py --all --start-year 2010
 ### Chế độ hoạt động
 
 **Mode 1: Single year** - Crawl 1 năm
+
 ```bash
 python main.py 2023              # Tất cả độ lớn
 python main.py 2023 --min-mag 5.0  # Chỉ M ≥ 5.0
@@ -84,6 +85,7 @@ python main.py 2023 --min-mag 5.0 --max-mag 6.5  # Chỉ M 5.0 - 6.5
 ```
 
 **Mode 2: Year range** - Crawl khoảng năm
+
 ```bash
 python main.py --start-year 2020 --end-year 2023              # Tất cả độ lớn
 python main.py --start-year 2020 --end-year 2023 --min-mag 5.0  # Chỉ M ≥ 5.0
@@ -91,6 +93,7 @@ python main.py --start-year 2020 --end-year 2023 --min-mag 5.0 --max-mag 6.5  # 
 ```
 
 **Mode 3: All years** - Crawl từ start-year đến hiện tại
+
 ```bash
 python main.py --all --start-year 2010              # Tất cả độ lớn
 python main.py --all --start-year 2010 --min-mag 5.0  # Chỉ M ≥ 5.0
@@ -107,10 +110,11 @@ python check_missing_events.py --all
 python check_missing_events.py 1900
 
 # Kiểm tra nhiều năm
-python check_missing_events.py 1900 1910 1920
+python check_missing_events.py 1900 1910 1920 
 ```
 
 **Output format:**
+
 ```
 year: csv=<số dòng CSV>, json=<số file JSON>, missing=<số thiếu>
 year: event_id_1

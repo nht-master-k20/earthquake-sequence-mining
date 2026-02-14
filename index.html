@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earthquake Sequence Mining</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .hero-section {
+            text-align: center;
+            color: white;
+        }
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .hero-subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 3rem;
+            opacity: 0.9;
+        }
+        .btn-custom {
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            margin: 10px;
+            min-width: 250px;
+            transition: all 0.3s ease;
+        }
+        .btn-custom:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .btn-instruction {
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+        .btn-visualize {
+            background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+            border: none;
+        }
+        .hero-icon {
+            font-size: 5rem;
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container hero-section">
+        <div class="hero-icon">
+            <i class="bi bi-geo-alt-fill"></i>
+        </div>
+        <h1 class="hero-title">Earthquake Sequence Mining</h1>
+        <p class="hero-subtitle">Phân tích dữ liệu động đất từ USGS</p>
+
+        <div class="d-flex flex-wrap justify-content-center gap-3 mt-5">
+            <a href="instruction.html" class="btn btn-primary btn-custom btn-instruction">
+                <i class="bi bi-book-fill me-2"></i>
+                Instruction
+            </a>
+            <a href="visualize.html" class="btn btn-primary btn-custom btn-visualize">
+                <i class="bi bi-graph-up-arrow me-2"></i>
+                Visualize Data
+            </a>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -75,7 +75,7 @@ def generate_web_data():
     }
 
     # Create JavaScript file
-    js_content = f"""// Auto-generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+    js_content = f'''// Auto-generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 // Run: python generate_web_data.py
 
 const earthquakeData = {{
@@ -83,7 +83,7 @@ const earthquakeData = {{
     data: {json.dumps(all_data, ensure_ascii=False)},
     stats: {json.dumps(stats, ensure_ascii=False)}
 }};
-"""
+'''
 
     # Write to file
     with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:

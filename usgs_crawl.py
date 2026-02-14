@@ -157,11 +157,78 @@ def get_event_ids(year, min_magnitude=None, limit=None):
 
         df = pd.read_csv(StringIO(r.text))
         mag_str = f"M>={min_magnitude}" if min_magnitude is not None else "all magnitudes"
-        print(f"✓ Found {len(df)} events ({mag_str})")
+
+        # Check nếu API limit reached (USGS limit = 20000)
+        if len(df) >= 20000:
+            print(f"⚠ Found {len(df)} events ({mag_str}) - API limit reached!")
+            print(f"  Tip: Use --min-mag to filter by magnitude, or we'll split by month...")
+            # Note: Could implement pagination with offset, but splitting by month is more reliable
+        else:
+            print(f"✓ Found {len(df)} events ({mag_str})")
+
         return df
 
     except Exception as e:
         print(f"✗ Error fetching event list: {e}")
+        return None
+
+
+def get_event_ids_by_month(year, min_magnitude=None, limit=None):
+    """
+    Lấy danh sách event IDs theo năm, chia nhỏ theo tháng (cho năm có >20k events)
+
+    Args:
+        year: Năm cần crawl
+        min_magnitude: Độ lớn tối thiểu (None = tất cả)
+        limit: Giới hạn số lượng (None = không giới hạn)
+
+    Returns:
+        DataFrame: Danh sách events
+    """
+    url = "https://earthquake.usgs.gov/fdsnws/event/1/query"
+    all_dfs = []
+
+    # Chia theo tháng
+    for month in range(1, 13):
+        import calendar
+        last_day = calendar.monthrange(year, month)[1]
+        starttime = f"{year}-{month:02d}-01"
+        endtime = f"{year}-{month:02d}-{last_day}"
+
+        params = {
+            "format": "csv",
+            "starttime": starttime,
+            "endtime": endtime,
+            "orderby": "time-asc"
+        }
+
+        if min_magnitude is not None:
+            params["minmagnitude"] = min_magnitude
+
+        if limit:
+            params["limit"] = limit
+
+        try:
+            print(f"  Fetching {year}-{month:02d}...", end=" ")
+            r = requests.get(url, params=params, timeout=30)
+
+            if r.status_code != 200:
+                print(f"✗ HTTP {r.status_code}")
+                continue
+
+            df = pd.read_csv(StringIO(r.text))
+            print(f"✓ {len(df)} events")
+            all_dfs.append(df)
+
+        except Exception as e:
+            print(f"✗ Error: {e}")
+
+    if all_dfs:
+        combined_df = pd.concat(all_dfs, ignore_index=True)
+        mag_str = f"M>={min_magnitude}" if min_magnitude is not None else "all magnitudes"
+        print(f"\n✓ Total: {len(combined_df)} events ({mag_str})")
+        return combined_df
+    else:
         return None
 
 
@@ -239,6 +306,14 @@ def crawl_year(year, min_mag, output_dir, limit=None):
     if df is None or len(df) == 0:
         print(f"✗ No events found for {year}!")
         return None
+
+    # Nếu API limit reached (>=20000), dùng method chia theo tháng
+    if len(df) >= 20000:
+        print(f"\n⚠ API limit reached, switching to month-by-month fetching...")
+        df = get_event_ids_by_month(year, min_mag, limit)
+        if df is None or len(df) == 0:
+            print(f"✗ Failed to fetch events by month!")
+            return None
 
     # Chỉ tạo thư mục khi có events
     year_dir = os.path.join(output_dir, str(year))

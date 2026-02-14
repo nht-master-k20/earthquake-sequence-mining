@@ -6,26 +6,40 @@
     <title>Visualize Data - Earthquake Sequence Mining</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
     <style>
         body {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             min-height: 100vh;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding-bottom: 60px;
         }
         .viz-card {
             background: rgba(255,255,255,0.95);
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
-        .chart-container {
-            position: relative;
-            height: 400px;
+        .table-container {
+            max-height: 500px;
+            overflow-y: auto;
         }
-        .echart-container {
-            position: relative;
-            height: 100%;
-            width: 100%;
+        .stats-card {
+            text-align: center;
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .badge {
+            font-size: 0.9em;
         }
     </style>
 </head>
@@ -52,6 +66,43 @@
                         <select id="yearSelect" class="form-select form-select-lg">
                             <option value="">-- All Years --</option>
                         </select>
+                        <span id="loadingYears" class="loading-spinner" style="display: none;"></span>
+                    </div>
+                </div>
+
+                <!-- Summary Stats -->
+                <div class="row mb-4" id="statsSection" style="display: none;">
+                    <div class="col-md-3">
+                        <div class="card text-center stats-card">
+                            <div class="card-body">
+                                <h3 class="text-primary" id="statTotalEvents">0</h3>
+                                <p class="text-muted mb-0">Total Events</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center stats-card">
+                            <div class="card-body">
+                                <h3 class="text-success" id="statAvgMagnitude">0</h3>
+                                <p class="text-muted mb-0">Avg Magnitude</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center stats-card">
+                            <div class="card-body">
+                                <h3 class="text-info" id="statAvgDepth">0</h3>
+                                <p class="text-muted mb-0">Avg Depth (km)</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center stats-card">
+                            <div class="card-body">
+                                <h3 class="text-warning" id="statMaxMagnitude">0</h3>
+                                <p class="text-muted mb-0">Max Magnitude</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -60,10 +111,10 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-body">
-                                <h5 class="card-title"><i class="bi bi-table"></i> Earthquake Events Data</h5>
-                                <div class="table-responsive">
+                                <h5 class="card-title"><i class="bi bi-list"></i> All Events <span id="currentYearLabel"></span></h5>
+                                <div class="table-container">
                                     <table class="table table-striped table-hover" id="dataTable">
-                                        <thead class="table-dark">
+                                        <thead class="table-dark position-sticky top-0">
                                             <tr>
                                                 <th>Time</th>
                                                 <th>Place</th>
@@ -76,47 +127,14 @@
                                         </thead>
                                         <tbody id="tableBody">
                                             <tr>
-                                                <td colspan="7" class="text-center">Loading data...</td>
+                                                <td colspan="7" class="text-center">
+                                                    <div class="loading-spinner"></div>
+                                                    <span class="ms-2">Loading data...</span>
+                                                </td>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Summary Stats -->
-                <div class="row mt-4">
-                    <div class="col-md-3">
-                        <div class="card text-center">
-                            <div class="card-body">
-                                <h3 class="text-primary" id="totalEvents">0</h3>
-                                <p class="text-muted">Total Events</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card text-center">
-                            <div class="card-body">
-                                <h3 class="text-success" id="avgMagnitude">0</h3>
-                                <p class="text-muted">Avg Magnitude</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card text-center">
-                            <div class="card-body">
-                                <h3 class="text-info" id="avgDepth">0</h3>
-                                <p class="text-muted">Avg Depth (km)</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card text-center">
-                            <div class="card-body">
-                                <h3 class="text-warning" id="maxMagnitude">0</h3>
-                                <p class="text-muted">Max Magnitude</p>
                             </div>
                         </div>
                     </div>
@@ -128,100 +146,90 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Sample data (use real data from CSV files)
-        const allData = {
-            1900: [
-                { time: '1900-01-05 19:00:00', place: 'Southern Sumatra, Indonesia', mag: 7.0, depth: -3.0, lat: -3.0, lon: 102.0 },
-                { time: '1900-01-11 09:07:00', place: 'Bismarck Sea', mag: 7.0, depth: -5.0, lat: -5.0, lon: 148.0 },
-                { time: '1900-01-12 17:00:00', place: 'Yakutat Bay, Alaska', mag: 7.3, depth: 60.0, lat: 60.0, lon: -140.0 },
-                { time: '1900-01-20 06:33:00', place: 'Jalisco, Mexico', mag: 7.3, depth: 20.0, lat: 20.0, lon: -105.0 },
-            ],
-            1901: [
-                { time: '1901-02-05 12:51:00', place: 'Santa Cruz Islands', mag: 6.8, depth: 35.0, lat: -35.5, lon: -25.0 },
-                { time: '1901-02-23 18:00:00', place: 'Molucca Sea', mag: 6.5, depth: 15.0, lat: 15.0, lon: 75.0 },
-                { time: '1901-03-15 04:30:00', place: 'Philippines', mag: 6.9, depth: 40.0, lat: 15.5, lon: 120.0 },
-            ],
-            1902: [
-                { time: '1902-04-19 02:00:00', place: 'Guatemala', mag: 7.5, depth: 100.0, lat: 14.0, lon: -91.0 },
-                { time: '1902-05-05 15:20:00', place: 'Mindanao, Philippines', mag: 7.0, depth: 45.0, lat: 5.5, lon: 125.0 },
-                { time: '1902-09-23 10:15:00', place: 'Uzbekistan', mag: 6.4, depth: 25.0, lat: 39.0, lon: 66.0 },
-            ],
-            1903: [
-                { time: '1903-01-14 15:45:00', place: 'Turkey', mag: 6.8, depth: 35.0, lat: 38.0, lon: 40.0 },
-                { time: '1903-02-27 22:00:00', place: 'Iran', mag: 6.3, depth: 40.0, lat: 28.0, lon: 57.0 },
-                { time: '1903-04-20 08:30:00', place: 'Kamchatka', mag: 7.0, depth: 60.0, lat: 52.0, lon: 160.0 },
-            ],
-            1904: [
-                { time: '1904-06-25 08:00:00', place: 'Kamchatka', mag: 7.0, depth: 25.0, lat: 52.0, lon: 160.0 },
-                { time: '1904-08-11 12:00:00', place: 'Alaska', mag: 6.8, depth: 45.0, lat: 58.0, lon: -152.0 },
-                { time: '1904-09-15 04:30:00', place: 'New Zealand', mag: 6.5, depth: 80.0, lat: -41.0, lon: 175.0 },
-            ],
-            1905: [
-                { time: '1905-04-04 01:00:00', place: 'Kamchatka', mag: 7.5, depth: 40.0, lat: 52.0, lon: 160.0 },
-                { time: '1905-05-15 16:20:00', place: 'Philippines', mag: 7.2, depth: 50.0, lat: 15.0, lon: 120.0 },
-                { time: '1905-06-30 10:00:00', place: 'Chile', mag: 6.8, depth: 60.0, lat: -30.0, lon: -71.0 },
-            ],
-            1906: [
-                { time: '1906-01-21 20:45:00', place: 'Taiwan', mag: 7.1, depth: 65.0, lat: 22.5, lon: 121.0 },
-                { time: '1906-03-17 14:40:00', place: 'Kamchatka', mag: 7.6, depth: 50.0, lat: 52.0, lon: 160.0 },
-                { time: '1906-04-18 22:00:00', place: 'California', mag: 6.6, depth: 12.0, lat: 35.5, lon: -120.5 },
-            ],
-        };
+        const API_BASE = 'http://localhost:5000/api';
 
-        // Flatten data for all years view
-        let flatData = [];
-        for (let year in allData) {
-            flatData = flatData.concat(allData[year].map(d => ({...d, year})));
-        }
-
-        // Populate year selector
-        const yearSelect = $('#yearSelect');
-        Object.keys(allData).sort().forEach(year => {
-            yearSelect.append(`<option value="${year}">${year}</option>`);
+        // Load years on page load
+        $(document).ready(function() {
+            loadYears();
+            loadStats();
         });
 
-        // Load data based on selected year
-        function loadTable(year) {
-            const data = year ? allData[year] : flatData;
-
-            // Sort by time
-            data.sort((a, b) => a.time.localeCompare(b.time));
-
-            // Build table rows
-            const tbody = $('#tableBody');
-            tbody.empty();
-
-            data.forEach(d => {
-                tbody.append(`
-                    <tr>
-                        <td>${d.time}</td>
-                        <td>${d.place}</td>
-                        <td><span class="badge bg-${d.mag >= 7 ? 'danger' : d.mag >= 6 ? 'warning' : 'info'}">${d.mag}</span></td>
-                        <td>${d.depth}</td>
-                        <td>${d.lat.toFixed(2)}°</td>
-                        <td>${d.lon.toFixed(2)}°</td>
-                        <td>${d.lat.toFixed(2)}, ${d.lon.toFixed(2)}</td>
-                    </tr>
-                `);
+        function loadYears() {
+            $('#loadingYears').show();
+            $.get(`${API_BASE}/years`, function(years) {
+                const yearSelect = $('#yearSelect');
+                yearSelect.empty();
+                yearSelect.append('<option value="">-- All Years --</option>');
+                years.forEach(year => {
+                    yearSelect.append(`<option value="${year}">${year}</option>`);
+                });
+                $('#loadingYears').hide();
+            }).fail(function() {
+                $('#loadingYears').hide();
+                $('#tableBody').html('<tr><td colspan="7" class="text-center text-danger">Failed to load years. Make sure API server is running: python api.py</td></tr>');
             });
-
-            // Update stats
-            $('#totalEvents').text(data.length);
-            const avgMag = (data.reduce((sum, d) => sum + d.mag, 0) / data.length).toFixed(1);
-            $('#avgMagnitude').text(avgMag);
-            const avgDep = (data.reduce((sum, d) => sum + d.depth, 0) / data.length).toFixed(1);
-            $('#avgDepth').text(avgDep);
-            const maxMag = Math.max(...data.map(d => d.mag)).toFixed(1);
-            $('#maxMagnitude').text(maxMag);
         }
+
+        function loadStats() {
+            $.get(`${API_BASE}/stats`, function(stats) {
+                if (stats.overall) {
+                    $('#statTotalEvents').text(stats.overall.total_events || 0);
+                    $('#statAvgMagnitude').text(stats.overall.avg_mag || 0);
+                    $('#statAvgDepth').text(stats.overall.avg_depth || 0);
+                    $('#statMaxMagnitude').text(stats.overall.max_mag || 0);
+                    $('#statsSection').show();
+                }
+            });
+        }
+
+        function loadTable(year) {
+            $('#tableBody').html('<tr><td colspan="7" class="text-center"><div class="loading-spinner"></div><span class="ms-2">Loading data...</span></td></tr>');
+
+            const url = year ? `${API_BASE}/events/${year}` : `${API_BASE}/events/all`;
+            $('#currentYearLabel').text(year ? `- ${year}` : '');
+
+            $.get(url, function(events) {
+                if (events.error) {
+                    $('#tableBody').html(`<tr><td colspan="7" class="text-center text-danger">${events.error}</td></tr>`);
+                    return;
+                }
+
+                if (!events || events.length === 0) {
+                    $('#tableBody').html('<tr><td colspan="7" class="text-center text-muted">No data found</td></tr>');
+                    return;
+                }
+
+                $('#tableBody').empty();
+                events.forEach(event => {
+                    const badgeClass = event.mag >= 7 ? 'bg-danger' : event.mag >= 6 ? 'bg-warning' : event.mag >= 5 ? 'bg-info' : 'bg-secondary';
+                    const location = event.place || 'Unknown';
+                    const latLon = event.lat !== undefined && event.lon !== undefined ?
+                        `${event.lat.toFixed(2)}°, ${event.lon.toFixed(2)}°` : 'N/A';
+
+                    $('#tableBody').append(`
+                        <tr>
+                            <td>${event.time || 'N/A'}</td>
+                            <td>${location}</td>
+                            <td><span class="badge ${badgeClass}">${event.mag || 'N/A'}</span></td>
+                            <td>${event.depth || 'N/A'}</td>
+                            <td>${event.lat ? event.lat.toFixed(2) : 'N/A'}°</td>
+                            <td>${event.lon ? event.lon.toFixed(2) : 'N/A'}°</td>
+                            <td>${latLon}</td>
+                        </tr>
+                    `);
+                });
+            }).fail(function() {
+                $('#tableBody').html('<tr><td colspan="7" class="text-center text-danger">Failed to load data. Make sure API server is running: python api.py</td></tr>');
+            });
+        }
+
+        // Year change handler
+        $('#yearSelect').on('change', function() {
+            loadTable($(this).val());
+        });
 
         // Load all data by default
         loadTable('');
-
-        // Year change handler
-        yearSelect.on('change', function() {
-            loadTable($(this).val());
-        });
     </script>
 </body>
 </html>

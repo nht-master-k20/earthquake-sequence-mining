@@ -128,3 +128,53 @@ data/
 - **Năm có >20k events**: Crawler tự động chia nhỏ theo tháng để tránh API limit
 - **Thiếu CSV file**: Dùng `create_csv_from_json.py` để tạo từ JSON files
 - **Event thiếu JSON**: Dùng `check_missing_events.py` để kiểm tra, sau đó dùng `retry_failed_events.py` để crawl lại
+
+---
+
+# Web Demo
+
+## Cài đặt
+
+```bash
+# Cài đặt dependencies
+pip install fastapi uvicorn pandas
+```
+
+## Chạy ứng dụng
+
+```bash
+# Bước 1: Khởi động API server
+cd app_demo
+python api.py
+
+# Bước 2: Mở trang web (trong terminal khác hoặc browser)
+xdg-open index.html
+# Hoặc
+firefox index.html
+```
+
+**API Endpoint** (port 8386):
+- `GET http://127.0.0.1:8386/api/years` - Danh sách năm có dữ liệu
+- `GET http://127.0.0.1:8386/api/data/{year}` - Dữ liệu động đất năm cụ thể
+- `GET http://127.0.0.1:8386/api/stats` - Thống kê tổng hợp
+
+## Tech Stack
+
+- **Backend**: FastAPI với uvicorn
+- **Frontend**: Bootstrap 5, jQuery 3.7.1, DataTables 2.1.8
+- **Data**: Realtime từ CSV files trong thư mục `/data`
+
+## Các trang
+
+| Trang | Mô tả |
+|-------|--------|
+| `index.html` | Trang chủ với 2 nút điều hướng |
+| `instruction.html` | Hướng dẫn sử dụng các script Python |
+| `visualize.html` | Bảng dữ liệu động đất với filter theo năm |
+
+## Lưu ý
+
+- API server phải chạy trước khi sử dụng web demo
+- Dữ liệu load realtime từ thư mục `/data`, không cần tạo file static
+- DataTable phân trang 50 records/trang, sort theo thời gian asc
+- Chỉ load bảng khi chọn năm cụ thể (không load all years)

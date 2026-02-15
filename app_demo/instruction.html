@@ -1,33 +1,35 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instruction - Earthquake Sequence Mining</title>
+    <title>Hướng Dẫn - Earthquake Sequence Mining</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="css/style.css">
     <style>
         body {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             min-height: 100vh;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        .instruction-card {
-            background: rgba(255,255,255,0.95);
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
         }
-        .step-number {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 1.5rem;
+        code {
+            color: #e83e8c;
+            background: #f1f3f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        pre code {
+            color: #f8f8f2;
+            background: transparent;
+            padding: 0;
         }
     </style>
 </head>
@@ -35,83 +37,231 @@
     <nav class="navbar navbar-dark bg-transparent">
         <div class="container">
             <a class="navbar-brand text-white fw-bold" href="index.html">
-                <i class="bi bi-house-door-fill"></i> Back to Home
+                <i class="bi bi-house-door-fill"></i> Về Trang Chủ
             </a>
         </div>
     </nav>
 
     <div class="container py-5">
-        <div class="card instruction-card">
+        <div class="card content-card">
             <div class="card-body p-5">
                 <h1 class="card-title text-center mb-5">
-                    <i class="bi bi-book-fill text-primary"></i> User Guide
+                    <i class="bi bi-book-fill text-primary"></i> Hướng Dẫn Sử Dụng
                 </h1>
 
-                <div class="row g-4">
-                    <div class="col-md-6 col-lg-4">
-                        <div class="card h-100 border-0 bg-light">
-                            <div class="card-body">
-                                <div class="step-number mb-3">1</div>
-                                <h5 class="card-title">Crawl Data</h5>
-                                <p class="card-text">Use <code>usgs_crawl.py</code> to fetch earthquake data from USGS API.</p>
-                                <pre class="bg-dark text-light p-3 rounded mt-3"><small>python usgs_crawl.py --start-year 1900 --end-year 1962 --min-mag 5.0</small></pre>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6 col-lg-4">
-                        <div class="card h-100 border-0 bg-light">
-                            <div class="card-body">
-                                <div class="step-number mb-3">2</div>
-                                <h5 class="card-title">Check Missing</h5>
-                                <p class="card-text">Use <code>check_missing_events.py</code> to check for missing events.</p>
-                                <pre class="bg-dark text-light p-3 rounded mt-3"><small>python check_missing_events.py --all</small></pre>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6 col-lg-4">
-                        <div class="card h-100 border-0 bg-light">
-                            <div class="card-body">
-                                <div class="step-number mb-3">3</div>
-                                <h5 class="card-title">Visualize</h5>
-                                <p class="card-text">Go to "Visualize Data" tab to view data charts.</p>
-                            </div>
-                        </div>
-                    </div>
+                <div class="mb-5">
+                    <h2 class="text-primary mb-3">
+                        <i class="bi bi-bug-fill me-2"></i>Phase 1: Data Crawler
+                    </h2>
+                    <p class="lead">Thu thập dữ liệu động đất từ USGS API</p>
                 </div>
+
+                <section class="mb-5">
+                    <h3><i class="bi bi-crosshair me-2"></i>Mục tiêu</h3>
+                    <p>Crawl dữ liệu động đất theo năm từ USGS Earthquake Hazards Program.</p>
+                    <ul>
+                        <li><strong>Data Source</strong>: <a href="https://www.usgs.gov/programs/earthquake-hazards/science/earthquake-data" target="_blank">USGS Earthquake Data</a></li>
+                        <li><strong>API</strong>: <a href="https://earthquake.usgs.gov/fdsnws/event/1/" target="_blank">USGS Earthquake API</a></li>
+                    </ul>
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <strong>Lưu ý</strong>: Mặc định crawler sẽ lấy <strong>tất cả độ lớn</strong>. Số lượng data có thể rất lớn (~16,000 events/năm với M≥4.0). Nên dùng <code>--min-mag</code>/<code>--max-mag</code> để giới hạn nếu cần.
+                    </div>
+                </section>
+
+                <section class="mb-5">
+                    <h3><i class="bi bi-file-code me-2"></i>Dữ liệu đầu ra</h3>
+                    <ul>
+                        <li><strong>File JSON</strong>: Chi tiết từng sự kiện (GeoJSON format)
+                            <ul>
+                                <li>Format: <code>event_&lt;mag&gt;_&lt;id&gt;.json</code> (ví dụ: <code>event_6.3_us70006vkq.json</code>)</li>
+                            </ul>
+                        </li>
+                        <li><strong>File CSV</strong>: Dữ liệu tổng hợp</li>
+                    </ul>
+                </section>
+
+                <section class="mb-5">
+                    <h3><i class="bi bi-gear-fill me-2"></i>Cài đặt</h3>
+                    <pre><code>pip install -r requirements.txt</code></pre>
+                    <p>Hoặc dùng virtual environment:</p>
+                    <pre><code>python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt</code></pre>
+                </section>
+
+                <section class="mb-5">
+                    <h3><i class="bi bi-terminal-fill me-2"></i>Sử dụng</h3>
+
+                    <h4 class="mt-4 mb-3">1. Crawl dữ liệu</h4>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        <strong>Lưu ý</strong>: Crawler tự động skip các event đã có file JSON.
+                    </div>
+                    <pre><code># Crawl 1 năm
+python usgs_crawl.py 2023
+
+# Crawl nhiều năm
+python usgs_crawl.py --start-year 2020 --end-year 2023
+
+# Crawl với độ lớn tối thiểu
+python usgs_crawl.py --start-year 2020 --end-year 2023 --min-mag 5.0
+
+# Crawl với khoảng độ lớn
+python usgs_crawl.py --start-year 2020 --end-year 2023 --min-mag 5.0 --max-mag 6.5
+
+# Crawl tất cả các năm
+python usgs_crawl.py --all --start-year 2010</code></pre>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Tham số</th>
+                                    <th>Mô tả</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td><code>year</code></td><td>Năm cần crawl (single year)</td></tr>
+                                <tr><td><code>--start-year</code></td><td>Năm bắt đầu</td></tr>
+                                <tr><td><code>--end-year</code></td><td>Năm kết thúc</td></tr>
+                                <tr><td><code>--all</code></td><td>Crawl đến năm hiện tại</td></tr>
+                                <tr><td><code>--min-mag</code></td><td>Độ lớn tối thiểu</td></tr>
+                                <tr><td><code>--max-mag</code></td><td>Độ lớn tối đa</td></tr>
+                                <tr><td><code>--limit</code></td><td>Giới hạn số lượng events mỗi năm</td></tr>
+                                <tr><td><code>--output-dir</code></td><td>Thư mục lưu file (default: data)</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h4 class="mt-4 mb-3">2. Kiểm tra event thiếu JSON</h4>
+                    <pre><code># Kiểm tra tất cả các năm
+python check_missing_events.py --all
+
+# Kiểm tra 1 năm
+python check_missing_events.py 1900
+
+# Kiểm tra nhiều năm
+python check_missing_events.py 1900 1910 1920</code></pre>
+                    <p><strong>Output format:</strong></p>
+                    <pre><code>year: csv=&lt;số dòng CSV&gt;, json=&lt;số file JSON&gt;, missing=&lt;số thiếu&gt;
+year: event_id_1
+year: event_id_2</code></pre>
+
+                    <h4 class="mt-4 mb-3">3. Crawl lại các event bị fail</h4>
+                    <pre><code># Retry specific events
+python retry_failed_events.py &lt;year_dir&gt; &lt;event_id1&gt; &lt;event_id2&gt; ...
+
+# Ví dụ:
+python retry_failed_events.py data/1969 iscgem811607 uw10835138</code></pre>
+
+                    <h4 class="mt-4 mb-3">4. Tạo CSV từ JSON files (khi crawler bị interrupt)</h4>
+                    <pre><code># Tạo CSV cho 1 năm
+python create_csv_from_json.py data/1974
+
+# Tạo CSV cho tất cả các năm thiếu
+python create_csv_from_json.py data/1974 --all</code></pre>
+                </section>
+
+                <section class="mb-5">
+                    <h3><i class="bi bi-folder-fill me-2"></i>Cấu trúc thư mục</h3>
+                    <pre><code>data/
+├── 1900/
+│   ├── earthquakes_1900_all.csv
+│   ├── event_7.0_cent19000105190000000.json
+│   └── ...
+├── 1901/
+│   └── ...
+└── earthquakes_1900-1962_all.csv  (file tổng hợp)</code></pre>
+                </section>
+
+                <section class="mb-5">
+                    <h3><i class="bi bi-tools me-2"></i>Xử lý sự cố</h3>
+                    <ul>
+                        <li><strong>Năm có &gt;20k events</strong>: Crawler tự động chia nhỏ theo tháng để tránh API limit</li>
+                        <li><strong>Thiếu CSV file</strong>: Dùng <code>create_csv_from_json.py</code> để tạo từ JSON files</li>
+                        <li><strong>Event thiếu JSON</strong>: Dùng <code>check_missing_events.py</code> để kiểm tra, sau đó dùng <code>retry_failed_events.py</code> để crawl lại</li>
+                    </ul>
+                </section>
 
                 <hr class="my-5">
 
-                <h4 class="mb-3"><i class="bi bi-gear-fill"></i> Other Scripts</h4>
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Script</th>
-                                <th>Purpose</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><code>usgs_crawl.py</code></td>
-                                <td>Crawl data from USGS API</td>
-                            </tr>
-                            <tr>
-                                <td><code>check_missing_events.py</code></td>
-                                <td>Check for missing JSON events</td>
-                            </tr>
-                            <tr>
-                                <td><code>retry_failed_events.py</code></td>
-                                <td>Retry failed events</td>
-                            </tr>
-                            <tr>
-                                <td><code>create_csv_from_json.py</code></td>
-                                <td>Create CSV from JSON files</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="mb-5">
+                    <h2 class="text-success mb-3">
+                        <i class="bi bi-display-fill me-2"></i>Web Demo
+                    </h2>
                 </div>
+
+                <section class="mb-5">
+                    <h3><i class="bi bi-download me-2"></i>Cài đặt</h3>
+                    <pre><code># Cài đặt dependencies
+pip install fastapi uvicorn pandas</code></pre>
+                </section>
+
+                <section class="mb-5">
+                    <h3><i class="bi bi-play-circle-fill me-2"></i>Chạy ứng dụng</h3>
+                    <pre><code># Bước 1: Khởi động API server
+cd app_demo
+python api.py
+
+# Bước 2: Mở trang web (trong terminal khác hoặc browser)
+xdg-open index.html
+# Hoặc
+firefox index.html</code></pre>
+                    <p><strong>API Endpoint</strong> (port 8386):</p>
+                    <ul>
+                        <li><code>GET http://127.0.0.1:8386/api/years</code> - Danh sách năm có dữ liệu</li>
+                        <li><code>GET http://127.0.0.1:8386/api/data/{year}</code> - Dữ liệu động đất năm cụ thể</li>
+                        <li><code>GET http://127.0.0.1:8386/api/stats</code> - Thống kê tổng hợp</li>
+                    </ul>
+                </section>
+
+                <section class="mb-5">
+                    <h3><i class="bi bi-stack me-2"></i>Tech Stack</h3>
+                    <ul>
+                        <li><strong>Backend</strong>: FastAPI với uvicorn</li>
+                        <li><strong>Frontend</strong>: Bootstrap 5, jQuery 3.7.1, DataTables 2.1.8</li>
+                        <li><strong>Data</strong>: Realtime từ CSV files trong thư mục <code>/data</code></li>
+                    </ul>
+                </section>
+
+                <section class="mb-5">
+                    <h3><i class="bi bi-file-earmark-html me-2"></i>Các trang</h3>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Trang</th>
+                                    <th>Mô tả</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><a href="index.html"><code>index.html</code></a></td>
+                                    <td>Trang chủ với 2 nút điều hướng</td>
+                                </tr>
+                                <tr>
+                                    <td><a href="instruction.html"><code>instruction.html</code></a></td>
+                                    <td>Hướng dẫn sử dụng các script Python</td>
+                                </tr>
+                                <tr>
+                                    <td><a href="visualize.html"><code>visualize.html</code></a></td>
+                                    <td>Bảng dữ liệu động đất với filter theo năm</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="mb-5">
+                    <h3><i class="bi bi-info-circle-fill me-2"></i>Lưu ý</h3>
+                    <ul>
+                        <li>API server phải chạy trước khi sử dụng web demo</li>
+                        <li>Dữ liệu load realtime từ thư mục <code>/data</code>, không cần tạo file static</li>
+                        <li>DataTable phân trang 50 records/trang, sort theo thời gian asc</li>
+                        <li>Chỉ load bảng khi chọn năm cụ thể (không load all years)</li>
+                    </ul>
+                </section>
             </div>
         </div>
     </div>

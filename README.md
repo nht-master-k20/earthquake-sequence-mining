@@ -1,34 +1,47 @@
-# Earthquake Sequence Mining - Phase 1: Data Crawler
+# Earthquake Sequence Mining
 
-> Thu thập dữ liệu động đất từ USGS API
+## Project Overview
 
-## Mục tiêu
+A comprehensive earthquake data analysis system with data crawler, web visualization, and sequence mining capabilities.
 
-Crawl dữ liệu động đất theo năm từ USGS Earthquake Hazards Program.
+## Project Structure
+
+```
+earthquake-sequence-mining/
+├── app_demo/          # Web visualization interface
+├── data/               # Earthquake data directory
+├── usgs_crawl.py        # Data crawler script
+├── requirements.txt      # Python dependencies
+└── README.md           # This file
+```
+
+## Phase 1: Data Crawler
+
+### Objective
+
+Crawl earthquake data from USGS Earthquake Hazards Program API.
 
 - **Data Source**: [USGS Earthquake Data](https://www.usgs.gov/programs/earthquake-hazards/science/earthquake-data)
 - **API**: [USGS Earthquake API](https://earthquake.usgs.gov/fdsnws/event/1/)
 
-> **Lưu ý**: Mặc định crawler sẽ lấy **tất cả độ lớn**. Số lượng data có thể rất lớn (~16,000 events/năm với M≥4.0). Nên dùng `--min-mag` để giới hạn nếu cần.
+### Output Files
 
-## Dữ liệu đầu ra
+- **JSON Files**: Individual event details in GeoJSON format
+  - Format: `event_<mag>_<id>.json` (e.g., `event_6.3_us70006vkq.json`)
+- **CSV Files**: Aggregated earthquake data per year
 
-- **File JSON**: Chi tiết từng sự kiện (GeoJSON format)
-  - Format: `event_<mag>_<id>.json` (ví dụ: `event_6.3_us70006vkq.json`)
-- **File CSV**: Dữ liệu tổng hợp
-
-## Môi trường
+### Environment
 
 - **OS**: Ubuntu 24.04.3 LTS
 - **Python**: 3.12
 
-## Cài đặt
+### Installation
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Hoặc dùng virtual environment:
+Or using virtual environment:
 
 ```bash
 python -m venv .venv
@@ -36,103 +49,73 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-> **Lưu ý**: Có thể có lỗi phát sinh trong quá trình cài đặt thư viện do khác biệt môi trường.
+### Usage
 
-## Sử dụng
-
-### Crawl dữ liệu
-
-> **Lưu ý**: Crawler sẽ tự động skip các event đã có file JSON (không crawl lại).
+#### Crawl Data
 
 ```bash
-# Crawl 1 năm
-python main.py 2023
+# Crawl 1 year
+python usgs_crawl.py 2023
 
-# Crawl nhiều năm
-python main.py --start-year 2020 --end-year 2023
+# Crawl multiple years
+python usgs_crawl.py --start-year 2020 --end-year 2023
 
-# Crawl với giới hạn độ lớn (khuyên dùng)
-python main.py --start-year 2020 --end-year 2023 --min-mag 6.5
+# Crawl with minimum magnitude
+python usgs_crawl.py --start-year 2020 --end-year 2023 --min-mag 5.0
 
-# Crawl với khoảng độ lớn (ví dụ: chỉ M 5.0 - 6.5)
-python main.py --start-year 2020 --end-year 2023 --min-mag 5.0 --max-mag 6.5
+# Crawl with magnitude range
+python usgs_crawl.py --start-year 2020 --end-year 2023 --min-mag 5.0 --max-mag 6.5
 
-# Crawl tất cả các năm
-python main.py --all --start-year 2010
+# Crawl all years
+python usgs_crawl.py --all --start-year 2010
 ```
 
-### Tham số
+#### Parameters
 
-| Tham số | Mô tả | Mặc định |
-|---------|-------|----------|
-| `year` | - | Năm cần crawl (single year) |
-| `--start-year` | `None` | Năm bắt đầu |
-| `--end-year` | `None` | Năm kết thúc |
-| `--all` | `False` | Crawl đến năm hiện tại |
-| `--min-mag` | `None` | Độ lớn tối thiểu (None = tất cả) |
-| `--max-mag` | `None` | Độ lớn tối đa (None = tất cả) |
-| `--limit` | Không giới hạn | Giới hạn số lượng mỗi năm |
-| `--output-dir` | `data` | Thư mục lưu file |
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `year` | - | Single year to crawl |
+| `--start-year` | `None` | Start year |
+| `--end-year` | `None` | End year |
+| `--all` | `False` | Crawl until current year |
+| `--min-mag` | `None` | Minimum magnitude |
+| `--max-mag` | `None` | Maximum magnitude |
+| `--limit` | No limit | Limit events per year |
+| `--output-dir` | `data` | Output directory |
 
-### Chế độ hoạt động
-
-**Mode 1: Single year** - Crawl 1 năm
+#### Check Missing Events
 
 ```bash
-python main.py 2023              # Tất cả độ lớn
-python main.py 2023 --min-mag 5.0  # Chỉ M ≥ 5.0
-python main.py 2023 --min-mag 5.0 --max-mag 6.5  # Chỉ M 5.0 - 6.5
-```
-
-**Mode 2: Year range** - Crawl khoảng năm
-
-```bash
-python main.py --start-year 2020 --end-year 2023              # Tất cả độ lớn
-python main.py --start-year 2020 --end-year 2023 --min-mag 5.0  # Chỉ M ≥ 5.0
-python main.py --start-year 2020 --end-year 2023 --min-mag 5.0 --max-mag 6.5  # Chỉ M 5.0 - 6.5
-```
-
-**Mode 3: All years** - Crawl từ start-year đến hiện tại
-
-```bash
-python main.py --all --start-year 2010              # Tất cả độ lớn
-python main.py --all --start-year 2010 --min-mag 5.0  # Chỉ M ≥ 5.0
-python main.py --all --start-year 2010 --min-mag 5.0 --max-mag 6.5  # Chỉ M 5.0 - 6.5
-```
-
-### Kiểm tra event thiếu JSON
-
-```bash
-# Kiểm tra tất cả các năm
+# Check all years
 python check_missing_events.py --all
 
-# Kiểm tra 1 năm
+# Check specific year
 python check_missing_events.py 1900
 
-# Kiểm tra nhiều năm
-python check_missing_events.py 1900 1910 1920 
+# Check multiple years
+python check_missing_events.py 1900 1910 1920
 ```
 
-**Output format:**
-
-```
-year: csv=<số dòng CSV>, json=<số file JSON>, missing=<số thiếu>
-year: event_id_1
-year: event_id_2
-...
-```
-
-### Crawl lại các event bị fail
+#### Retry Failed Events
 
 ```bash
-# Retry specific events
 python retry_failed_events.py <year_dir> <event_id1> <event_id2> ...
 
-# Ví dụ:
-python retry_failed_events.py data/1969 iscgem811607 uw10835138 iscgem811616
+# Example:
+python retry_failed_events.py data/1969 iscgem811607 uw10835138
 ```
 
-## Cấu trúc thư mục
+#### Create CSV from JSON
+
+```bash
+# Create CSV for one year
+python create_csv_from_json.py data/1974
+
+# Create CSV for all years
+python create_csv_from_json.py data/1974 --all
+```
+
+### Directory Structure
 
 ```
 data/
@@ -142,5 +125,19 @@ data/
 │   └── ...
 ├── 1901/
 │   └── ...
-└── earthquakes_1900-1962_all.csv  (file tổng hợp)
+└── earthquakes_1900-1962_all.csv  # Aggregated file
 ```
+
+### Troubleshooting
+
+- **Years with >20k events**: Crawler automatically splits by month to avoid API limits
+- **Missing CSV file**: Use `create_csv_from_json.py` to generate from JSON files
+- **Events missing JSON**: Use `check_missing_events.py` to check, then `retry_failed_events.py` to re-crawl
+
+## Web Demo
+
+See [app_demo/README.md](app_demo/README.md) for web visualization interface.
+
+## License
+
+MIT License

@@ -42,7 +42,17 @@ def crawl_event(event_id, output_dir="data"):
             params = {"eventid": event_id, "format": "geojson"}
             r = requests.get(url, params=params, timeout=30)
 
-            if r.status_code != 200:
+            if r.status_code == 429:
+                # Rate limit - wait longer and retry
+                if attempt < max_retries - 1:
+                    wait_time = 10 + (attempt * 10)  # 10s, 20s, 30s
+                    print(f"  ⏳ Rate limited! Waiting {wait_time}s before retry...")
+                    time.sleep(wait_time)
+                    continue
+                else:
+                    print(f"  ✗ Rate limited - max retries reached")
+                    return None
+            elif r.status_code != 200:
                 print(f"  ✗ HTTP {r.status_code}")
                 return None
 
@@ -154,7 +164,16 @@ def get_event_ids(year, min_magnitude=None, max_magnitude=None, limit=None):
         print(f"\nFetching earthquake list for {year}...")
         r = requests.get(url, params=params, timeout=30)
 
-        if r.status_code != 200:
+        if r.status_code == 429:
+            # Rate limit - wait and retry
+            print(f"⏳ Rate limited! Waiting 15s before retry...")
+            time.sleep(15)
+            # Retry once
+            r = requests.get(url, params=params, timeout=30)
+            if r.status_code != 200:
+                print(f"✗ Failed to fetch event list: HTTP {r.status_code}")
+                return None
+        elif r.status_code != 200:
             print(f"✗ Failed to fetch event list: HTTP {r.status_code}")
             return None
 
@@ -222,7 +241,15 @@ def get_event_ids_by_month(year, min_magnitude=None, max_magnitude=None, limit=N
             print(f"  Fetching {year}-{month:02d}...", end=" ")
             r = requests.get(url, params=params, timeout=30)
 
-            if r.status_code != 200:
+            if r.status_code == 429:
+                # Rate limit - wait and retry
+                print(f"⏳ Rate limited! Waiting 10s...", end=" ")
+                time.sleep(10)
+                r = requests.get(url, params=params, timeout=30)
+                if r.status_code != 200:
+                    print(f"✗ HTTP {r.status_code}")
+                    continue
+            elif r.status_code != 200:
                 print(f"✗ HTTP {r.status_code}")
                 continue
 
@@ -259,7 +286,7 @@ def crawl_multiple_events(event_ids, output_dir="data"):
     """
     # Default values
     save_json = True
-    delay = 0.5
+    delay = 1.0  # Increased to avoid rate limiting
     max_retries = 3
     results = []
     total = len(event_ids)
@@ -306,7 +333,7 @@ def crawl_year(year, min_mag, max_mag, output_dir, limit=None):
     """
     # Default values (không còn tham số CLI)
     save_json = True
-    delay = 0.5
+    delay = 1.0  # Increased to avoid rate limiting
     max_retries = 3
     # Tạo chuỗi mô tả magnitude range
     mag_str = f"M{min_mag}+" if min_mag is not None else ""

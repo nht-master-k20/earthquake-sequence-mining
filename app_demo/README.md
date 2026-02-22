@@ -14,7 +14,6 @@ A web-based visualization interface for earthquake data using Bootstrap 5, jQuer
 
 ### Backend
 - **FastAPI** - RESTful API server
-- **pandas** - Data processing
 - **uvicorn** - ASGI server
 
 ### Frontend
@@ -29,7 +28,15 @@ All frontend libraries are loaded from CDN - no installation required.
 ## Installation
 
 ```bash
-pip install fastapi uvicorn pandas
+pip install fastapi uvicorn
+```
+
+Or using virtual environment:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install fastapi uvicorn
 ```
 
 ## Running the Application
@@ -55,9 +62,17 @@ firefox index.html
 
 | Endpoint | Description |
 |----------|-------------|
+| `GET /` | API information |
 | `GET /api/years` | List of available years with data |
-| `GET /api/data/{year}` | Earthquake data for specific year |
-| `GET /api/stats` | Overall statistics |
+| `GET /api/data/{year}` | Earthquake data for specific year with stats and charts |
+| `GET /api/stats` | Overall statistics across all years |
+
+## Data Source
+
+The API reads **JSON files** from `../data/{year}/` directory:
+- File format: `event_<magnitude>_<event_id>.json`
+- Example: `data/1976/event_4.2_ci123456.json`
+- Unknown magnitude: `event_unknown_<event_id>.json`
 
 ## Data Format
 
@@ -91,6 +106,8 @@ firefox index.html
 }
 ```
 
+**Note:** Null/unknown values are displayed as `"--"` instead of `0` or `null`.
+
 ## Features
 
 ### Visualize Page (`visualize.html`)
@@ -98,7 +115,7 @@ firefox index.html
 - **Year Selector**: Choose year to view data
 - **Statistics Charts**:
   - Magnitude Distribution (bar chart)
-  - Depth Distribution (bar chart)  
+  - Depth Distribution (bar chart)
   - Monthly Distribution (line chart)
 - **Quick Stats**: Total events, average/max magnitude, average depth
 - **Event Table**: Full data table with:
@@ -112,14 +129,14 @@ firefox index.html
 
 ```
 app_demo/
-├── api.py              # FastAPI backend
+├── api.py              # FastAPI backend (reads JSON files)
 ├── index.html          # Homepage
-├── instruction.html     # User guide (Vietnamese)
+├── instruction.html    # User guide (Vietnamese)
 ├── visualize.html      # Data visualization page
 ├── css/
 │   └── style.css       # Custom styles
 └── js/
-    └── visualize.js      # Frontend logic
+    └── visualize.js    # Frontend logic
 ```
 
 ### Customization
@@ -131,6 +148,6 @@ app_demo/
 ## Notes
 
 - API server must be running before using the web interface
-- Data loads in real-time from `/data` directory - no static files needed
+- Data loads in real-time from `/data` directory - JSON files only
 - All data processing (sorting, statistics, charts) is handled by the API
 - Frontend only displays data - no client-side processing

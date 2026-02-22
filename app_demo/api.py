@@ -5,10 +5,9 @@ FastAPI backend for earthquake data API
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import pandas as pd
 import glob
 import os
-from pathlib import Path
+import json
 from datetime import datetime
 
 app = FastAPI(title="Earthquake Sequence Mining API")
@@ -22,7 +21,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-DATA_DIR = "data"
+DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 
 
 def get_available_years() -> list[str]:
@@ -33,65 +32,83 @@ def get_available_years() -> list[str]:
     for item in sorted(os.listdir(DATA_DIR)):
         year_path = os.path.join(DATA_DIR, item)
         if os.path.isdir(year_path) and item.isdigit():
-            csv_files = glob.glob(os.path.join(year_path, "*.csv"))
-            if csv_files:
+            json_files = glob.glob(os.path.join(year_path, "event_*.json"))
+            if json_files:
                 years.append(item)
     return years
 
 
 def read_year_data(year: str) -> list:
-    """Read earthquake data for a specific year"""
+    """Read earthquake data for a specific year from JSON files"""
     year_path = os.path.join(DATA_DIR, year)
-    csv_files = glob.glob(os.path.join(year_path, "*.csv"))
-    if not csv_files:
+    json_files = glob.glob(os.path.join(year_path, "event_*.json"))
+    if not json_files:
         return []
-    try:
-        df = pd.read_csv(csv_files[0])
-        events = []
-        for idx, row in df.iterrows():
-            try:
-                # Parse time - handle both Unix timestamp and ISO format
-                time_str = str(row.get('time', ''))
-                # Try Unix timestamp (milliseconds)
-                try:
-                    time_obj = pd.to_datetime(int(time_str), unit='ms', errors='coerce')
-                except (ValueError, TypeError):
-                    # Try ISO format
-                    time_obj = pd.to_datetime(time_str, errors='coerce')
 
-                if pd.isna(time_obj):
-                    continue
+    events = []
+    for json_file in json_files:
+        try:
+            with open(json_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
 
-                event = {
-                    'time': time_obj,
-                    'place': str(row.get('place', 'Unknown')),
-                    'mag': float(row.get('mag', 0)) if pd.notna(row.get('mag', None)) else 0,
-                    'depth': float(row.get('depth', 0)) if pd.notna(row.get('depth', None)) else 0,
-                    'lat': float(row.get('lat', 0)) if pd.notna(row.get('lat', None)) else 0,
-                    'lon': float(row.get('lon', 0)) if pd.notna(row.get('lon', None)) else 0,
-                }
-                events.append(event)
-            except Exception as e:
-                print(f"Error parsing row {idx}: {e}")
+            # Extract feature from GeoJSON
+            if "features" in data and data["features"]:
+                feature = data["features"][0]
+            elif data.get("type") == "Feature":
+                feature = data
+            else:
                 continue
 
-        # Sort by datetime BEFORE formatting
-        events.sort(key=lambda x: x['time'])
+            props = feature["properties"]
+            coords = feature.get("geometry", {}).get("coordinates", [0, 0, 0])
 
-        # Format time after sorting
-        for event in events:
-            event['time'] = event['time'].strftime('%d/%m/%Y %H:%M:%S')
+            # Parse time (Unix timestamp in milliseconds)
+            time_ms = props.get("time", 0)
+            try:
+                time_obj = datetime.fromtimestamp(time_ms / 1000)
+            except:
+                continue
 
-        return events
-    except Exception as e:
-        print(f"Error reading {year}: {e}")
-        return []
+            mag = props.get('mag')
+            depth = coords[2] if len(coords) > 2 else None
+            lat = coords[1] if len(coords) > 1 else None
+            lon = coords[0] if len(coords) > 0 else None
+
+            event = {
+                'time': time_obj,
+                'place': props.get('place') or '--',
+                'mag': mag if mag is not None else '--',
+                'depth': depth if depth is not None else '--',
+                'lat': lat if lat is not None else '--',
+                'lon': lon if lon is not None else '--',
+            }
+            events.append(event)
+
+        except Exception:
+            continue
+
+    # Sort by datetime BEFORE formatting
+    events.sort(key=lambda x: x['time'])
+
+    # Format time after sorting
+    for event in events:
+        event['time'] = event['time'].strftime('%d/%m/%Y %H:%M:%S')
+
+    return events
 
 
 def calculate_stats(data: list) -> dict:
     """Calculate statistics from data"""
-    mags = [d['mag'] for d in data if d['mag'] > 0]
-    depths = [d['depth'] for d in data if d['depth'] > 0]
+    # Filter out '--' and None values, convert to float
+    mags = []
+    depths = []
+    for d in data:
+        mag = d.get('mag')
+        depth = d.get('depth')
+        if isinstance(mag, (int, float)) and mag > 0:
+            mags.append(mag)
+        if isinstance(depth, (int, float)) and depth > 0:
+            depths.append(depth)
 
     stats = {
         'total_events': len(data),
@@ -109,27 +126,29 @@ def calculate_charts(data: list) -> dict:
     month_counts = [0] * 12
 
     for d in data:
-        # Magnitude ranges
+        # Magnitude ranges (skip '--')
         mag = d['mag']
-        if mag < 3:
-            mag_ranges['0-3'] += 1
-        elif mag < 5:
-            mag_ranges['3-5'] += 1
-        elif mag < 7:
-            mag_ranges['5-7'] += 1
-        else:
-            mag_ranges['7+'] += 1
+        if isinstance(mag, (int, float)):
+            if mag < 3:
+                mag_ranges['0-3'] += 1
+            elif mag < 5:
+                mag_ranges['3-5'] += 1
+            elif mag < 7:
+                mag_ranges['5-7'] += 1
+            else:
+                mag_ranges['7+'] += 1
 
-        # Depth ranges
+        # Depth ranges (skip '--')
         depth = d['depth']
-        if depth < 50:
-            depth_ranges['0-50km'] += 1
-        elif depth < 100:
-            depth_ranges['50-100km'] += 1
-        elif depth < 300:
-            depth_ranges['100-300km'] += 1
-        else:
-            depth_ranges['300km+'] += 1
+        if isinstance(depth, (int, float)):
+            if depth < 50:
+                depth_ranges['0-50km'] += 1
+            elif depth < 100:
+                depth_ranges['50-100km'] += 1
+            elif depth < 300:
+                depth_ranges['100-300km'] += 1
+            else:
+                depth_ranges['300km+'] += 1
 
         # Month counts
         try:
@@ -181,10 +200,12 @@ def get_stats():
         events = read_year_data(year)
         all_events.extend(events)
         for e in events:
-            if e['mag'] > 0:
-                all_mags.append(e['mag'])
-            if e['depth'] > 0:
-                all_depths.append(e['depth'])
+            mag = e['mag']
+            depth = e['depth']
+            if isinstance(mag, (int, float)) and mag > 0:
+                all_mags.append(mag)
+            if isinstance(depth, (int, float)) and depth > 0:
+                all_depths.append(depth)
 
     stats = {
         'total_events': len(all_events),

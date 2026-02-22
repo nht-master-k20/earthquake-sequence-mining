@@ -144,6 +144,13 @@ function displayTable(data) {
         responsive: true,
         language: {
             info: 'Showing _START_ to _END_ of _TOTAL_ events'
+        },
+        createdRow: function(row, data, dataIndex) {
+            // Check if any column (except index and time) has '--' (missing data)
+            const hasMissing = data.slice(2).some(val => val === '--');
+            if (hasMissing) {
+                $(row).addClass('table-warning');
+            }
         }
     });
 }

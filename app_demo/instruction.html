@@ -63,21 +63,20 @@
                         <li><strong>Data Source</strong>: <a href="https://www.usgs.gov/programs/earthquake-hazards/science/earthquake-data" target="_blank">USGS Earthquake Data</a></li>
                         <li><strong>API</strong>: <a href="https://earthquake.usgs.gov/fdsnws/event/1/" target="_blank">USGS Earthquake API</a></li>
                     </ul>
-                    <div class="alert alert-warning">
-                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                        <strong>Lưu ý</strong>: Mặc định crawler sẽ lấy <strong>tất cả độ lớn</strong>. Số lượng data có thể rất lớn (~16,000 events/năm với M≥4.0). Nên dùng <code>--min-mag</code>/<code>--max-mag</code> để giới hạn nếu cần.
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        <strong>Dữ liệu</strong>: Được lưu dưới dạng JSON files - nguồn dữ liệu chính.
                     </div>
                 </section>
 
                 <section class="mb-5">
                     <h3><i class="bi bi-file-code me-2"></i>Dữ liệu đầu ra</h3>
+                    <p><strong>JSON Files</strong>: Chi tiết từng sự kiện (GeoJSON format)</p>
                     <ul>
-                        <li><strong>File JSON</strong>: Chi tiết từng sự kiện (GeoJSON format)
-                            <ul>
-                                <li>Format: <code>event_&lt;mag&gt;_&lt;id&gt;.json</code> (ví dụ: <code>event_6.3_us70006vkq.json</code>)</li>
-                            </ul>
-                        </li>
-                        <li><strong>File CSV</strong>: Dữ liệu tổng hợp</li>
+                        <li>Format: <code>event_&lt;mag&gt;_&lt;id&gt;.json</code></li>
+                        <li>Ví dụ: <code>event_6.3_us70006vkq.json</code></li>
+                        <li>Unknown magnitude: <code>event_unknown_&lt;id&gt;.json</code></li>
+                        <li>Đường dẫn: <code>data/{year}/event_*.json</code></li>
                     </ul>
                 </section>
 
@@ -126,7 +125,7 @@ python usgs_crawl.py --all --start-year 2010</code></pre>
                                 <tr><td><code>--start-year</code></td><td>Năm bắt đầu</td></tr>
                                 <tr><td><code>--end-year</code></td><td>Năm kết thúc</td></tr>
                                 <tr><td><code>--all</code></td><td>Crawl đến năm hiện tại</td></tr>
-                                <tr><td><code>--min-mag</code></td><td>Độ lớn tối thiểu</td></tr>
+                                <tr><td><code>--min-mag</code></td><td>Độ lớn tối thiểu (0 = bao gồm unknown)</td></tr>
                                 <tr><td><code>--max-mag</code></td><td>Độ lớn tối đa</td></tr>
                                 <tr><td><code>--limit</code></td><td>Giới hạn số lượng events mỗi năm</td></tr>
                                 <tr><td><code>--output-dir</code></td><td>Thư mục lưu file (default: data)</td></tr>
@@ -142,45 +141,41 @@ python check_missing_events.py --all
 python check_missing_events.py 1900
 
 # Kiểm tra nhiều năm
-python check_missing_events.py 1900 1910 1920</code></pre>
+python check_missing_events.py 1900 1910 1920
+
+# Kiểm tra với magnitude filter
+python check_missing_events.py --all --min-mag 4 --max-mag 6</code></pre>
                     <p><strong>Output format:</strong></p>
-                    <pre><code>year: csv=&lt;số dòng CSV&gt;, json=&lt;số file JSON&gt;, missing=&lt;số thiếu&gt;
-year: event_id_1
-year: event_id_2</code></pre>
+                    <pre><code>year: api=&lt;số events từ API&gt;, json=&lt;số JSON files&gt; (unknown: &lt;số unknown&gt;), missing=&lt;số thiếu&gt;</code></pre>
 
-                    <h4 class="mt-4 mb-3">3. Crawl lại các event bị fail</h4>
-                    <pre><code># Retry specific events
-python retry_failed_events.py &lt;year_dir&gt; &lt;event_id1&gt; &lt;event_id2&gt; ...
+                    <h4 class="mt-4 mb-3">3. Auto-crawl event thiếu</h4>
+                    <pre><code># Tự động crawl các event bị thiếu
+python check_missing_events.py 1975 --autofill 1
 
-# Ví dụ:
-python retry_failed_events.py data/1969 iscgem811607 uw10835138</code></pre>
-
-                    <h4 class="mt-4 mb-3">4. Tạo CSV từ JSON files (khi crawler bị interrupt)</h4>
-                    <pre><code># Tạo CSV cho 1 năm
-python create_csv_from_json.py data/1974
-
-# Tạo CSV cho tất cả các năm thiếu
-python create_csv_from_json.py data/1974 --all</code></pre>
+# Tự động crawl với magnitude filter
+python check_missing_events.py --all --min-mag 4 --autofill 1</code></pre>
                 </section>
 
                 <section class="mb-5">
                     <h3><i class="bi bi-folder-fill me-2"></i>Cấu trúc thư mục</h3>
                     <pre><code>data/
 ├── 1900/
-│   ├── earthquakes_1900_all.csv
 │   ├── event_7.0_cent19000105190000000.json
+│   ├── event_6.5_cent19000112190000000.json
 │   └── ...
 ├── 1901/
-│   └── ...
-└── earthquakes_1900-1962_all.csv  (file tổng hợp)</code></pre>
+│   └── event_*.json
+└── 1974/
+    └── event_*.json</code></pre>
                 </section>
 
                 <section class="mb-5">
                     <h3><i class="bi bi-tools me-2"></i>Xử lý sự cố</h3>
                     <ul>
-                        <li><strong>Năm có &gt;20k events</strong>: Crawler tự động chia nhỏ theo tháng để tránh API limit</li>
-                        <li><strong>Thiếu CSV file</strong>: Dùng <code>create_csv_from_json.py</code> để tạo từ JSON files</li>
-                        <li><strong>Event thiếu JSON</strong>: Dùng <code>check_missing_events.py</code> để kiểm tra, sau đó dùng <code>retry_failed_events.py</code> để crawl lại</li>
+                        <li><strong>HTTP 429 Rate Limit</strong>: Crawler tự động retry với delays (10s, 20s, 30s)</li>
+                        <li><strong>Năm có &gt;20k events</strong>: Crawler tự động chia nhỏ theo tháng</li>
+                        <li><strong>Event thiếu JSON</strong>: Dùng <code>check_missing_events.py --autofill 1</code> để tự động crawl</li>
+                        <li><strong>Unknown magnitude</strong>: Khi <code>--min-mag 0</code>, unknown mag được tính vào</li>
                     </ul>
                 </section>
 
@@ -195,7 +190,7 @@ python create_csv_from_json.py data/1974 --all</code></pre>
                 <section class="mb-5">
                     <h3><i class="bi bi-download me-2"></i>Cài đặt</h3>
                     <pre><code># Cài đặt dependencies
-pip install fastapi uvicorn pandas</code></pre>
+pip install fastapi uvicorn</code></pre>
                 </section>
 
                 <section class="mb-5">
@@ -221,7 +216,7 @@ firefox index.html</code></pre>
                     <ul>
                         <li><strong>Backend</strong>: FastAPI với uvicorn</li>
                         <li><strong>Frontend</strong>: Bootstrap 5, jQuery 3.7.1, DataTables 2.1.8</li>
-                        <li><strong>Data</strong>: Realtime từ CSV files trong thư mục <code>/data</code></li>
+                        <li><strong>Data</strong>: Realtime từ JSON files trong thư mục <code>/data</code></li>
                     </ul>
                 </section>
 
@@ -258,8 +253,8 @@ firefox index.html</code></pre>
                     <ul>
                         <li>API server phải chạy trước khi sử dụng web demo</li>
                         <li>Dữ liệu load realtime từ thư mục <code>/data</code>, không cần tạo file static</li>
-                        <li>DataTable phân trang 50 records/trang, sort theo thời gian asc</li>
-                        <li>Chỉ load bảng khi chọn năm cụ thể (không load all years)</li>
+                        <li>DataTable hiển thị tất cả records (không phân trang), sort theo thời gian</li>
+                        <li>Chỉ load dữ liệu khi chọn năm cụ thể</li>
                     </ul>
                 </section>
             </div>

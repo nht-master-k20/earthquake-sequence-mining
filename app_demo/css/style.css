@@ -79,3 +79,21 @@ body {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+/* DataTable row styles */
+table.dataTable tbody tr {
+    background-color: #ffffff;
+}
+
+table.dataTable tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* DataTable row highlighting for missing data */
+table.dataTable tbody tr.table-warning {
+    background-color: #fff3cd !important;
+}
+
+table.dataTable tbody tr.table-warning:hover {
+    background-color: #ffe69c !important;
+}

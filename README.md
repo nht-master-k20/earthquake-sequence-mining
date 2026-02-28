@@ -1,115 +1,51 @@
 # Earthquake Sequence Mining
 
-## Project Overview
+Crawl và phân tích dữ liệu động đất từ USGS API.
 
-A comprehensive earthquake data analysis system with data crawler, web visualization, and sequence mining capabilities.
-
-## Project Structure
-
-```
-earthquake-sequence-mining/
-├── app_demo/              # Web visualization interface
-├── data/                   # Earthquake data directory (JSON files)
-├── usgs_crawl.py           # Data crawler script
-├── check_missing_events.py # Check for missing event data
-├── requirements.txt        # Python dependencies
-└── README.md              # This file
-```
-
-## Phase 1: Data Crawler
-
-### Objective
-
-Crawl earthquake data from USGS Earthquake Hazards Program API.
-
-- **Data Source**: [USGS Earthquake Data](https://www.usgs.gov/programs/earthquake-hazards/science/earthquake-data)
-- **API**: [USGS Earthquake API](https://earthquake.usgs.gov/fdsnws/event/1/)
-
-### Output Files
-
-- **JSON Files**: Individual event details in GeoJSON format (PRIMARY DATA SOURCE)
-  - Stored in: `data/{year}/event_<mag>_<id>.json`
-  - Example: `data/1974/event_5.2_ci12321487.json`
-
-### Environment
-
-- **OS**: Ubuntu 24.04.3 LTS
-- **Python**: 3.12
-
-### Installation
+## Cài đặt
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Or using virtual environment:
-
+Hoặc dùng virtual environment:
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### Usage
+## Cách dùng
 
-#### Crawl Data
-
-```bash
-# Crawl 1 year
-python usgs_crawl.py 2023
-
-# Crawl multiple years
-python usgs_crawl.py --start-year 2020 --end-year 2023
-
-# Crawl with minimum magnitude
-python usgs_crawl.py --start-year 2020 --end-year 2023 --min-mag 5.0
-
-# Crawl with magnitude range
-python usgs_crawl.py --start-year 2020 --end-year 2023 --min-mag 5.0 --max-mag 6.5
-
-# Crawl all years
-python usgs_crawl.py --all --start-year 2010
-```
-
-#### Parameters
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `year` | - | Single year to crawl |
-| `--start-year` | `None` | Start year |
-| `--end-year` | `None` | End year |
-| `--all` | `False` | Crawl until current year |
-| `--min-mag` | `None` | Minimum magnitude |
-| `--max-mag` | `None` | Maximum magnitude |
-| `--limit` | No limit | Limit events per year |
-| `--output-dir` | `data` | Output directory |
-
-#### Features
-
-- **Incremental Crawling**: Skips events that already have JSON files
-- **Rate Limiting**: Automatically handles HTTP 429 errors with retry logic (10s, 20s, 30s delays)
-- **Month-by-Month**: For years with >20,000 events, automatically splits requests by month
-
-#### Check Missing Events
+### Crawl dữ liệu
 
 ```bash
-# Check all years
-python check_missing_events.py --all
+# Crawl tất cả các năm
+python3 auto_crawl.py --all
 
-# Check specific year
-python check_missing_events.py 1900
+# Crawl một năm cụ thể
+python3 auto_crawl.py 1986
 
-# Check multiple years
-python check_missing_events.py 1900 1910 1920
+# Chỉ kiểm tra, không crawl
+python3 auto_crawl.py --all --no-autofill
 
-# Check with auto-fill missing events
-python check_missing_events.py 1975 --autofill 1
-
-# Check with magnitude filter and auto-fill
-python check_missing_events.py --all --min-mag 4 --max-mag 6 --autofill 1
+# Crawl với filter magnitude
+python3 auto_crawl.py --all --min-mag 4.0
+python3 auto_crawl.py --all --min-mag 4.0 --max-mag 6.0
 ```
 
-### Directory Structure
+### Tham số
+
+| Tham số | Mặc định | Mô tả |
+|---------|----------|-------|
+| `year` | - | Năm cần crawl |
+| `--all` | `False` | Crawl tất cả các năm |
+| `--min-mag` | `None` | Độ lớn tối thiểu |
+| `--max-mag` | `None` | Độ lớn tối đa |
+| `--no-autofill` | `False` | Chỉ kiểm tra, không tự động crawl |
+| `--output-dir` | `data` | Thư mục lưu dữ liệu |
+
+### Cấu trúc dữ liệu
 
 ```
 data/
@@ -117,50 +53,50 @@ data/
 │   ├── event_7.0_cent19000105190000000.json
 │   ├── event_6.5_cent19000112190000000.json
 │   └── ...
-├── 1901/
+├── 1986/
 │   └── event_*.json
-└── 1974/
-    └── event_*.json                       # Individual event JSONs
+└── 2024/
+    └── event_*.json
 ```
 
-### How It Works
+## Đặc điểm
 
-1. **Fetch Event List**: Gets list of earthquake IDs for the year(s) from USGS API
-2. **Crawl Individual Events**: For each ID, fetches detailed GeoJSON data
-3. **Skip Existing**: If JSON already exists, skip re-downloading
-4. **Check Missing**: `check_missing_events.py` calls USGS API directly to compare with local JSON files
-5. **Auto-Fill**: Use `--autofill 1` to automatically crawl missing events
+- **Auto-crawl mặc định**: Tự động crawl các event bị thiếu
+- **Chia nhỏ magnitude**: Split theo range 0.5 (M0.0-M0.5, M0.5-M1.0, ...) để tránh limit 20000 events/request
+- **Bỏ qua event đã có**: Không crawl lại event đã tồn tại
+- **Bỏ qua mag=None**: Không crawl events không có magnitude
+- **Rate limiting**: Tự động retry khi gặp lỗi 429 (delay 15s)
 
-### Troubleshooting
+## Output
 
-| Issue | Solution |
-|-------|----------|
-| **HTTP 429 Rate Limit** | Crawler auto-retries with 10s/20s/30s delays. Increase delay in code if needed |
-| **Years with >20k events** | Crawler automatically splits by month to avoid API limits |
-| **Events missing JSON** | Use `check_missing_events.py --autofill 1` to auto-crawl missing events |
+```
+============================================================
+AUTO CRAWL
+============================================================
+Years: 1
+Auto-crawl: ON
+============================================================
+  Fetching M0.0-M0.5... ✓ 1364 events
+  Fetching M0.5-M1.0... ✓ 9665 events
+  Fetching M1.0-M1.5... ✓ 12775 events
+  ...
+1986: api=55698, json=30507, missing=25191
 
-### Notes
+  🔄 Auto-crawling 25191 missing events...
+    [1] ✓ ci12345678 (M3.5): 2km W of Cobb, CA
+    [2] ✓ ci12345679 (M4.1): 5km NE of Gilroy, CA
+    [3] ⊗ ci12345680 - skipped (already exists)
+    ...
 
-- JSON files are the PRIMARY data source
-- Re-running the crawler will skip existing JSON files
-- API server (app_demo/api.py) reads all JSON files in each year folder
-- Delay between requests: 1 second (configurable in `usgs_crawl.py`)
-
-## Web Demo
-
-See [app_demo/README.md](app_demo/README.md) for web visualization interface.
-
-### Quick Start
-
-```bash
-# 1. Start API server
-cd app_demo
-python api.py
-
-# 2. Open web interface
-xdg-open index.html
+============================================================
+TOTAL CRAWLED: 25191 events
+============================================================
 ```
 
-## License
+## Xử lý sự cố
 
-MIT License
+| Vấn đề | Giải pháp |
+|--------|-----------|
+| HTTP 429 (Rate Limit) | Tự động retry sau 15s |
+| HTTP 400 (Bad Request) | Quá nhiều events (>20000), đã split range 0.5 để giải quyết |
+| Events bị thiếu | Chạy lại `auto_crawl.py` để crawl missing |

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Features Table - Earthquake Sequence Mining</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .priority-1 { background-color: #dc3545; color: white; }
+        .priority-2 { background-color: #fd7e14; color: white; }
+        .priority-3 { background-color: #ffc107; color: black; }
+        .priority-4 { background-color: #0dcaf0; color: white; }
+        .priority-5 { background-color: #198754; color: white; }
+        .priority-6 { background-color: #6c757d; color: white; }
+        .priority-7 { background-color: #adb5bd; color: black; }
+        .priority-99 { background-color: #e9ecef; color: black; }
+        .table-container { height: calc(100vh - 180px); overflow-y: auto; }
+        .detail-modal .modal-dialog { max-width: 800px; }
+    </style>
+</head>
+<body class="py-3">
+    <nav class="navbar navbar-dark bg-transparent">
+        <div class="container">
+            <a class="navbar-brand text-white fw-bold" href="index.html"><i class="bi bi-house-door-fill"></i> Home</a>
+        </div>
+    </nav>
+
+    <div class="container-fluid px-4">
+        <div class="card">
+            <div class="card-body p-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="mb-1"><i class="bi bi-table"></i> JSON Features Table</h5>
+                        <small class="text-muted">Tất cả các trường dữ liệu trong file JSON - 31 fields</small>
+                    </div>
+                    <div>
+                        <span class="badge bg-danger me-2">1</span><small class="text-dark me-3 fw-bold">Cơ bản</small>
+                        <span class="badge bg-warning text-dark me-2">2</span><small class="text-dark me-3 fw-bold">Rất quan trọng</small>
+                        <span class="badge bg-info text-dark me-2">3</span><small class="text-dark me-3 fw-bold">Quan trọng</small>
+                        <span class="badge bg-success me-2">4</span><small class="text-dark me-3 fw-bold">Hữu ích</small>
+                        <span class="badge bg-success me-2">5</span><small class="text-dark me-3 fw-bold">Tham khảo</small>
+                        <span class="badge bg-secondary me-2">6</span><small class="text-dark me-3 fw-bold">Metadata</small>
+                        <span class="badge bg-secondary">7</span><small class="text-dark fw-bold">Ít quan trọng</small>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <input type="text" id="searchInput" class="form-control" placeholder="Tìm kiếm theo tên trường, mô tả...">
+                </div>
+
+                <div class="table-container">
+                    <table id="featuresTable" class="table table-striped table-sm table-hover" style="width:100%">
+                        <thead class="table-light sticky-top">
+                            <tr>
+                                <th>STT</th>
+                                <th>Mức độ</th>
+                                <th>Phân loại</th>
+                                <th>Trường</th>
+                                <th>Giá trị mẫu</th>
+                                <th>Loại</th>
+                                <th>Mô tả</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
+    <script>
+        const FEATURES = [
+            // (1) CƠ BẢN
+            { name: 'mag', priority: 1, category: 'CƠ BẢN', type: 'number', example: '5.0', description: 'Độ lớn động đất - quan trọng nhất. Dùng để filter events quan trọng. Mỗi tăng 1 đơn vị = năng lượng tăng gấp 32.', notes: 'Thường: 0.0 - 9.0+. Siêu động đất > 8.0' },
+            { name: 'time', priority: 1, category: 'CƠ BẢN', type: 'timestamp (ms)', example: '514919987910', description: 'Thời gian xảy ra (Unix timestamp mili-giây). Cần chuyển đổi sang datetime để đọc. Python: datetime.fromtimestamp(ms/1000)', notes: 'Luôn ở UTC timezone. 13 chữ số = mili-giây, 10 chữ số = giây' },
+            { name: 'place', priority: 1, category: 'CƠ BẢN', type: 'string', example: '39 km ENE of Hana, Hawaii', description: 'Mô tả địa điểm bằng văn bản. Format: "[khoảng cách] [hướng] of [địa điểm tham chiếu]". Được tạo tự động từ lat/lon.', notes: 'Có thể null hoặc rỗng cho các khu vực xa bờ biển' },
+            { name: 'geometry.coordinates[2]', priority: 1, category: 'CƠ BẢN', type: 'number', example: '2.611', unit: 'km', description: 'Độ sâu tiêu điểm từ geometry. Shallow (<70km): nguy hiểm, Deep (>300km): ít gây thiệt hại nhưng cảm nhận rộng.', notes: 'Có thể âm = phía trên bề mặt đất (không chính xác)' },
+            { name: 'geometry.coordinates[1]', priority: 1, category: 'CƠ BẢN', type: 'number', example: '20.8536667', unit: 'degrees', description: 'Vĩ độ - tọa độ Y. Dương = Bắc, Âm = Nam. Format: decimal degrees, hệ WGS84.', notes: 'Chính xác: 4-6 chữ số thập phân' },
+            { name: 'geometry.coordinates[0]', priority: 1, category: 'CƠ BẢN', type: 'number', example: '-155.6238333', unit: 'degrees', description: 'Kinh độ - tọa độ X. Dương = Đông, Âm = Tây. Format: decimal degrees, hệ WGS84.', notes: 'Chính xác: 4-6 chữ số thập phân' },
+
+            // (2) RẤT QUAN TRỌNG
+            { name: 'magType', priority: 2, category: 'RẤT QUAN TRỌNG', type: 'string', example: 'ml', possible_values: 'ml, mww, mb, mwc, md, mh, ms', description: 'Loại magnitude - phương pháp tính. Các loại khác nhau không thể so sánh trực tiếp. mww là chuẩn nhất cho M>5.5.', notes: 'mww: Chuẩn nhất. ml: Địa phương M<6. mb: Xa bờ. md: Events nhỏ.' },
+            { name: 'status', priority: 2, category: 'RẤT QUAN TRỌNG', type: 'string', example: 'reviewed', possible_values: 'automatic, reviewed', description: 'Trạng thái xác nhận - độ tin cậy. Reviewed là ổn định. Automatic có thể thay đổi sau 1-20 phút.', notes: 'automatic = hệ thống tự động. reviewed = seismologist đã kiểm tra' },
+            { name: 'net', priority: 2, category: 'RẤT QUAN TRỌNG', type: 'string', example: 'hv', possible_values: 'us, ci, hv, nc, uw, ak, pr,...', description: 'Mạng lưới seismology - nguồn dữ liệu. us=USGS (toàn cầu), ci=Caltech (Nam California), hv=Hawaii, nc=Bắc California, uw=PNW.', notes: 'us tổng hợp dữ liệu từ các mạng khác. Nên check net để tránh duplicate.' },
+            { name: 'tsunami', priority: 2, category: 'RẤT QUAN TRỌNG', type: 'number', example: '0', possible_values: '0 (không), 1 (có), null', description: 'Cảnh báo sóng thần. Chỉ earthquakes gần bờ biển mới có thể gây sóng thần. Shallow (<50km) + gần bờ biển = nguy cơ cao.', notes: 'M8+ ở đại dương = tsunamis xa bờ. null = không tính hoặc không áp dụng.' },
+            { name: 'sig', priority: 2, category: 'RẤT QUAN TRỌNG', type: 'number', example: '385', unit: '1-1000+', classification: '<100: Ít quan trọng, 100-500: Trung bình, 500-1000: Quan trọng, >1000: Rất quan trọng', description: 'Significance - độ quan trọng tổng hợp. Dùng để sort events theo "quan trọng" hơn là "mạnh".', notes: 'sig ≈ mag³ × felt_factor. M5 ở vùng đông dân cư → sig cao.' },
+            { name: 'alert', priority: 2, category: 'RẤT QUAN TRỌNG', type: 'string', example: 'green', possible_values: 'green, yellow, orange, red', description: 'Mức cảnh báo PAGER - Hệ thống cảnh báo tự động. Dùng để quyết định có cần cứu hộ. Chỉ có cho M5.5+ gần dân cư.', notes: 'green: Ít hoặc không có thiệt hại. yellow: Một số thiệt hại. orange: Thiệt hại đáng kể. red: Nghiêm trọng.' },
+
+            // (3) QUAN TRỌNG
+            { name: 'gap', priority: 3, category: 'QUAN TRỌNG', type: 'number', example: '319', unit: 'degrees', classification: '<180: Tốt, 180-360: Trung bình, >360: Kém', description: 'Azimuthal gap - Độ phủ trạm. Gap nhỏ = nhiều trạm xung quanh = vị trí chính xác. >360° = không đủ trạm.', notes: 'Sự kiện ra biển xa bờ biển thường có gap lớn.' },
+            { name: 'nst', priority: 3, category: 'QUAN TRỌNG', type: 'number', example: '52', unit: 'số trạm', classification: '<10: Ít trạm, 10-30: Khá tốt, >30: Tốt', description: 'Số lượng trạm ghi nhận. Nhiều trạm = vị trí chính xác hơn. Kết hợp với gap để đánh giá chất lượng.', notes: '>30 trạm = vị trí rất chính xác. Events ở biển thường có ít trạm hơn.' },
+            { name: 'rms', priority: 3, category: 'QUAN TRỌNG', type: 'number', example: '0.18', unit: 'giây', classification: '<0.2: Rất tốt, 0.2-0.5: Tốt, >0.5: Khá kém', description: 'RMS residual - Sai số trung bình bình phương. Nhỏ = vị trí chính xác. rms = √(Σ(residual²)/n)', notes: '<0.2s: Vị trí rất chính xác. >0.5s: Có thể có vấn đề với vị trí.' },
+            { name: 'dmin', priority: 3, category: 'QUAN TRỌNG', type: 'number', example: '0.123', unit: 'km', description: 'Khoảng cách đến trạm gần nhất. Dmin nhỏ = có trạm rất gần = thông tin tốt.', notes: 'null = không có thông tin. Kết hợp với rms để đánh giá chất lượng.' },
+
+            // (4) HỮU ÍCH
+            { name: 'felt', priority: 4, category: 'HỮU ÍCH', type: 'number', example: '1250', unit: 'số người', description: 'Số người cảm nhận và báo động đất. Thu thập từ "Did You Feel It?" reports trên USGS website.', notes: 'Chỉ có cho earthquakes gần dân cư. Felt cao không đồng nghĩa với mag cao.' },
+            { name: 'cdi', priority: 4, category: 'HỮU ÍCH', type: 'number', example: '4.2', unit: 'Intensity (I-X)', description: 'Community Decimal Intensity - Độ mạnh thực tế dựa trên báo cảm nhận của cộng đồng.', notes: 'Chỉ có khi có đủ felt reports. Độ chính xác: ±0.5 unit. Null = không có đủ dữ liệu.' },
+            { name: 'mmi', priority: 4, category: 'HỮU ÍCH', type: 'number', example: '5.5', unit: 'Intensity (I-X)', description: 'Modified Mercalli Intensity - Độ mạnh dự kiến. Dùng trong ShakeMap. Dự báo mức độ rung lắc và thiệt hại.', notes: 'I-II: Rất yếu. III-IV: Yếu. V-VI: Trung bình. VII-VIII: Mạnh. IX-X: Rất mạnh. Là dự báo, không phải đo đạc.' },
+
+            // (5) THAM KHẢO
+            { name: 'url', priority: 5, category: 'THAM KHẢO', type: 'string', example: 'https://earthquake.usgs.gov/earthquakes/eventpage/hv213029', description: 'Link đến trang chi tiết trên USGS. Truy cập thông tin đầy đủ: maps, waveforms, impact, products.', notes: 'Full info: Interactive maps, Waveform data, Impact summaries, Scientific papers/reports, Historical comparisons' },
+            { name: 'id', priority: 5, category: 'THAM KHẢO', type: 'string', example: 'hv213029', format: '{net}{code}', description: 'Event ID duy nhất. Dùng để tránh duplicate, link đến USGS, tracking. Format: {network}{source_code}', notes: 'Dùng trong API queries: ?eventid=hv213029. Có thể trùng: cùng earthquake có nhiều ID từ các mạng khác nhau.' },
+            { name: 'title', priority: 5, category: 'THAM KHẢO', type: 'string', example: 'M 5.0 - 39 km ENE of Hana, Hawaii', format: 'M {mag} - {place}', description: 'Tiêu đề tóm tắt. Tự động tạo từ mag + place. Hữu ích cho email notifications, alerts.', notes: 'Có thể null cho events cũ.' },
+            { name: 'type', priority: 5, category: 'THAM KHẢO', type: 'string', example: 'earthquake', possible_values: 'earthquake, explosion, quarry, nuclear explosion, rockburst, icequake', description: 'Loại sự kiện. Dùng để loại bỏ các sự kiện không phải earthquake tự nhiên.', notes: 'earthquake = tectonic events (quan tâm). explosion/quarry = nổ mìn (có thể loại bỏ). nuclear explosion = thử hạt nhân.' },
+
+            // (6) METADATA
+            { name: 'updated', priority: 6, category: 'METADATA', type: 'timestamp (ms)', example: '1585680445970', description: 'Thời gian cập nhật gần nhất. Các tham số như mag, depth có thể được cập nhật khi có thêm dữ liệu.', notes: 'automatic → reviewed: updated sẽ thay đổi. Dùng để phát hiện stale data.' },
+            { name: 'tz', priority: 6, category: 'METADATA', type: 'string', example: 'null', description: 'Timezone. Thường null, mặc định dùng UTC.', notes: 'Null = UTC (Giờ chuẩn quốc tế). Một số events có timezone info.' },
+
+            // (7) ÍT QUAN TRỌNG
+            { name: 'ids', priority: 7, category: 'ÍT QUAN TRỌNG', type: 'string', example: ',ushis3928,usp0002t7h,hv213029,', format: ',id1,id2,id3,', description: 'Danh sách tất cả IDs liên quan. Cùng một earthquake có thể có nhiều ID từ các mạng lưới khác nhau.', notes: 'KHI DEDUPLICATE: Một earthquake có thể xuất hiện với nhiều ID khác nhau! pr2020033001 và us60007mf5 là cùng một earthquake.' },
+            { name: 'sources', priority: 7, category: 'ÍT QUAN TRỌNG', type: 'string', example: ',ushis,us,hv,', format: ',net1,net2,net3,', description: 'Danh sách mạng lưới đã đóng góp dữ liệu cho earthquake này. Ít nhất 1 source cho events automatic.', notes: 'Có thể null hoặc rỗng. Nhiều sources = nhiều networks tham gia.' },
+            { name: 'types', priority: 7, category: 'ÍT QUAN TRỌNG', type: 'string', example: ',impact-text,origin,phase-data,', description: 'Các sản phẩm/sản phẩm có sẵn cho earthquake này.', notes: 'origin, phase-data, moment-tensor, focal-mechanism, impact-text, shakemap, dyfi. products = <dict> with 3 items' },
+            { name: 'code', priority: 7, category: 'ÍT QUAN TRỌNG', type: 'string', example: '213029', description: 'Source code. ID nội bộ của mạng lưới. {net}+{code} = {id}. Hữu ích để debug.', notes: 'VD: net=hv, code=213029 → id=hv213029' },
+            { name: 'geometry.type', priority: 7, category: 'GEOMETRY', type: 'string', example: 'Point', description: 'Loại geometry - luôn là "Point" cho earthquake events. Trong GeoJSON, Feature có geometry là Point.', notes: 'Có thể là "LineString", "Polygon" cho fault lines nhưng events thì luôn là "Point".' },
+            { name: 'root.type', priority: 7, category: 'ROOT', type: 'string', example: 'Feature', description: 'Loại GeoJSON. Luôn là "Feature" cho earthquake events.', notes: 'GeoJSON có 2 loại chính: FeatureCollection (nhiều features) và Feature (một feature).' },
+            { name: 'products', priority: 7, category: 'KHÁC', type: 'dict', example: '<dict> with 3 items', description: 'Các sản phẩm có sẵn cho earthquake này. Chứa nhiều loại sản phẩm scientific.', notes: 'impact-text, origin, phase-data, focal-mechanism, shakemap, dyfi, etc.' },
+        ];
+
+        // Render table
+        $('#featuresTable').DataTable({
+            data: FEATURES,
+            columns: [
+                {
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        return meta.row + 1;
+                    },
+                    width: '50px'
+                },
+                {
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        const priority = row.priority;
+                        return `<span class="priority-badge priority-${priority}">${priority}</span>`;
+                    },
+                    width: '60px'
+                },
+                {
+                    data: 'category',
+                    width: '120px'
+                },
+                {
+                    data: 'name',
+                    render: function(data, type, row, meta) {
+                        return `<span class="font-monospace fw-bold">${data}</span>`;
+                    }
+                },
+                {
+                    data: 'example',
+                    render: function(data, type, row, meta) {
+                        const val = String(data);
+                        return val.length > 25 ? val.substring(0, 25) + '...' : val;
+                    }
+                },
+                {
+                    data: 'type',
+                    width: '100px'
+                },
+                {
+                    data: 'description',
+                    render: function(data, type, row, meta) {
+                        const notes = row.notes || '';
+                        return `
+                            <div>${data}</div>
+                            ${notes ? `<div class="text-muted small mt-1"><i class="bi bi-info-circle"></i> ${notes}</div>` : ''}
+                        `;
+                    }
+                }
+            ],
+            order: [[1, 'asc']],
+            paging: false,
+            language: {
+                search: "Tìm kiếm:",
+                paginate: {
+                    first: "Đầu",
+                    last: "Cuối",
+                    next: "Tiếp",
+                    previous: "Trước"
+                },
+                info: "Hiển thị _START_ đến _END_ trong tổng _TOTAL_ features"
+            },
+            createdRow: function(row, data, dataIndex) {
+                return $(row).attr('data-priority', row.priority).addClass('priority-' + row.priority);
+            }
+        });
+
+        // Search
+        $('#searchInput').on('keyup', function() {
+            const table = $('#featuresTable').DataTable();
+            table.search($(this).val()).draw();
+        });
+    </script>
+</body>
+</html>

@@ -216,6 +216,47 @@ def get_stats():
     return stats
 
 
+@app.get("/api/all")
+def get_all_data():
+    """Get all earthquake data from all years"""
+    all_events = []
+    all_mags = []
+    all_depths = []
+    year_ranges = {'0-3': 0, '3-5': 0, '5-7': 0, '7+': 0}
+
+    for year in get_available_years():
+        events = read_year_data(year)
+        all_events.extend(events)
+        for e in events:
+            mag = e['mag']
+            depth = e['depth']
+            if isinstance(mag, (int, float)):
+                all_mags.append(mag)
+                if mag < 3:
+                    year_ranges['0-3'] += 1
+                elif mag < 5:
+                    year_ranges['3-5'] += 1
+                elif mag < 7:
+                    year_ranges['5-7'] += 1
+                else:
+                    year_ranges['7+'] += 1
+            if isinstance(depth, (int, float)):
+                all_depths.append(depth)
+
+    return {
+        "count": len(all_events),
+        "data": all_events,
+        "stats": {
+            'total_events': len(all_events),
+            'avg_mag': round(sum(all_mags) / len(all_mags), 1) if all_mags else 0,
+            'max_mag': round(max(all_mags), 1) if all_mags else 0,
+            'min_mag': round(min(all_mags), 1) if all_mags else 0,
+            'avg_depth': round(sum(all_depths) / len(all_depths), 1) if all_depths else 0,
+            'mag_ranges': year_ranges,
+        }
+    }
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="127.0.0.1", port=8386)

@@ -20,6 +20,12 @@ import csv
 from io import StringIO
 from collections import defaultdict
 
+# CẤU HÌNH DELAY (giây)
+CRAWL_DELAY = 0.8          # Delay khi crawl mỗi event (giảm để tăng tốc độ)
+FETCH_DELAY = 0.5          # Delay khi fetch mỗi magnitude range
+RETRY_DELAY_429 = 15       # Delay khi bị rate limit 429 (fetch list)
+RETRY_EVENT_429 = 10       # Delay khi bị rate limit 429 (crawl event)
+
 
 def get_api_events(year, min_magnitude=None, max_magnitude=None):
     """
@@ -80,12 +86,12 @@ def get_api_events_by_mag_ranges(year, min_magnitude=None, max_magnitude=None):
             r = requests.get(url, params=params, timeout=30)
 
             if r.status_code == 429:
-                time.sleep(15)
+                time.sleep(RETRY_DELAY_429)
                 r = requests.get(url, params=params, timeout=30)
 
             if r.status_code != 200:
                 print(f"✗ Error {r.status_code}")
-                time.sleep(1)
+                time.sleep(FETCH_DELAY)
                 continue
 
             # Parse CSV đúng cách với csv.DictReader
@@ -99,11 +105,11 @@ def get_api_events_by_mag_ranges(year, min_magnitude=None, max_magnitude=None):
                         range_count += 1
 
             print(f"✓ {range_count} events")
-            time.sleep(1)
+            time.sleep(FETCH_DELAY)
 
         except Exception as e:
             print(f"✗ Error: {e}")
-            time.sleep(1)
+            time.sleep(FETCH_DELAY)
 
     return all_event_ids
 
@@ -197,8 +203,8 @@ def crawl_missing_events(year, missing_events, min_mag=None, max_mag=None):
             r = requests.get(url, params=params, timeout=30)
 
             if r.status_code == 429:
-                print(f"    Rate limited on {event_id}, waiting 10s...")
-                time.sleep(10)
+                print(f"    Rate limited on {event_id}, waiting {RETRY_EVENT_429}s...")
+                time.sleep(RETRY_EVENT_429)
                 r = requests.get(url, params=params, timeout=30)
 
             if r.status_code == 200:
@@ -235,7 +241,7 @@ def crawl_missing_events(year, missing_events, min_mag=None, max_mag=None):
                 index += 1
 
                 # Delay to avoid rate limit
-                time.sleep(1)
+                time.sleep(CRAWL_DELAY)
 
         except Exception as e:
             print(f"    [{index}] ✗ {event_id}: {e}")

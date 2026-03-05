@@ -5,10 +5,13 @@ FastAPI backend for earthquake data API
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 import glob
 import os
 import json
+import csv
 from datetime import datetime
+from pathlib import Path
 
 app = FastAPI(title="Earthquake Sequence Mining API")
 
@@ -22,6 +25,7 @@ app.add_middleware(
 )
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
+CSV_PATH = os.path.join(os.path.dirname(__file__), "..", "data_summary.csv")
 
 
 def get_available_years() -> list[str]:
@@ -255,6 +259,27 @@ def get_all_data():
             'mag_ranges': year_ranges,
         }
     }
+
+
+@app.get("/api/summary")
+def get_summary_data():
+    """Get summary data from CSV file (aggregated data)"""
+    if not os.path.exists(CSV_PATH):
+        return {"error": "CSV file not found. Run: python aggregate_data.py"}
+
+    data = []
+    with open(CSV_PATH, 'r', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            row['mag'] = float(row['mag'])
+            row['depth'] = float(row['depth'])
+            row['year'] = int(row['year']) if row['year'] else None
+            row['month'] = int(row['month']) if row['month'] else None
+            row['lat'] = float(row['lat'])
+            row['lon'] = float(row['lon'])
+            data.append(row)
+
+    return {"data": data, "count": len(data)}
 
 
 if __name__ == "__main__":

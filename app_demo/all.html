@@ -6,7 +6,7 @@
     <title>All Data - Earthquake Sequence Mining</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/2.1.8/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.css">
     <style>
@@ -178,11 +178,10 @@
 
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.datatables.net/2.1.8/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/2.1.8/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
     <script>
-        const API_URL = 'http://127.0.0.1:8386/api';
         let allData = [];
         let filteredData = [];
         let dataTable;
@@ -191,7 +190,7 @@
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             initCharts();
-            loadAllData();
+            loadCSVData();
         });
 
         function initCharts() {
@@ -200,59 +199,63 @@
             depthChart = echarts.init(document.getElementById('depthChart'));
         }
 
-        async function loadAllData() {
-            try {
-                const response = await fetch(`${API_URL}/all`);
-                const result = await response.json();
+        function loadCSVData() {
+            fetch('http://127.0.0.1:8386/api/summary')
+                .then(response => response.json())
+                .then(result => {
+                    allData = result.data;
+                    filteredData = [...allData];
 
-                allData = result.data;
-                filteredData = [...allData];
+                    updateStats();
+                    updateCharts();
+                    initTable();
 
-                updateStats(result.stats);
-                updateCharts(result.data, result.stats);
-                initTable(result.data);
-
-                $('#loadingOverlay').fadeOut();
-            } catch (error) {
-                console.error('Error loading data:', error);
-                $('#loadingText').text('Error loading data. Please make sure API server is running.');
-            }
+                    $('#loadingOverlay').fadeOut();
+                })
+                .catch(error => {
+                    console.error('Error loading data:', error);
+                    $('#loadingText').text('Error loading data. Please run: cd app_demo && python api.py');
+                });
         }
 
-        function updateStats(stats) {
-            $('#statCount').text(stats.total_events.toLocaleString());
-            $('#statAvgMag').text(stats.avg_mag);
-            $('#statMaxMag').text(stats.max_mag);
-            $('#statMinMag').text(stats.min_mag);
-            $('#statAvgDepth').text(stats.avg_depth);
+        function updateStats() {
+            const totalEvents = allData.length;
+            const mags = allData.map(d => d.mag).filter(m => m != null);
+            const depths = allData.map(d => d.depth).filter(d => d != null);
 
-            // Count unique years
-            const years = new Set(allData.map(d => d.time.split('/')[2]));
+            $('#statCount').text(totalEvents.toLocaleString());
+            $('#statAvgMag').text(mags.length ? (mags.reduce((a,b) => a+b, 0) / mags.length).toFixed(1) : '-');
+            $('#statMaxMag').text(mags.length ? Math.max(...mags).toFixed(1) : '-');
+            $('#statMinMag').text(mags.length ? Math.min(...mags).toFixed(1) : '-');
+            $('#statAvgDepth').text(depths.length ? (depths.reduce((a,b) => a+b, 0) / depths.length).toFixed(1) : '-');
+
+            const years = new Set(allData.map(d => d.year));
             $('#statYears').text(years.size);
         }
 
-        function updateCharts(data, stats) {
+        function updateCharts() {
             // Magnitude Chart
+            const magCounts = {};
+            allData.forEach(d => {
+                magCounts[d.mag_range] = (magCounts[d.mag_range] || 0) + 1;
+            });
+
             const magOption = {
                 tooltip: { trigger: 'item' },
                 series: [{
                     type: 'pie',
                     radius: ['40%', '70%'],
-                    data: [
-                        { value: stats.mag_ranges['0-3'], name: 'M0.0 - M3.0' },
-                        { value: stats.mag_ranges['3-5'], name: 'M3.0 - M5.0' },
-                        { value: stats.mag_ranges['5-7'], name: 'M5.0 - M7.0' },
-                        { value: stats.mag_ranges['7+'], name: 'M7.0+' }
-                    ]
+                    data: Object.entries(magCounts).map(([name, value]) => ({ name, value }))
                 }]
             };
             magChart.setOption(magOption);
 
             // Year Chart
             const yearCounts = {};
-            data.forEach(d => {
-                const year = d.time.split('/')[2];
-                yearCounts[year] = (yearCounts[year] || 0) + 1;
+            allData.forEach(d => {
+                if (d.year) {
+                    yearCounts[d.year] = (yearCounts[d.year] || 0) + 1;
+                }
             });
 
             const sortedYears = Object.keys(yearCounts).sort();
@@ -269,15 +272,9 @@
             yearChart.setOption(yearOption);
 
             // Depth Chart
-            const depthRanges = { '0-50km': 0, '50-100km': 0, '100-300km': 0, '300km+': 0 };
-            data.forEach(d => {
-                const depth = d.depth;
-                if (typeof depth === 'number') {
-                    if (depth < 50) depthRanges['0-50km']++;
-                    else if (depth < 100) depthRanges['50-100km']++;
-                    else if (depth < 300) depthRanges['100-300km']++;
-                    else depthRanges['300km+']++;
-                }
+            const depthCounts = {};
+            allData.forEach(d => {
+                depthCounts[d.depth_range] = (depthCounts[d.depth_range] || 0) + 1;
             });
 
             const depthOption = {
@@ -285,36 +282,40 @@
                 series: [{
                     type: 'pie',
                     radius: ['40%', '70%'],
-                    data: [
-                        { value: depthRanges['0-50km'], name: '0-50km' },
-                        { value: depthRanges['50-100km'], name: '50-100km' },
-                        { value: depthRanges['100-300km'], name: '100-300km' },
-                        { value: depthRanges['300km+'], name: '300km+' }
-                    ]
+                    data: Object.entries(depthCounts).map(([name, value]) => ({ name, value }))
                 }]
             };
             depthChart.setOption(depthOption);
         }
 
-        function initTable(data) {
+        function initTable() {
             dataTable = $('#dataTable').DataTable({
-                data: data,
+                data: allData,
                 columns: [
-                    { data: 'time' },
+                    {
+                        data: null,
+                        render: function(data) {
+                            if (!data.year) return '--';
+                            return `${String(data.month).padStart(2, '0')}/${data.year}`;
+                        }
+                    },
                     { data: 'place' },
                     {
                         data: 'mag',
                         render: function(data) {
-                            if (data === '--') return '<span class="text-muted">--</span>';
                             const cls = data < 3 ? 'text-success' : data < 5 ? 'text-info' : data < 7 ? 'text-warning' : 'text-danger';
-                            return `<span class="fw-bold ${cls}">${data}</span>`;
+                            return `<span class="fw-bold ${cls}">${data.toFixed(1)}</span>`;
                         }
                     },
-                    { data: 'depth' },
+                    {
+                        data: 'depth',
+                        render: function(data) {
+                            return data ? data.toFixed(1) : '--';
+                        }
+                    },
                     {
                         data: null,
                         render: function(data) {
-                            if (data.lat === '--' || data.lon === '--') return '--';
                             return `${data.lat.toFixed(2)}, ${data.lon.toFixed(2)}`;
                         }
                     }
@@ -347,13 +348,13 @@
             filteredData = allData.filter(d => {
                 // Search filter
                 const matchSearch = !searchValue ||
-                    d.place.toLowerCase().includes(searchValue) ||
-                    d.time.includes(searchValue) ||
-                    d.mag.toString().includes(searchValue);
+                    (d.place && d.place.toLowerCase().includes(searchValue)) ||
+                    (d.year && d.year.toString().includes(searchValue)) ||
+                    (d.mag && d.mag.toString().includes(searchValue));
 
                 // Magnitude filter
                 let matchMag = true;
-                if (magValue && d.mag !== '--') {
+                if (magValue) {
                     if (magValue === '0-3') matchMag = d.mag < 3;
                     else if (magValue === '3-5') matchMag = d.mag >= 3 && d.mag < 5;
                     else if (magValue === '5-7') matchMag = d.mag >= 5 && d.mag < 7;

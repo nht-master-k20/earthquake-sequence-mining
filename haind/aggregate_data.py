@@ -196,7 +196,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Tổng hợp dữ liệu động đất từ thư mục /data thành CSV"
     )
-    parser.add_argument("--data-dir", default="data", help="Thư mục dữ liệu (default: data)")
+    parser.add_argument("--data-dir", default="../data", help="Thư mục dữ liệu (default: ../data)")
     parser.add_argument("--output", default="data_summary.csv", help="File CSV output (default: data_summary.csv)")
     parser.add_argument("--min-mag", type=float, default=None, help="Độ lớn tối thiểu")
     parser.add_argument("--max-mag", type=float, default=None, help="Độ lớn tối đa")

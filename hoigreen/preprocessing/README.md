@@ -263,6 +263,56 @@ Dataset đã sẵn sàng cho:
    - Unusual sequence patterns
    - Precursor identification
 
+## EDA & Visualization
+
+Script `eda_usgs_quakes.py` hỗ trợ đầy đủ các yêu cầu EDA:
+
+1. Trực quan hóa động đất toàn cầu theo **thời gian** và **vị trí địa lý**
+2. Phân tích tương quan giữa **độ sâu (`depth`)** và **độ lớn (`mag`)**
+3. Khám phá quan hệ giữa các tham số: **`mag`, `depth`, `gap`, `nst`, `rms`**
+
+### Run
+
+```bash
+pip install matplotlib seaborn folium
+```
+
+Hoặc:
+
+```bash
+pip install -r requirements.txt
+```
+
+Sau đó chạy:
+
+```bash
+python3 hoigreen/preprocessing/eda_usgs_quakes.py \
+  --input-csv earthquake_cleaned.csv \
+  --output-dir hoigreen/preprocessing/eda_outputs
+```
+
+### Tùy chọn hiệu năng
+
+```bash
+python3 hoigreen/preprocessing/eda_usgs_quakes.py \
+  --input-csv earthquake_cleaned.csv \
+  --output-dir hoigreen/preprocessing/eda_outputs \
+  --max-map-points-per-step 300 \
+  --depth-mag-sample-size 50000 \
+  --pairplot-sample-size 5000
+```
+
+### Output
+
+Script sẽ sinh các file:
+
+- `01_global_time_series.png`
+- `02_global_time_geo_heatmap.html` (bản đồ động theo tháng)
+- `03_depth_vs_magnitude.png`
+- `04_parameter_correlation_heatmaps.png`
+- `05_parameter_pairplot.png`
+- `report.md` (thống kê + hệ số tương quan Pearson/Spearman)
+
 ## Files
 
 - `preprocess_usgs_quakes.py` - Main preprocessing script

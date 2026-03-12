@@ -17,6 +17,8 @@ python3 hoigreen/clustering_pattern_mining/run_clustering_pattern_mining.py \
   --output-dir hoigreen/clustering_pattern_mining/outputs
 ```
 
+Mặc định pipeline chạy trên toàn bộ dữ liệu (`--max-rows <= 0`, `--association-max-rows <= 0`).
+
 ## Tùy chọn hiệu năng
 
 ```bash
@@ -65,4 +67,3 @@ CSV đã preprocess (ví dụ output từ `preprocess_usgs_quakes.py`) với cá
 - Foreshock/aftershock gán theo khoảng thời gian + bán kính không gian quanh mainshock.
 - Outlier dùng điểm dị thường robust (MAD z-score) kết hợp độ hiếm theo vị trí.
 - Association rules dùng frequent itemsets (max len=3), lọc luật có consequent thuộc location/hotspot.
-

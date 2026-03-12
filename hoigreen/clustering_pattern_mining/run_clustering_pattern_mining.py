@@ -806,8 +806,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--max-rows",
         type=int,
-        default=220000,
-        help="Maximum rows for analysis. Use <=0 for full dataset.",
+        default=-1,
+        help="Maximum rows for analysis. Use <=0 for full dataset (default: full dataset).",
     )
     parser.add_argument("--random-state", type=int, default=42)
     parser.add_argument("--k-min", type=int, default=3)
@@ -821,7 +821,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--foreshock-days", type=int, default=7)
     parser.add_argument("--aftershock-days", type=int, default=30)
     parser.add_argument("--outlier-quantile", type=float, default=0.995)
-    parser.add_argument("--association-max-rows", type=int, default=120000)
+    parser.add_argument(
+        "--association-max-rows",
+        type=int,
+        default=-1,
+        help="Maximum rows used for association rule mining. <=0 uses full dataset.",
+    )
     parser.add_argument("--min-support", type=float, default=0.01)
     parser.add_argument("--min-confidence", type=float, default=0.35)
     parser.add_argument("--min-lift", type=float, default=1.05)

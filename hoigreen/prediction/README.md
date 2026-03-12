@@ -15,6 +15,8 @@ python3 hoigreen/prediction/run_prediction_pipeline.py \
   --output-dir hoigreen/prediction/outputs
 ```
 
+Mặc định pipeline chạy trên toàn bộ dữ liệu (`--max-rows <= 0`).
+
 ## Tùy chọn hiệu năng
 
 ```bash

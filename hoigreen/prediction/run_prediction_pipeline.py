@@ -903,7 +903,12 @@ def parse_args() -> argparse.Namespace:
         default="hoigreen/prediction/outputs",
         help="Directory for predictions, models, and report.",
     )
-    parser.add_argument("--max-rows", type=int, default=350000, help="Max rows to use. <=0 for full dataset.")
+    parser.add_argument(
+        "--max-rows",
+        type=int,
+        default=-1,
+        help="Max rows to use. <=0 for full dataset (default: full dataset).",
+    )
     parser.add_argument("--random-state", type=int, default=42)
     parser.add_argument("--train-ratio", type=float, default=0.8)
     parser.add_argument("--lookback", type=int, default=8, help="Number of previous events used for next-step prediction.")

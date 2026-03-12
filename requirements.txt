@@ -73,6 +73,11 @@ openpyxl==3.1.5
 packaging==26.0
 pandas==3.0.0
 pandocfilters==1.5.1
+matplotlib
+seaborn
+plotly
+scikit-learn
+geopandas
 parso==0.8.5
 pexpect==4.9.0
 pillow==12.1.1

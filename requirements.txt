@@ -98,6 +98,7 @@ rfc3986-validator==0.1.1
 rfc3987-syntax==1.1.0
 rpds-py==0.30.0
 scipy==1.17.1
+scikit-learn==1.8.0
 seaborn==0.13.2
 Send2Trash==2.1.0
 setuptools==80.10.2
@@ -121,3 +122,4 @@ webencodings==0.5.1
 websocket-client==1.9.0
 widgetsnbextension==4.0.15
 xyzservices==2025.11.0
+xgboost==3.2.0

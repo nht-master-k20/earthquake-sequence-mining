@@ -25,7 +25,8 @@ def load_dataset(input_csv: Path, max_rows: int, random_state: int) -> pd.DataFr
 
     df = pd.read_csv(input_csv)
 
-    required = {"id", "time", "latitude", "longitude", "depth", "mag", "gap", "nst", "rms"}
+    required = {"id", "time", "latitude", "longitude",
+                "depth", "mag", "gap", "nst", "rms"}
     missing = sorted(required - set(df.columns))
     if missing:
         raise ValueError(f"Input CSV missing required columns: {missing}")
@@ -34,7 +35,8 @@ def load_dataset(input_csv: Path, max_rows: int, random_state: int) -> pd.DataFr
     for col in ["latitude", "longitude", "depth", "mag", "gap", "nst", "rms"]:
         df[col] = pd.to_numeric(df[col], errors="coerce")
 
-    df = df.dropna(subset=["id", "time", "latitude", "longitude", "depth", "mag"]).copy()
+    df = df.dropna(subset=["id", "time", "latitude",
+                   "longitude", "depth", "mag"]).copy()
     df = df.sort_values("time").reset_index(drop=True)
 
     if max_rows > 0 and len(df) > max_rows:
@@ -59,6 +61,73 @@ def zscore_standardize(values: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.n
     return scaled, mean, std
 
 
+# Tính toán tâm của các điểm trên mặt cầu
+def spherical_centroid_deg(points_deg: np.ndarray) -> np.ndarray:
+    lat_rad = np.radians(points_deg[:, 0])
+    lon_rad = np.radians(points_deg[:, 1])
+
+    x = np.cos(lat_rad) * np.cos(lon_rad)
+    y = np.cos(lat_rad) * np.sin(lon_rad)
+    z = np.sin(lat_rad)
+
+    centroid = np.array([x.mean(), y.mean(), z.mean()], dtype=float)
+    norm = np.linalg.norm(centroid)
+    if norm < EPS:
+        return points_deg.mean(axis=0)
+
+    centroid /= norm
+    lat = np.degrees(np.arctan2(centroid[2], np.sqrt(
+        centroid[0] ** 2 + centroid[1] ** 2)))
+    lon = np.degrees(np.arctan2(centroid[1], centroid[0]))
+    return np.array([lat, lon], dtype=float)
+
+
+def haversine_distance_matrix_km(points_deg: np.ndarray, centroids_deg: np.ndarray) -> np.ndarray:
+    r = 6371.0
+    points_lat = np.radians(points_deg[:, 0])[:, None]
+    points_lon = np.radians(points_deg[:, 1])[:, None]
+    centroids_lat = np.radians(centroids_deg[:, 0])[None, :]
+    centroids_lon = np.radians(centroids_deg[:, 1])[None, :]
+
+    dlat = centroids_lat - points_lat
+    dlon = centroids_lon - points_lon
+    a = (
+        np.sin(dlat / 2.0) ** 2
+        + np.cos(points_lat) * np.cos(centroids_lat) * np.sin(dlon / 2.0) ** 2
+    )
+    c = 2.0 * np.arctan2(np.sqrt(a), np.sqrt(np.maximum(0.0, 1.0 - a)))
+    return r * c
+
+
+def haversine_distance_pairs_km(points_a_deg: np.ndarray, points_b_deg: np.ndarray) -> np.ndarray:
+    if len(points_a_deg) != len(points_b_deg):
+        raise ValueError(
+            "points_a_deg and points_b_deg must have the same number of rows")
+
+    r = 6371.0
+    lat1 = np.radians(points_a_deg[:, 0])
+    lon1 = np.radians(points_a_deg[:, 1])
+    lat2 = np.radians(points_b_deg[:, 0])
+    lon2 = np.radians(points_b_deg[:, 1])
+
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+    a = np.sin(dlat / 2.0) ** 2 + np.cos(lat1) * \
+        np.cos(lat2) * np.sin(dlon / 2.0) ** 2
+    c = 2.0 * np.arctan2(np.sqrt(a), np.sqrt(np.maximum(0.0, 1.0 - a)))
+    return r * c
+
+
+def estimate_geo_scale_km(points_deg: np.ndarray) -> float:
+    overall_centroid = spherical_centroid_deg(points_deg)
+    dispersion = haversine_distance_matrix_km(
+        points_deg, overall_centroid[None, :]).reshape(-1)
+    scale = float(np.std(dispersion))
+    if scale < EPS:
+        scale = float(np.mean(dispersion))
+    return max(scale, 1.0)
+
+
 def kmeans_numpy(
     x: np.ndarray,
     k: int,
@@ -77,7 +146,8 @@ def kmeans_numpy(
     labels = np.zeros(len(x), dtype=np.int32)
 
     for _ in range(max_iter):
-        distances = np.linalg.norm(x[:, None, :] - centroids[None, :, :], axis=2)
+        distances = np.linalg.norm(
+            x[:, None, :] - centroids[None, :, :], axis=2)
         new_labels = distances.argmin(axis=1)
 
         new_centroids = np.empty_like(centroids)
@@ -98,6 +168,75 @@ def kmeans_numpy(
     return labels, centroids, inertia
 
 
+def mixed_kmeans_numpy(
+    physical_x: np.ndarray,
+    geo_points_deg: np.ndarray,
+    k: int,
+    random_state: int,
+    geo_scale_km: float,
+    max_iter: int = 100,
+    tol: float = 1e-4,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, float]:
+    if k <= 1:
+        raise ValueError("k must be >= 2")
+    if k > len(physical_x):
+        raise ValueError("k cannot exceed number of rows")
+    if len(physical_x) != len(geo_points_deg):
+        raise ValueError(
+            "physical_x and geo_points_deg must have the same number of rows")
+
+    rng = np.random.default_rng(random_state)
+    init_idx = rng.choice(len(physical_x), size=k, replace=False)
+    physical_centroids = physical_x[init_idx].copy()
+    geo_centroids = geo_points_deg[init_idx].copy()
+    labels = np.zeros(len(physical_x), dtype=np.int32)
+
+    for _ in range(max_iter):
+        physical_dist_sq = np.sum(
+            (physical_x[:, None, :] - physical_centroids[None, :, :]) ** 2,
+            axis=2,
+        )
+        geo_dist_sq = (haversine_distance_matrix_km(
+            geo_points_deg, geo_centroids) / geo_scale_km) ** 2
+        combined_dist_sq = physical_dist_sq + geo_dist_sq
+        new_labels = combined_dist_sq.argmin(axis=1)
+
+        new_physical_centroids = np.empty_like(physical_centroids)
+        new_geo_centroids = np.empty_like(geo_centroids)
+        for cluster_id in range(k):
+            member_mask = new_labels == cluster_id
+            if np.any(member_mask):
+                new_physical_centroids[cluster_id] = physical_x[member_mask].mean(
+                    axis=0)
+                new_geo_centroids[cluster_id] = spherical_centroid_deg(
+                    geo_points_deg[member_mask])
+            else:
+                random_idx = rng.integers(0, len(physical_x))
+                new_physical_centroids[cluster_id] = physical_x[random_idx]
+                new_geo_centroids[cluster_id] = geo_points_deg[random_idx]
+
+        physical_shift = np.linalg.norm(
+            new_physical_centroids - physical_centroids)
+        geo_shift = float(np.sum(haversine_distance_pairs_km(
+            new_geo_centroids, geo_centroids) / geo_scale_km))
+        shift = physical_shift + geo_shift
+
+        labels = new_labels
+        physical_centroids = new_physical_centroids
+        geo_centroids = new_geo_centroids
+        if shift <= tol:
+            break
+
+    final_physical_dist_sq = np.sum(
+        (physical_x - physical_centroids[labels]) ** 2,
+        axis=1,
+    )
+    final_geo_dist_sq = (haversine_distance_pairs_km(
+        geo_points_deg, geo_centroids[labels]) / geo_scale_km) ** 2
+    inertia = float(np.sum(final_physical_dist_sq + final_geo_dist_sq))
+    return labels, physical_centroids, geo_centroids, inertia
+
+
 def evaluate_k_values(
     x: np.ndarray,
     k_min: int,
@@ -108,7 +247,8 @@ def evaluate_k_values(
     overall_mean = x.mean(axis=0)
 
     for k in range(k_min, k_max + 1):
-        labels, centroids, inertia = kmeans_numpy(x, k=k, random_state=random_state + k)
+        labels, centroids, inertia = kmeans_numpy(
+            x, k=k, random_state=random_state + k)
         between_ss = 0.0
         for cluster_id in range(k):
             mask = labels == cluster_id
@@ -117,6 +257,61 @@ def evaluate_k_values(
                 continue
             diff = centroids[cluster_id] - overall_mean
             between_ss += float(n_cluster * np.dot(diff, diff))
+
+        score = between_ss / (inertia + EPS)
+        records.append(
+            {
+                "k": k,
+                "between_ss": between_ss,
+                "within_ss": inertia,
+                "separation_score": score,
+            }
+        )
+
+    return pd.DataFrame(records).sort_values("k").reset_index(drop=True)
+
+
+def evaluate_spatial_physical_k_values(
+    physical_x: np.ndarray,
+    geo_points_deg: np.ndarray,
+    k_min: int,
+    k_max: int,
+    random_state: int,
+    geo_scale_km: float,
+) -> pd.DataFrame:
+    records: List[Dict[str, float]] = []
+    overall_physical_mean = physical_x.mean(axis=0)
+    overall_geo_centroid = spherical_centroid_deg(geo_points_deg)
+
+    for k in range(k_min, k_max + 1):
+        labels, physical_centroids, geo_centroids, inertia = mixed_kmeans_numpy(
+            physical_x,
+            geo_points_deg,
+            k=k,
+            random_state=random_state + k,
+            geo_scale_km=geo_scale_km,
+        )
+        between_ss = 0.0
+        for cluster_id in range(k):
+            mask = labels == cluster_id
+            n_cluster = int(mask.sum())
+            if n_cluster == 0:
+                continue
+
+            physical_diff = physical_centroids[cluster_id] - \
+                overall_physical_mean
+            physical_between = float(np.dot(physical_diff, physical_diff))
+            geo_between = float(
+                (
+                    haversine_distance_matrix_km(
+                        geo_centroids[cluster_id: cluster_id + 1],
+                        overall_geo_centroid[None, :],
+                    )[0, 0]
+                    / geo_scale_km
+                )
+                ** 2
+            )
+            between_ss += n_cluster * (physical_between + geo_between)
 
         score = between_ss / (inertia + EPS)
         records.append(
@@ -141,7 +336,8 @@ def run_physical_clustering(
     feature_df = df[PHYSICAL_FEATURES].dropna().copy()
     x_scaled, _, _ = zscore_standardize(feature_df.to_numpy(dtype=float))
 
-    k_eval = evaluate_k_values(x_scaled, k_min=k_min, k_max=k_max, random_state=random_state)
+    k_eval = evaluate_k_values(
+        x_scaled, k_min=k_min, k_max=k_max, random_state=random_state)
     best_row = k_eval.sort_values("separation_score", ascending=False).iloc[0]
     best_k = int(best_row["k"])
 
@@ -173,7 +369,8 @@ def run_physical_clustering(
         json.dumps(meta, indent=2), encoding="utf-8"
     )
     k_eval.to_csv(output_dir / "physical_cluster_k_eval.csv", index=False)
-    cluster_profile.to_csv(output_dir / "physical_cluster_profile.csv", index=False)
+    cluster_profile.to_csv(
+        output_dir / "physical_cluster_profile.csv", index=False)
 
     # Map cluster labels back to original rows.
     clustered = df.copy()
@@ -192,21 +389,53 @@ def run_spatial_physical_clustering(
     plot_sample_size: int,
 ) -> pd.DataFrame:
     feature_df = df[ALL_CLUSTER_FEATURES].dropna().copy()
-    x_scaled, _, _ = zscore_standardize(feature_df.to_numpy(dtype=float))
-
-    k_eval = evaluate_k_values(
-        x_scaled, k_min=k_min, k_max=k_max, random_state=random_state + 500
+    physical_x_scaled, physical_mean, physical_std = zscore_standardize(
+        feature_df[PHYSICAL_FEATURES].to_numpy(dtype=float)
     )
-    best_k = int(k_eval.sort_values("separation_score", ascending=False).iloc[0]["k"])
-    labels, _, _ = kmeans_numpy(x_scaled, k=best_k, random_state=random_state + 700)
+    geo_points_deg = feature_df[LOCATION_FEATURES].to_numpy(dtype=float)
+    geo_scale_km = estimate_geo_scale_km(geo_points_deg)
+
+    k_eval = evaluate_spatial_physical_k_values(
+        physical_x_scaled,
+        geo_points_deg,
+        k_min=k_min,
+        k_max=k_max,
+        random_state=random_state + 500,
+        geo_scale_km=geo_scale_km,
+    )
+    best_k = int(k_eval.sort_values(
+        "separation_score", ascending=False).iloc[0]["k"])
+    labels, physical_centroids, geo_centroids, inertia = mixed_kmeans_numpy(
+        physical_x_scaled,
+        geo_points_deg,
+        k=best_k,
+        random_state=random_state + 700,
+        geo_scale_km=geo_scale_km,
+    )
 
     feature_df["cluster_spatial_physical"] = labels
     out_df = df.copy()
     out_df["cluster_spatial_physical"] = -1
     out_df.loc[feature_df.index, "cluster_spatial_physical"] = labels
 
-    k_eval.to_csv(output_dir / "spatial_physical_cluster_k_eval.csv", index=False)
-    (
+    physical_centroids_original = physical_centroids * physical_std + physical_mean
+    meta = {
+        "best_k": best_k,
+        "best_within_ss": inertia,
+        "distance_metric": "euclidean_physical_plus_haversine_geo",
+        "geo_scale_km": geo_scale_km,
+        "physical_features": PHYSICAL_FEATURES,
+        "location_features": LOCATION_FEATURES,
+        "physical_centroids_scaled": physical_centroids.tolist(),
+        "physical_centroids_original": physical_centroids_original.tolist(),
+        "geo_centroids_deg": geo_centroids.tolist(),
+    }
+    (output_dir / "spatial_physical_cluster_meta.json").write_text(
+        json.dumps(meta, indent=2), encoding="utf-8"
+    )
+    k_eval.to_csv(
+        output_dir / "spatial_physical_cluster_k_eval.csv", index=False)
+    cluster_profile = (
         feature_df.groupby("cluster_spatial_physical")
         .agg(
             count=("mag", "size"),
@@ -217,8 +446,26 @@ def run_spatial_physical_clustering(
         )
         .sort_values("count", ascending=False)
         .reset_index()
-        .to_csv(output_dir / "spatial_physical_cluster_profile.csv", index=False)
     )
+    centroid_df = pd.DataFrame(
+        {
+            "cluster_spatial_physical": np.arange(best_k, dtype=int),
+            "centroid_mag": physical_centroids_original[:, 0],
+            "centroid_depth": physical_centroids_original[:, 1],
+            "centroid_gap": physical_centroids_original[:, 2],
+            "centroid_nst": physical_centroids_original[:, 3],
+            "centroid_rms": physical_centroids_original[:, 4],
+            "centroid_lat": geo_centroids[:, 0],
+            "centroid_lon": geo_centroids[:, 1],
+        }
+    )
+    cluster_profile = cluster_profile.merge(
+        centroid_df,
+        on="cluster_spatial_physical",
+        how="left",
+    )
+    cluster_profile.to_csv(
+        output_dir / "spatial_physical_cluster_profile.csv", index=False)
 
     plot_df = out_df[out_df["cluster_spatial_physical"] >= 0]
     if len(plot_df) > plot_sample_size:
@@ -247,11 +494,16 @@ def run_spatial_physical_clustering(
 
 def add_grid_cells(df: pd.DataFrame, grid_size_deg: float) -> pd.DataFrame:
     grid_df = df.copy()
-    grid_df["lat_cell"] = np.floor((grid_df["latitude"] + 90.0) / grid_size_deg).astype(int)
-    grid_df["lon_cell"] = np.floor((grid_df["longitude"] + 180.0) / grid_size_deg).astype(int)
-    grid_df["grid_id"] = grid_df["lat_cell"].astype(str) + "_" + grid_df["lon_cell"].astype(str)
-    grid_df["grid_lat_center"] = (grid_df["lat_cell"] + 0.5) * grid_size_deg - 90.0
-    grid_df["grid_lon_center"] = (grid_df["lon_cell"] + 0.5) * grid_size_deg - 180.0
+    grid_df["lat_cell"] = np.floor(
+        (grid_df["latitude"] + 90.0) / grid_size_deg).astype(int)
+    grid_df["lon_cell"] = np.floor(
+        (grid_df["longitude"] + 180.0) / grid_size_deg).astype(int)
+    grid_df["grid_id"] = grid_df["lat_cell"].astype(
+        str) + "_" + grid_df["lon_cell"].astype(str)
+    grid_df["grid_lat_center"] = (
+        grid_df["lat_cell"] + 0.5) * grid_size_deg - 90.0
+    grid_df["grid_lon_center"] = (
+        grid_df["lon_cell"] + 0.5) * grid_size_deg - 180.0
     return grid_df
 
 
@@ -264,7 +516,8 @@ def detect_hotspots(
     grid_df = add_grid_cells(df, grid_size_deg=grid_size_deg)
 
     hotspot_stats = (
-        grid_df.groupby(["grid_id", "grid_lat_center", "grid_lon_center"], as_index=False)
+        grid_df.groupby(["grid_id", "grid_lat_center",
+                        "grid_lon_center"], as_index=False)
         .agg(
             event_count=("id", "count"),
             mean_mag=("mag", "mean"),
@@ -277,7 +530,8 @@ def detect_hotspots(
     hotspot_stats["is_hotspot"] = hotspot_stats["event_count"] >= threshold
     hotspot_stats.to_csv(output_dir / "02_hotspots.csv", index=False)
 
-    hotspot_cells = set(hotspot_stats.loc[hotspot_stats["is_hotspot"], "grid_id"].tolist())
+    hotspot_cells = set(
+        hotspot_stats.loc[hotspot_stats["is_hotspot"], "grid_id"].tolist())
 
     center_lat = float(df["latitude"].mean())
     center_lon = float(df["longitude"].mean())
@@ -288,8 +542,10 @@ def detect_hotspots(
         control_scale=True,
     )
 
-    heat_points = hotspot_stats[["grid_lat_center", "grid_lon_center", "event_count"]].values.tolist()
-    HeatMap(heat_points, radius=18, blur=12, max_zoom=4, min_opacity=0.35).add_to(fmap)
+    heat_points = hotspot_stats[["grid_lat_center",
+                                 "grid_lon_center", "event_count"]].values.tolist()
+    HeatMap(heat_points, radius=18, blur=12,
+            max_zoom=4, min_opacity=0.35).add_to(fmap)
 
     top_hotspots = hotspot_stats.head(50)
     for row in top_hotspots.itertuples(index=False):
@@ -317,7 +573,8 @@ def assign_event_token(df: pd.DataFrame) -> pd.Series:
     depth_bins = [0, 70, 300, 800]
     depth_labels = ["shallow", "intermediate", "deep"]
 
-    mag_cat = pd.cut(df["mag"], bins=mag_bins, labels=mag_labels, right=False, include_lowest=True)
+    mag_cat = pd.cut(df["mag"], bins=mag_bins,
+                     labels=mag_labels, right=False, include_lowest=True)
     depth_cat = pd.cut(
         df["depth"],
         bins=depth_bins,
@@ -357,7 +614,7 @@ def mine_temporal_patterns(df: pd.DataFrame, output_dir: Path, top_n: int) -> pd
             continue
         counter: Counter = Counter()
         for i in range(n_days - length + 1):
-            key = tuple(sequence[i : i + length])
+            key = tuple(sequence[i: i + length])
             counter[key] += 1
 
         for pattern, cnt in counter.most_common(top_n):
@@ -420,7 +677,8 @@ def haversine_distance_km(
     dlat = lat2_rad - lat1_rad
     dlon = lon2_rad - lon1_rad
 
-    a = np.sin(dlat / 2.0) ** 2 + np.cos(lat1_rad) * np.cos(lat2_rad) * np.sin(dlon / 2.0) ** 2
+    a = np.sin(dlat / 2.0) ** 2 + np.cos(lat1_rad) * \
+        np.cos(lat2_rad) * np.sin(dlon / 2.0) ** 2
     c = 2.0 * np.arctan2(np.sqrt(a), np.sqrt(np.maximum(0.0, 1.0 - a)))
     return r * c
 
@@ -456,12 +714,14 @@ def classify_shock_roles(
     for idx in mainshock_idx:
         t0 = times_ns[idx]
         left = int(np.searchsorted(times_ns, t0 - foreshock_ns, side="left"))
-        right = int(np.searchsorted(times_ns, t0 + aftershock_ns, side="right"))
+        right = int(np.searchsorted(
+            times_ns, t0 + aftershock_ns, side="right"))
         if right - left <= 1:
             continue
 
         window_indices = np.arange(left, right)
-        distances = haversine_distance_km(lat[idx], lon[idx], lat[window_indices], lon[window_indices])
+        distances = haversine_distance_km(
+            lat[idx], lon[idx], lat[window_indices], lon[window_indices])
         within_radius = distances <= shock_radius_km
         smaller_mag = mag[window_indices] <= mag[idx] + EPS
         valid = within_radius & smaller_mag
@@ -522,10 +782,12 @@ def detect_outliers(
 
     grid_counts = out_df["grid_id"].value_counts()
     count_val = out_df["grid_id"].map(grid_counts).to_numpy(dtype=float)
-    rarity = 1.0 - (count_val - count_val.min()) / (count_val.max() - count_val.min() + EPS)
+    rarity = 1.0 - (count_val - count_val.min()) / \
+        (count_val.max() - count_val.min() + EPS)
 
     delta_hours = (
-        out_df["time"].diff().dt.total_seconds().fillna(0.0).clip(lower=0.0).to_numpy() / 3600.0
+        out_df["time"].diff().dt.total_seconds().fillna(
+            0.0).clip(lower=0.0).to_numpy() / 3600.0
     )
     temporal_z = np.abs(robust_zscore(np.log1p(delta_hours)))
 
@@ -534,7 +796,8 @@ def detect_outliers(
     out_df["outlier_score"] = outlier_score
     out_df["is_outlier"] = outlier_score >= threshold
 
-    outlier_rows = out_df[out_df["is_outlier"]].sort_values("outlier_score", ascending=False)
+    outlier_rows = out_df[out_df["is_outlier"]].sort_values(
+        "outlier_score", ascending=False)
     outlier_rows.to_csv(output_dir / "05_outliers.csv", index=False)
 
     plot_df = out_df
@@ -544,8 +807,10 @@ def detect_outliers(
     plot_normal = plot_df[~plot_df["is_outlier"]]
 
     fig, ax = plt.subplots(figsize=(12, 6))
-    ax.scatter(plot_normal["longitude"], plot_normal["latitude"], s=6, alpha=0.2, c="#457b9d", label="Normal")
-    ax.scatter(plot_outlier["longitude"], plot_outlier["latitude"], s=16, alpha=0.8, c="#d00000", label="Outlier")
+    ax.scatter(plot_normal["longitude"], plot_normal["latitude"],
+               s=6, alpha=0.2, c="#457b9d", label="Normal")
+    ax.scatter(plot_outlier["longitude"], plot_outlier["latitude"],
+               s=16, alpha=0.8, c="#d00000", label="Outlier")
     ax.set_title("Outlier Earthquakes by Location (sampled)")
     ax.set_xlabel("Longitude")
     ax.set_ylabel("Latitude")
@@ -591,7 +856,8 @@ def build_transactions(df: pd.DataFrame, hotspot_cells: Set[str]) -> List[Set[st
     tx_df["lat_zone"] = pd.cut(
         tx_df["latitude"],
         bins=[-90, -60, -30, 0, 30, 60, 90],
-        labels=["lat_-90_-60", "lat_-60_-30", "lat_-30_0", "lat_0_30", "lat_30_60", "lat_60_90"],
+        labels=["lat_-90_-60", "lat_-60_-30", "lat_-30_0",
+                "lat_0_30", "lat_30_60", "lat_60_90"],
         include_lowest=True,
     ).astype("string")
     tx_df["lon_zone"] = pd.cut(
@@ -607,7 +873,8 @@ def build_transactions(df: pd.DataFrame, hotspot_cells: Set[str]) -> List[Set[st
         ],
         include_lowest=True,
     ).astype("string")
-    tx_df["hotspot_flag"] = np.where(tx_df["grid_id"].isin(hotspot_cells), "hotspot_yes", "hotspot_no")
+    tx_df["hotspot_flag"] = np.where(tx_df["grid_id"].isin(
+        hotspot_cells), "hotspot_yes", "hotspot_no")
 
     transactions: List[Set[str]] = []
     for row in tx_df.itertuples(index=False):
@@ -705,10 +972,12 @@ def run_association_mining(
 ) -> pd.DataFrame:
     tx_df = df.copy()
     if association_max_rows > 0 and len(tx_df) > association_max_rows:
-        tx_df = tx_df.sample(n=association_max_rows, random_state=random_state).reset_index(drop=True)
+        tx_df = tx_df.sample(n=association_max_rows,
+                             random_state=random_state).reset_index(drop=True)
 
     transactions = build_transactions(tx_df, hotspot_cells=hotspot_cells)
-    supports = mine_frequent_itemsets(transactions, max_len=3, min_support=min_support)
+    supports = mine_frequent_itemsets(
+        transactions, max_len=3, min_support=min_support)
     rules = generate_location_rules(
         supports=supports,
         min_confidence=min_confidence,
@@ -717,7 +986,8 @@ def run_association_mining(
     rules.to_csv(output_dir / "06_association_rules.csv", index=False)
 
     itemset_records = [
-        {"itemset": " + ".join(itemset), "support": support, "size": len(itemset)}
+        {"itemset": " + ".join(itemset), "support": support,
+         "size": len(itemset)}
         for itemset, support in supports.items()
     ]
     pd.DataFrame(itemset_records).sort_values(
@@ -797,7 +1067,8 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Run clustering and pattern mining pipeline for earthquake data."
     )
-    parser.add_argument("--input-csv", required=True, help="Path to cleaned earthquake CSV.")
+    parser.add_argument("--input-csv", required=True,
+                        help="Path to cleaned earthquake CSV.")
     parser.add_argument(
         "--output-dir",
         default="hoigreen/clustering_pattern_mining/outputs",
@@ -838,7 +1109,8 @@ def run_pipeline(args: argparse.Namespace) -> None:
     output_dir = Path(args.output_dir)
     ensure_output_dir(output_dir)
 
-    df = load_dataset(Path(args.input_csv), max_rows=args.max_rows, random_state=args.random_state)
+    df = load_dataset(Path(args.input_csv),
+                      max_rows=args.max_rows, random_state=args.random_state)
 
     physical_clustered, cluster_profile = run_physical_clustering(
         df,

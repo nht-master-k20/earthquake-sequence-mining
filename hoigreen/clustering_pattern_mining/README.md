@@ -48,6 +48,7 @@ CSV đã preprocess (ví dụ output từ `preprocess_usgs_quakes.py`) với cá
 
 - `01_clustered_events.csv`
 - `01_spatial_physical_clusters.png`
+- `spatial_physical_cluster_meta.json`
 - `02_hotspots.csv`
 - `02_hotspots_map.html`
 - `03_temporal_patterns.csv`
@@ -61,7 +62,12 @@ CSV đã preprocess (ví dụ output từ `preprocess_usgs_quakes.py`) với cá
 
 ## Ghi chú phương pháp
 
-- Clustering dùng K-Means triển khai bằng NumPy với chọn `k` theo tỷ lệ `between_ss / within_ss`.
+- `physical clustering` dùng K-Means NumPy với khoảng cách Euclidean trên các biến vật lý đã chuẩn hóa.
+- `spatial + physical clustering` dùng metric hỗn hợp:
+  - Euclidean cho `mag/depth/gap/nst/rms`
+  - Haversine cho `latitude/longitude`
+  - tâm cụm địa lý được cập nhật bằng spherical mean trên quả địa cầu
+- Chọn `k` theo tỷ lệ `between_ss / within_ss`.
 - Hotspot dùng lưới địa lý (grid) và chọn hotspot theo phân vị số lượng sự kiện.
 - Temporal pattern mining dùng chuỗi token hóa theo `mag` và `depth` theo ngày.
 - Foreshock/aftershock gán theo khoảng thời gian + bán kính không gian quanh mainshock.

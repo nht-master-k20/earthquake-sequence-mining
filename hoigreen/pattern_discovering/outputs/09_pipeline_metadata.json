@@ -1,0 +1,56 @@
+{
+  "input_csv": "data/dongdat.csv",
+  "output_dir": "hoigreen/pattern_discovering/outputs",
+  "rows_after_filtering": 1324122,
+  "event_type": "earthquake",
+  "region_grid_size": 2.5,
+  "core_event_cluster_features": [
+    "mag",
+    "depth_log1p",
+    "sig_log1p",
+    "gap",
+    "rms_log1p",
+    "nst_log1p",
+    "dmin_log1p",
+    "tsunami"
+  ],
+  "region_cluster_features": [
+    "event_count_log1p",
+    "mag_mean",
+    "mag_p90",
+    "mag_max",
+    "depth_mean",
+    "depth_p90",
+    "sig_mean",
+    "major_quake_ratio",
+    "shallow_ratio",
+    "deep_ratio",
+    "tsunami_rate"
+  ],
+  "excluded_high_missing_features": [
+    "mmi",
+    "cdi",
+    "felt"
+  ],
+  "median_imputation_features": [
+    "gap",
+    "rms",
+    "nst",
+    "dmin"
+  ],
+  "best_event_k": 2,
+  "best_region_k": 2,
+  "region_count": 3208,
+  "eligible_region_count": 1132,
+  "sparse_region_count": 2076,
+  "event_feature_fill_values": {
+    "mag": 1.5,
+    "depth_log1p": 2.3841650799864684,
+    "sig_log1p": 3.58351893845611,
+    "gap": 107.0,
+    "rms_log1p": 0.173953307123438,
+    "nst_log1p": 2.3978952727983707,
+    "dmin_log1p": 0.011078407207000913,
+    "tsunami": 0.0
+  }
+}

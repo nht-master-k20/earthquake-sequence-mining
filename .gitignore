@@ -13,4 +13,6 @@ build/
 .idea/
 .venv
 
-outputs
+# outputs
+hoigreen/backup/*/outputs
+hoigreen/pattern_discovering/outputs/01_event_cluster_assignments.csv

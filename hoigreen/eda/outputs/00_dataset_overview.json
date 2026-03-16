@@ -1,0 +1,33 @@
+{
+  "input_rows_after_basic_cleaning": 1352013,
+  "analysis_rows_after_type_filter": 1324122,
+  "analysis_event_type": "earthquake",
+  "analysis_share": 0.9793707604882498,
+  "time_min": "2000-01-01 00:02:46.200000+00:00",
+  "time_max": "2024-12-30 23:56:29.977000+00:00",
+  "grid_size_degree": 2.5,
+  "distinct_regions": 3208,
+  "type_counts": {
+    "earthquake": 1324122,
+    "quarry blast": 9643,
+    "explosion": 8544,
+    "ice quake": 7235,
+    "mining explosion": 1218,
+    "other event": 969,
+    "chemical explosion": 110,
+    "volcanic eruption": 73,
+    "rock burst": 37,
+    "sonic boom": 23,
+    "quarry": 15,
+    "landslide": 7,
+    "mine collapse": 6,
+    "nuclear explosion": 4,
+    "rockslide": 1,
+    "acoustic noise": 1,
+    "collapse": 1,
+    "meteorite": 1,
+    "induced or triggered event": 1,
+    "Ice Quake": 1,
+    "experimental explosion": 1
+  }
+}

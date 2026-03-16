@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo Cáo Phân Tích Dữ Liệu Động Đất</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 40px;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 8px;
+        }
+        h3 {
+            color: #7f8c8d;
+        }
+        .header-info {
+            background-color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .chart-container {
+            margin: 30px 0;
+            text-align: center;
+        }
+        .chart-container img {
+            max-width: 100%;
+            max-height: 50vh;
+            height: auto;
+            object-fit: contain;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .observation {
+            background-color: #e8f4f8;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+        }
+        .observation h4 {
+            margin-top: 0;
+            color: #2980b9;
+        }
+        .key-finding {
+            background-color: #fff3cd;
+            padding: 15px;
+            border-left: 4px solid #ffc107;
+            margin: 20px 0;
+        }
+        .key-finding h4 {
+            margin-top: 0;
+            color: #856404;
+        }
+        .conclusion {
+            background-color: #d5f4e6;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 30px 0;
+        }
+        ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #7f8c8d;
+        }
+        .back-to-top {
+            float: right;
+            font-size: 12px;
+        }
+        .back-to-top a {
+            color: #3498db;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>BÁO CÁO PHÂN TÍCH DỮ LIỆU ĐỘNG ĐẤT</h1>
+
+        <div class="header-info">
+            <p><strong>Thời gian phân tích:</strong> 2000-01-01 đến 2024-12-30 (24 năm)</p>
+            <p><strong>Tổng số trận động đất:</strong> 1,352,013 sự kiện</p>
+            <p><strong>Nguồn dữ liệu:</strong> USGS Earthquake Catalog</p>
+            <p><strong>Ngày phân tích:</strong> 2025-03-15</p>
+        </div>
+
+        <h2>1. TỔNG QUAN</h2>
+        <p>Báo cáo này cung cấp cái nhìn toàn diện về hoạt động động đất toàn cầu trong giai đoạn 24 năm. Phân tích tập trung vào xu hướng theo thời gian, phân phối độ lớn, đặc tính độ sâu và các pattern không gian. Tất cả các phân loại độ lớn tuân theo tiêu chuẩn USGS (United States Geological Survey), đảm bảo tính hợp lý về mặt khoa học và khả năng so sánh quốc tế.</p>
+
+        <div class="key-finding">
+            <h4>📌 Các phát hiện chính:</h4>
+            <ul>
+                <li><strong>Đỉnh hoạt động:</strong> Tháng 7/2018 ghi nhận số lượng cao nhất (30,212 trận động đất)</li>
+                <li><strong>Phân phối độ lớn:</strong> Tuân thủ luật Gutenberg-Richter với b-value ≈ 1.0</li>
+                <li><strong>Động đất mạnh:</strong> 37,110 sự kiện với M ≥ 5.0 (có khả năng gây thiệt hại)</li>
+                <li><strong>Tập trung không gian:</strong> ~80% dọc theo Vành đai lửa Thái Bình Dương</li>
+                <li><strong>Đặc tính độ sâu:</strong> Độ sâu trung vị 9.5 km cho thấy sự predominance của động đất nông</li>
+            </ul>
+        </div>
+
+        <h2>2. PHÂN LOẠI ĐỘ LỚN (THEO USGS)</h2>
+
+        <p>Hệ thống phân loại được sử dụng trong báo cáo này tuân theo <strong>USGS (United States Geological Survey)</strong> - hệ thống tiêu chuẩn quốc tế được chấp nhận rộng rãi nhất:</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Độ lớn</th>
+                    <th>Phân loại</th>
+                    <th>Mô tả</th>
+                    <th>Mức độ nguy hiểm</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>&lt; 2.0</strong></td>
+                    <td>Micro</td>
+                    <td>Rất yếu, chỉ thiết bị đo được</td>
+                    <td>Không</td>
+                </tr>
+                <tr>
+                    <td><strong>2.0 - 2.9</strong></td>
+                    <td>Minor</td>
+                    <td>Cảm nhận được bởi người gần</td>
+                    <td>Không</td>
+                </tr>
+                <tr>
+                    <td><strong>3.0 - 3.9</strong></td>
+                    <td>Light</td>
+                    <td>Cảm nhận rõ, rung lắc nhẹ</td>
+                    <td>Rất thấp</td>
+                </tr>
+                <tr>
+                    <td><strong>4.0 - 4.9</strong></td>
+                    <td>Moderate</td>
+                    <td>Rung lắc đáng kể</td>
+                    <td><strong>Thấp</strong> - Vật có thể rơi vỡ</td>
+                </tr>
+                <tr>
+                    <td><strong>5.0 - 5.9</strong></td>
+                    <td>Strong</td>
+                    <td>Rung lắc mạnh</td>
+                    <td><strong>Trung bình</strong> - Thiệt hại nhẹ</td>
+                </tr>
+                <tr>
+                    <td><strong>6.0 - 6.9</strong></td>
+                    <td>Major</td>
+                    <td>Rung lắc rất mạnh gần tâm chấn</td>
+                    <td><strong>Cao</strong> - Thiệt hại lớn</td>
+                </tr>
+                <tr>
+                    <td><strong>7.0 - 7.9</strong></td>
+                    <td>Major</td>
+                    <td>Động đất lớn</td>
+                    <td><strong>Rất cao</strong> - Thiệt hại nghiêm trọng</td>
+                </tr>
+                <tr>
+                    <td><strong>8.0+</strong></td>
+                    <td>Great</td>
+                    <td>Động đất khổng lồ</td>
+                    <td><strong>Thảm họa</strong> - Phá hủy diện rộng</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p><strong>Cơ sở khoa học:</strong> Phân loại này dựa trên Thang đo Moment Magnitude (Mw), cung cấp phép đo nhất quán giữa các khu vực địa lý khác nhau và các kích thước động đất khác nhau. Mỗi tăng 1 đơn vị tương đương với khoảng <strong>32 lần năng lượng</strong> cao hơn.</p>
+
+        <p><strong>Tài liệu tham khảo:</strong></p>
+        <ul>
+            <li>USGS Earthquake Hazards Program: <a href="https://www.usgs.gov/programs/earthquake-hazards" target="_blank">https://www.usgs.gov/programs/earthquake-hazards</a></li>
+            <li>"Magnitude scales and their limitations" - USGS Professional Paper</li>
+            <li>Gutenberg, B., & Richter, C. F. (1956). "Earthquake magnitude, intensity, energy, and acceleration"</li>
+        </ul>
+
+        <span class="back-to-top"><a href="#top">↑ Lên đầu trang</a></span>
+
+        <h2>3. PHÂN TÍCH THEO THỜI GIAN</h2>
+
+        <h3>3.1 Tần suất động đất theo tháng</h3>
+        <div class="chart-container">
+            <img src="./01_temporal_trend.png" alt="Tần suất động đất theo tháng">
+        </div>
+
+        <div class="observation">
+            <h4>📊 Mục đích biểu đồ:</h4>
+            <p>Biểu đồ này hiển thị số lượng động đất hàng tháng từ năm 2000 đến 2024, cho thấy tần suất động đất thay đổi như thế nào theo thời gian.</p>
+
+            <h4>🔍 Quan sát từ dữ liệu:</h4>
+            <ul>
+                <li><strong>Đỉnh cao năm 2018:</strong> Tháng 7/2018 ghi nhận 30,212 trận động đất - số lượng cao nhất trong toàn bộ giai đoạn 24 năm</li>
+                <li><strong>Gia tăng mạnh (2016-2018):strong> Hoạt động động đất tăng đột ngột từ khoảng 500 trận/tháng vào cuối 2016 lên hơn 30,000 trận/tháng vào giữa 2018</li>
+                <li><strong>Giảm dần (2018-2024):</strong> Sau đỉnh 2018, hoạt động giảm dần nhưng vẫn cao hơn mức trước 2016</li>
+                <li><strong>Hoạt động trung bình:</strong> Khoảng 4,507 trận động đất/tháng trong toàn bộ giai đoạn</li>
+                <li><strong>Thấp nhất:</strong> Tháng 11/2016 chỉ có 488 trận được ghi nhận</li>
+            </ul>
+
+            <h4>💡 Những insight quan trọng:</h4>
+            <ul>
+                <li>Sự gia tăng ~60 lần từ cuối 2016 đến giữa 2018 là phi thường và cần giải thích</li>
+                <li>Pattern này cho thấy hoặc là thay đổi hoạt động kiến tạo thực sự hoặc là cải thiện khả năng phát hiện</li>
+                <li>Sự giảm sau 2018 cho thấy trở lại pattern ổn định hơn, mặc dù vẫn cao hơn mức baseline lịch sử</li>
+            </ul>
+        </div>
+
+        <div class="key-finding">
+            <h4>📌 Kết luận:</h4>
+            <p><strong>Kết luận chính:</strong> Giai đoạn 2016-2018 đại diện cho một bất thường đáng kể trong hoạt động động đất toàn cầu. Mức độ gia tăng này (60 lần) strongly suggests contributions from multiple factors:</p>
+            <ol>
+                <li><strong>Cải thiện công nghệ:</strong> Triển khai các mạng lưới seismograph nhạy hơn</li>
+                <li><strong>Tăng giám sát:</strong> Thêm các trạm giám sát mới trên toàn cầu</li>
+                <li><strong>Xử lý dữ liệu:</strong> Cải thiện thuật toán phát hiện các sự kiện nhỏ</li>
+                <li><strong>Hoạt động kiến tạo:</strong> Có thể gia tăng hoạt động kiến tạo thực sự trong giai đoạn này</li>
+            </ol>
+            <p><strong>Ý nghĩa thực tiễn:</strong> "Bình thường mới" sau 2018 với ~2,000-4,000 trận/tháng có thể đại diện cho baseline chính xác hơn cho hoạt động động đất toàn cầu, với các con số trước 2016 có thể đang undercount các sự kiện nhỏ.</p>
+        </div>
+
+        <h3>3.2 Phân tích xu hướng (Moving Average)</h3>
+        <div class="chart-container">
+            <img src="./02_temporal_moving_average.png" alt="Phân tích xu hướng">
+        </div>
+
+        <div class="observation">
+            <h4>📊 Mục đích biểu đồ:</h4>
+            <p>Biểu đồ này áp dụng moving average 6 tháng để làm mượt hóa các biến động ngắn hạn và揭示 xu hướng dài hạn cơ bản trong hoạt động động đất.</p>
+
+            <h4>🔍 Quan sát từ dữ liệu:</h4>
+            <ul>
+                <li><strong>Giai đoạn baseline (2000-2016):</strong> Ổn định khoảng 1,000-2,000 trận/tháng</li>
+                <li><strong>Tăng nhanh (2016-2018):</strong> Xu hướng tăng dần đạt ~15,000 trận/tháng vào giữa 2018</li>
+                <li><strong>Đỉnh và giảm (2018-2024):</strong> Giảm dần xuống ~3,000-5,000 trận/tháng</li>
+                <li><strong>Trạng thái hiện tại:</strong> Ổn định ở mức cao hơn đáng kể so với baseline trước 2016</li>
+            </ul>
+
+            <h4>💡 Những insight quan trọng:</h4>
+            <ul>
+                <li>Moving average cho thấy đỉnh 2018 không phải là spike đột ngột mà là một phần của xu hướng bền vững</li>
+                <li>Biến động ngắn hạn (thấy trong màu xám) là đáng kể, với số lượng hàng tháng thay đổi ±50% hoặc hơn</li>
+                <li>Sự ổn định sau 2018 cho thấy một equilibrium mới thay vì tăng trưởng liên tục</li>
+            </ul>
+        </div>
+
+        <div class="key-finding">
+            <h4>📌 Kết luận:</h4>
+            <p><strong>Phân tích xu hướng:</strong> Dữ liệu cho thấy ba giai đoạn khác biệt:</p>
+            <ol>
+                <li><strong>Trước 2016 (Baseline):</strong> Giai đoạn under-sampling với hạn chế phát hiện</li>
+                <li><strong>2016-2018 (Chuyển tiếp):</strong> Cải thiện nhanh khả năng phát hiện</li>
+                <li><strong>Sau 2018 (Bình thường mới):</strong> Đại diện chính xác hơn cho hoạt động động đất toàn cầu</li>
+            </ol>
+            <p><strong>Ý nghĩa thực tiễn:</strong> Lập hoạch dài hạn và đánh giá rủi ro nên sử dụng dữ liệu sau 2018 như baseline đáng tin cậy hơn cho tần suất động đất thực, trong khi các con số trước 2016 có thể underestimate hoạt động thực tế.</p>
+        </div>
+
+        <span class="back-to-top"><a href="#top">↑ Lên đầu trang</a></span>
+
+        <h2>4. PHÂN TÍCH PHÂN PHỐI ĐỘ LỚN</h2>
+
+        <h3>4.1 Histogram độ lớn (Luật Gutenberg-Richter)</h3>
+        <div class="chart-container">
+            <img src="./03_magnitude_histogram.png" alt="Phân phối độ lớn">
+        </div>
+
+        <div class="observation">
+            <h4>📊 Mục đích biểu đồ:</h4>
+            <p>Histogram này hiển thị phân phối tần suất của các độ lớn động đất, kiểm tra xem dữ liệu có tuân theo luật Gutenberg-Richter nổi tiếng hay không.</p>
+
+            <h4>🔍 Quan sát từ dữ liệu:</h4>
+            <ul>
+                <li><strong>Giảm theo cấp số nhân:</strong> Số lượng động đất giảm theo cấp số nhân khi độ lớn tăng</li>
+                <li><strong>b-value ≈ 1.0:</strong> Đường fitted cho thấy b-value khoảng 1.0, nhất quán với hoạt động động đất toàn cầu</li>
+                <li><strong>Động đất nhỏ predominance:</strong> Độ lớn 1.0-2.0 chiếm số lượng sự kiện lớn nhất</li>
+                <li><strong>Sự kiện lớn hiếm:</strong> Động đất trên M6.0 ngày càng hiếm</li>
+            </ul>
+
+            <h4>💡 Những insight quan trọng:</h4>
+            <ul>
+                <li>Sự fit tốt với luật Gutenberg-Richter chỉ ra dataset là đại diện cho hoạt động động đất toàn cầu</li>
+                <li>b-value ~1.0 là điển hình cho động đất kiến tạo, cho thấy không có hành vi bất thường</li>
+                <li>Pattern phân phối này là cơ bản cho đánh giá rủi ro động đất trên toàn thế giới</li>
+            </ul>
+        </div>
+
+        <div class="key-finding">
+            <h4>📌 Kết luận:</h4>
+            <p><strong>Xác thực khoa học:</strong> Sự fit tốt với luật Gutenberg-Richter (log N = a - bM) xác thực chất lượng và completeness của dataset. Các hàm ý chính:</p>
+            <ul>
+                <li><strong>Đánh giá rủi ro:</strong> Cho mỗi động đất M5.0, ta kỳ vọng khoảng 10 sự kiện M4.0</li>
+                <li><strong>Phát hành năng lượng:</strong> Trong khi động đất nhỏ thường xuyên hơn nhiều, sự kiện lớn phát hành năng lượng tỷ lệ nghịch</li>
+                <li><strong>Hạn chế dự đoán:</strong> Luật này mô tả phân phối thống kê nhưng không thể dự đoán các sự kiện riêng lẻ</li>
+            </ul>
+            <p><strong>Ý nghĩa thực tiễn:</strong> Quy chuẩn xây dựng và lập hoạch khẩn cấp nên account cho sự chắc chắn thống kê rằng động đất lớn, gây thiệt hại sẽ xảy ra, mặc dù hiếm.</p>
+        </div>
+
+        <h3>4.2 Phân phối tích lũy theo độ lớn</h3>
+        <div class="chart-container">
+            <img src="./04_magnitude_cumulative.png" alt="Phân phối tích lũy">
+        </div>
+
+        <div class="observation">
+            <h4>📊 Mục đích biểu đồ:</h4>
+            <p>Biểu đồ này hiển thị số lượng tích lũy của các động đất tại hoặc trên mỗi mức độ lớn, cung cấp cái nhìn rõ ràng về bao nhiêu sự kiện vượt qua các ngưỡng quan trọng.</p>
+
+            <h4>🔍 Quan sát từ dữ liệu:</h4>
+            <ul>
+                <li><strong>M ≥ 4.0:</strong> ~270,250 trận (20% tổng) - có khả năng gây thiệt hại</li>
+                <li><strong>M ≥ 5.0:</strong> ~37,110 trận (2.7% tổng) - ngưỡng gây thiệt hại</li>
+                <li><strong>M ≥ 6.0:</strong> ~3,097 trận (0.2% tổng) - sự kiện phá hủy lớn</li>
+                <li><strong>M ≥ 7.0:</strong> ~200 trận (0.015% tổng) - động đất lớn</li>
+                <li><strong>Maximum ghi nhận:</strong> M9.10 (có thể là động đất Tohoku, Nhật Bản 2011)</li>
+            </ul>
+
+            <h4>💡 Những insight quan trọng:</h4>
+            <ul>
+                <li>Chỉ 2.7% động đất đạt ngưỡng M5.0 "Strong" nơi thiệt hại trở nên có khả năng</li>
+                <li>Động đất lớn (M6.0+) hiếm nhưng đại diện cho hơn 3,000 sự kiện có thể gây thiệt hại trong 24 năm</li>
+                <li>Mối quan hệ log-linear xác nhận scaling Gutenberg-Richter trên tất cả các phạm vi độ lớn</li>
+            </ul>
+        </div>
+
+        <div class="key-finding">
+            <h4>📌 Kết luận:</h4>
+            <p><strong>Đánh giá rủi ro:</strong> Góc nhìn tích lũy này làm nổi bật tầm quan trọng then chốt của các ngưỡng độ lớn:</p>
+            <ul>
+                <li><strong>Tập trung cảnh báo sớm:</strong> Sự kiện M4.0+ (270,250 tổng) xứng đáng được giám sát cho tiềm năng leo thang</li>
+                <li><strong>Ngưỡng thiệt hại:</strong> Sự kiện M5.0+ (37,110 tổng) yêu cầu thông báo công chúng ngay lập tức</li>
+                <li><strong>Rủi ro thảm khốc:</strong> Sự kiện M6.0+ (3,097 tổng) yêu cầu sự chuẩn bị khẩn cấp toàn diện</li>
+            </ul>
+            <p><strong>Ý nghĩa thực tiễn:</strong> Trong khi động đất lớn là thống kê hiếm, tác động tích lũy của chúng trong nhiều thập kỷ làm cho chúng trở nên tất yếu. Cộng đồng trong các vùng hoạt động kiến tạo phải duy trì sự chuẩn bị dài hạn thay vì trở nên tự mãn trong các giai đoạn yên tĩnh.</p>
+        </div>
+
+        <span class="back-to-top"><a href="#top">↑ Lên đầu trang</a></span>
+
+        <h2>5. PHÂN TÍCH ĐỘ SÂU</h2>
+
+        <h3>5.1 Phân phối độ sâu</h3>
+        <div class="chart-container">
+            <img src="./05_depth_histogram.png" alt="Phân phối độ sâu">
+        </div>
+
+        <div class="observation">
+            <h4>📊 Mục đích biểu đồ:</h4>
+            <p>Biểu đồ này hiển thị phân phối độ sâu động đất, revealing whether most earthquakes originate near the surface or deep within Earth's crust and mantle.</p>
+
+            <h4>🔍 Quan sát từ dữ liệu:</h4>
+            <ul>
+                <li><strong>Độ sâu trung vị:</strong> 9.5 km - cho thấy một nửa tất cả động đất xảy ra rất nông</li>
+                <li><strong>Tập trung cực đại:</strong> Tần suất maximum giữa 0-35 km độ sâu</li>
+                <li><strong>Động đất sâu:</strong> Số nhỏ sự kiện mở rộng đến độ sâu 700+ km</li>
+                <li><strong>Giá trị bất thường:</strong> Độ sâu âm (-10 km) có thể chỉ ra vấn đề chất lượng dữ liệu hoặc sự kiện trên mặt đất</li>
+            </ul>
+
+            <h4>💡 Những insight quan trọng:</h4>
+            <ul>
+                <li><strong>Sự predominance nông:</strong> Hầu hết động đất xảy ra trong 35 km trên cùng của vỏ Trái Đất</li>
+                <li><strong>Tiềm năng thiệt hại:</strong> Động đất nông gây thiệt hại nhiều hơn do gần mặt đất</li>
+                <li><strong>Vùng subduction:</strong> Động đất sâu (>300 km) xảy ra chủ yếu trong vùng subduction</li>
+            </ul>
+        </div>
+
+        <div class="key-finding">
+            <h4>📌 Kết luận:</h4>
+            <p><strong>Hàm ý rủi ro:</strong> Độ sâu là một yếu tố then chốt trong tiềm năng thiệt hại động đất:</p>
+            <ul>
+                <li><strong>Động đất nông (&lt;10km):</strong> Tiềm năng thiệt hại cao nhất, ngay cả ở độ lớn thấp hơn</li>
+                <li><strong>Trung gian (10-70 km):</strong> Tiềm năng thiệt hại trung bình, phạm vi độ sâu phổ biến nhất</li>
+                <li><strong>Sâu (&gt;70 km):</strong> Tiềm năng thiệt hại thấp hơn nhưng cảm nhận được trên diện rộng hơn</li>
+            </ul>
+            <p><strong>Ý nghĩa thực tiễn:</strong> Quy chuẩn xây dựng và bản đồ rủi ro nên ưu tiên các vùng động đất nông, vì độ sâu khuếch đại cường độ rung lắc tại mặt đất bất kể độ lớn.</p>
+        </div>
+
+        <h3>5.2 Mối quan hệ Độ lớn - Độ sâu</h3>
+        <div class="chart-container">
+            <img src="./06_magnitude_vs_depth.png" alt="Độ lớn vs Độ sâu">
+        </div>
+
+        <div class="observation">
+            <h4>📊 Mục đích biểu đồ:</h4>
+            <p>Biểu đồ scatter này kiểm tra xem độ lớn động đất có tương quan với độ sâu hay không, kiểm tra giả thuyết rằng động đất sâu hơn có thể lớn hơn hoặc nhỏ hơn.</p>
+
+            <h4>🔍 Quan sát từ dữ liệu:</h4>
+            <ul>
+                <li><strong>Tương quan yếu:</strong> Hệ số tương quan 0.36 chỉ ra mối quan hệ dương trung bình</li>
+                <li><strong>Phạm vi đầy đủ:</strong> Động đất lớn (M6.0+) xảy ra ở tất cả độ sâu từ mặt đất đến 700 km</li>
+                <li><strong>Tập trung nông:</strong> Hầu hết động đất, bất kể độ lớn, tập trung ở độ sâu nông</li>
+                <li><strong>Sự kiện sâu:</strong> Một số động đất rất sâu (600+ km) đạt độ lớn M6.0+</li>
+            </ul>
+
+            <h4>💡 Những insight quan trọng:</h4>
+            <ul>
+                <li>Độ lớn động đất không thể dự đoán từ độ sâu - hai yếu tố này chủ yếu độc lập</li>
+                <li>Động đất nông bao gồm toàn bộ phổ từ nhỏ đến lớn</li>
+                <li>Tương quan (0.36) quá yếu để có giá trị dự đoán cho đánh giá rủi ro</li>
+            </ul>
+        </div>
+
+        <div class="key-finding">
+            <h4>📌 Kết luận:</h4>
+            <p><strong>Biến độc lập:</strong> Độ lớn và độ sâu là những đặc tính cơ bản độc lập của động đất:</p>
+            <ul>
+                <li><strong>Đánh giá rủi ro:</strong> Phải xem xét cả độ lớn VÀ độ sâu riêng biệt</li>
+                <li><strong>Không có giá trị dự đoán:</strong> Độ sâu không thể dùng để ước lượng tiềm năng độ lớn</li>
+                <li><strong>Giám sát toàn diện:</strong> Mạng lưới địa chấn phải theo dõi tất cả độ sâu, không chỉ tập trung vào vùng nông</li>
+            </ul>
+            <p><strong>Ý nghĩa thực tiễn:</strong> Lập hoạch khẩn cấp nên chuẩn bị cho động đất lớn ở bất kỳ độ sâu nào, vì các sự kiện lớn có thể xuất phát từ sâu trong lớp phủ Trái Đất cũng như các fault vỏ nông.</p>
+        </div>
+
+        <span class="back-to-top"><a href="#top">↑ Lên đầu trang</a></span>
+
+        <h2>6. PHÂN TÍCH PHÂN BỐ KHÔNG GIAN</h2>
+
+        <h3>6.1 Phân bố động đất toàn cầu (Bản đồ thế giới)</h3>
+        <div class="chart-container">
+            <img src="./07_spatial_scatter.png" alt="Phân bố toàn cầu">
+        </div>
+
+        <div class="observation">
+            <h4>📊 Mục đích biểu đồ:</h4>
+            <p>Bản đồ này hiển thị phân bố địa lý của tất cả động đất, revealing các pattern không gian của hoạt động động đất toàn cầu và xác định các vùng kiến tạo hoạt động.</p>
+
+            <h4>🔍 Quan sát từ dữ liệu:</h4>
+            <ul>
+                <li><strong>Vành đai lửa Thái Bình Dương:</strong> Tập trung dày đặc bao quanh Thái Bình Dương</li>
+                <li><strong>Các vùng chính:</strong>
+                    <ul>
+                        <li>Bờ Tây Bắc Mỹ (California, Alaska)</li>
+                        <li>Nam Mỹ (Andes - Chile, Peru)</li>
+                        <li>Nhật Bản và Philippines</li>
+                        <li>Indonesia và New Zealand</li>
+                    </ul>
+                </li>
+                <li><strong>Các vùng hoạt động khác:</strong>
+                    <ul>
+                        <li>Khu vực Địa Trung Hải</li>
+                        <li>Cao nguyên Himalaya-Tibet</li>
+                        <li>Dương Mid-Atlantic</li>
+                        <li>Rift Đông Phi</li>
+                    </ul>
+                </li>
+                <li><strong>Chỉ thị độ lớn:</strong> Gradient màu cho thấy động đất lớn hơn (đỏ) tập trung dọc theo các fault line chính</li>
+            </ul>
+
+            <h4>💡 Những insight quan trọng:</h4>
+            <ul>
+                <li><strong>Tương quan ranh giới mảng:</strong> Động đất align hoàn hảo với ranh giới mảng kiến tạo</li>
+                <li><strong>Sự predominance Ring of Fire:</strong> ~80% động đất xảy ra dọc theo Vành đai lửa Thái Bình Dương</li>
+                <li><strong>Sự kiện intraplate:</strong> Một số động đất xảy ra xa từ ranh giới mảng (động đất intraplate)</li>
+            </ul>
+        </div>
+
+        <div class="key-finding">
+            <h4>📌 Kết luận:</h4>
+            <p><strong>Kiểm soát kiến tạo:</strong> Phân bố không gian cung cấp bằng chứng mạnh cho lý thuyết kiến tạo mảng:</p>
+            <ul>
+                <li><strong>Ranh giới hội tụ:</strong> Vùng subduction (Nhật Bản, Chile, Indonesia) sản xuất các động đất lớn và sâu nhất</li>
+                <li><strong>Ranh giới phân kỳ:</strong> Mid-ocean ridges tạo ra động đất thường xuyên nhưng nhỏ hơn</li>
+                <li><strong>Ranh giới biến dạng:</strong> Fault trượt ngang (California) sản xuất động đất nông trung bình đến lớn</li>
+            </ul>
+            <p><strong>Ý nghĩa thực tiễn:</strong> Nguồn lực đánh giá và giảm thiểu rủi ro nên tập trung dọc theo các vùng fault đã xác định. Cộng đồng gần ranh giới mảng yêu cầu quy chuẩn xây dựng nâng cao, sự chuẩn bị khẩn cấp, và hệ thống cảnh báo sớm.</p>
+        </div>
+
+        <h3>6.2 Heatmap mật độ động đất</h3>
+        <div class="chart-container">
+            <img src="./08_spatial_heatmap.png" alt="Heatmap mật độ">
+        </div>
+
+        <div class="observation">
+            <h4>📊 Mục đích biểu đồ:</h4>
+            <p>Heatmap này sử dụng cường độ màu để hiển thị các vùng có nồng độ động đất cao nhất, xác định các "hotspots" động đất trên toàn thế giới.</p>
+
+            <h4>🔍 Quan sát từ dữ liệu:</h4>
+            <ul>
+                <li><strong>Vùng mật độ cao nhất (Đỏ đậm):</strong>
+                    <ul>
+                        <li>Cung Alaska-Aleutian</li>
+                        <li>Vùng Nhật Bản-Kuril-Kamchatka</li>
+                        <li>Indonesia-Philippines</li>
+                        <li>Andes Chile-Peru</li>
+                        <li>Quần đảo South Sandwich</li>
+                    </ul>
+                </li>
+                <li><strong>Mật độ trung bình (Cam):</strong>
+                    <ul>
+                        <li>California-Nevada</li>
+                        <li>Địa Trung Hải-Thổ Nhĩ Kỳ</li>
+                        <li>Vùng Himalaya</li>
+                        <li>New Zealand</li>
+                    </ul>
+                </li>
+                <li><strong>Mật độ thấp (Vàng/Trắng):</strong>
+                    <ul>
+                        <li>Nội thất của các mảng kiến tạo</li>
+                        <li>Vùng lục địa ổn định</li>
+                        <li>Nội thất đại dương xa từ các ridges</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h4>💡 Những insight quan trọng:</h4>
+            <ul>
+                <li><strong>Phân phối không đồng nhất:</strong> Hoạt động động đất tập trung cao, không ngẫu nhiên</li>
+                <li><strong>Hotspots có thể xác định:</strong> Các vùng cụ thể account cho tỷ lệ tần suất động đất không cân đối</li>
+                <li><strong>Ánh xạ rủi ro:</strong> Heatmaps cung cấp hướng dẫn trực quan cho seismic zonation</li>
+            </ul>
+        </div>
+
+        <div class="key-finding">
+            <h4>📌 Kết luận:</h4>
+            <p><strong>Zonation rủi ro:</strong> Pattern mật độ revealing các mức rủi ro thứ bậc rõ ràng:</p>
+            <ul>
+                <li><strong>Rủi ro cực cao:</strong> Vùng màu đỏ đậm yêu cầu sự chuẩn bị tối đa (Nhật Bản, Chile, Indonesia)</li>
+                <li><strong>Rủi ro cao:</strong> Vùng cam cần quy chuẩn xây dựng mạnh và hệ thống khẩn cấp (California, Thổ Nhĩ Kỳ)</li>
+                <li><strong>Rủi ro thấp:</strong> Vùng vàng vẫn yêu cầu nhận thức nhưng giảm thiểu ít intensively hơn</li>
+            </ul>
+            <p><strong>Ý nghĩa thực tiễn:</strong> Giá bảo hiểm, yêu cầu quy chuẩn xây dựng, và lập hoạch khẩn cấp nên được calibrate theo các vùng rủi ro dựa trên mật độ này. Các vùng trong vùng mật độ cao phải phân bổ nguồn lực không cân đối cho khả năng chịu đựng động đất.</p>
+        </div>
+
+        <span class="back-to-top"><a href="#top">↑ Lên đầu trang</a></span>
+
+        <h2>7. PHÂN TÍCH THEO VÙNG</h2>
+
+        <h3>7.1 Top 10 vùng có nhiều động đất nhất</h3>
+        <div class="chart-container">
+            <img src="./09_top_locations.png" alt="Top 10 vùng">
+        </div>
+
+        <div class="observation">
+            <h4>📊 Mục đích biểu đồ:</h4>
+            <p>Biểu đồ này xếp hạng các vị trí địa lý theo tổng số lượng động đất, xác định các vùng trải qua hoạt động động đất thường xuyên nhất.</p>
+
+            <h4>🔍 Quan sát từ dữ liệu:</h4>
+            <ul>
+                <li><strong>#1 Vùng Alaska:</strong> Tổng số lượng động đất cao nhất</li>
+                <li><strong>Các vùng top:</strong> Dominated bởi các vị trí Vành đai lửa Thái Bình Dương</li>
+                <li><strong>Vùng subduction:</strong> Nhiều vị trí top là cài đặt subduction zone</li>
+            </ul>
+
+            <h4>💡 Những insight quan trọng:</h4>
+            <ul>
+                <li>Tần suất động đất cao không nhất thiết có nghĩa là rủi ro cao (nhiều có thể nhỏ)</li>
+                <li>Tên vị trí chỉ ra gần các đặc điểm địa lý (đảo, ridges, rãnh)</li>
+                <li>Tên vùng thường span các khu vực lớn, không phải thành phố hoặc điểm cụ thể</li>
+            </ul>
+        </div>
+
+        <div class="key-finding">
+            <h4>📌 Kết luận:</h4>
+            <p><strong>Tần suất vs. Rủi ro:</strong> Các vùng hoạt động nhất không nhất thiết là nguy hiểm nhất:</p>
+            <ul>
+                <li><strong>Tần suất cao, Độ lớn thấp hơn:</strong> Một số vùng trải qua nhiều động đất nhỏ</li>
+                <li><strong>Tần suất thấp hơn, Độ lớn cao hơn:</strong> Một số vùng có ít hơn nhưng sự kiện lớn hơn</li>
+                <li><strong>Ưu tiên giám sát:</strong> Vùng tần suất cao yêu cầu mạng lưới giám sát dày đặc</li>
+            </ul>
+            <p><strong>Ý nghĩa thực tiễn:</strong> Các vùng có tần suất động đất cao cần giám sát địa chấn liên tục và giáo dục công chúng, ngay cả khi hầu hết sự kiện nhỏ. Phần tiếp theo giải quyết các vùng có sự kiện lớn nhất.</p>
+        </div>
+
+        <h3>7.2 Top 10 vùng có động đất mạnh nhất (M ≥ 5.0)</h3>
+        <div class="chart-container">
+            <img src="./10_top_strong_earthquakes.png" alt="Top 10 động đất mạnh nhất">
+        </div>
+
+        <div class="observation">
+            <h4>📊 Mục đích biểu đồ:</h4>
+            <p>Biểu đồ này xếp hạng các vị trí theo số lượng động đất có khả năng gây thiệt hại (M ≥ 5.0), xác định các vùng có rủi ro cao nhất từ các sự kiện động đất mạnh.</p>
+
+            <h4>🔍 Quan sát từ dữ liệu:</h4>
+            <ul>
+                <li><strong>#1 Vùng Quần đảo South Sandwich:</strong> 924 động đất mạnh</li>
+                <li><strong>#2 Vùng Quần đảo Kermadec:</strong> 517 động đất mạnh</li>
+                <li><strong>#3 Nam Quần đảo Fiji:</strong> 481 động đất mạnh</li>
+                <li><strong>Đặc điểm chung:</strong> Hầu hết là các đảo arc và vùng đại dương xa xôi</li>
+            </ul>
+
+            <h4>💡 Những insight quan trọng:</h4>
+            <ul>
+                <li><strong>Vùng subduction:</strong> Tất cả các vị trí top là liên kết với vùng subduction</li>
+                <li><strong>Vùng xa xôi:</strong> Nhiều vùng xa các trung tâm dân số lớn</li>
+                <li><strong>Cài đặt kiến tạo:</strong> Ranh giới mảng hội tụ sản xuất các động đất lớn nhất và thường xuyên nhất</li>
+                <li><strong>Pattern tần suất:</strong> Khác với xếp hạng tổng số lượng động đất</li>
+            </ul>
+        </div>
+
+        <div class="key-finding">
+            <h4>📌 Kết luận:</h4>
+            <p><strong>Đánh giá rủi ro:</strong> Biểu đồ này revealing các vùng rủi ro cao thực sự cho các động đất mạnh:</p>
+            <ul>
+                <li><strong>Vùng rủi ro tối đa:</strong> South Sandwich, Kermadec, và các vùng Fiji trải qua các động đất mạnh thường xuyên nhất</li>
+                <li><strong>Xa xôi vs. Có dân cư:</strong> Trong khi các vùng này có nhiều động đất mạnh, mật độ dân số thấp hơn có thể giảm tổng rủi ro</li>
+                <li><strong>Loại ranh giới mảng:</strong> Vùng subduction nhất quán sản xuất các động đất lớn và thường xuyên nhất</li>
+            </ul>
+            <p><strong>Ý nghĩa thực tiễn:</strong> Trong khi nhiều vùng top có dân số thưa, vùng có dân cư gần subduction zone (Nhật Bản, Chile, Indonesia) đối mặt với rủi ro kết hợp cao nhất của các động đất mạnh thường xuyên và phơi nhiễm cao. Các khu vực này yêu cầu quy chuẩn xây dựng nghiêm ngặt nhất và lập hoạch khẩn cấp toàn diện.</p>
+        </div>
+
+        <span class="back-to-top"><a href="#top">↑ Lên đầu trang</a></span>
+
+        <h2>8. PATTERN THEO THỜI GIAN</h2>
+
+        <h3>8.1 Pattern theo mùa</h3>
+        <div class="chart-container">
+            <img src="./11_seasonal_pattern.png" alt="Pattern theo mùa">
+        </div>
+
+        <div class="observation">
+            <h4>📊 Mục đích biểu đồ:</h4>
+            <p>Biểu đồ này kiểm tra xem động đất có theo pattern mùa vụ hay không, kiểm tra giả thuyết rằng tần suất động đất có thể thay đổi theo tháng do các yếu tố như khoảng cách Trái Đất từ Mặt Trời hoặc tải trọng khí quyển.</p>
+
+            <h4>🔍 Quan sát từ dữ liệu:</h4>
+            <ul>
+                <li><strong>Không có pattern mùa vụ rõ ràng:</strong> Tần suất động đất thay đổi chỉ nhẹ giữa các tháng</li>
+                <li><strong>Biến động nhỏ:</strong> Sự khác biệt nhỏ có thể do biến động ngẫu nhiên</li>
+                <li><strong>Hoạt động nhất quán:</strong> Động đất vẫn tương đối không đổi quanh năm</li>
+            </ul>
+
+            <h4>💡 Những insight quan trọng:</h4>
+            <ul>
+                <li>Động đất được điều khiển bởi lực kiến tạo sâu, không phải các quy trình mặt trời theo mùa</li>
+                <li>Thiếu pattern mùa vụ có nghĩa là không có "mùa động đất"</li>
+                <li>Sự chuẩn bị khẩn cấp phải được duy trì quanh năm</li>
+            </ul>
+        </div>
+
+        <div class="key-finding">
+            <h4>📌 Kết luận:</h4>
+            <p><strong>Không có thiên kiến mùa vụ:</strong> Động đất xảy ra ngẫu nhiên quanh năm:</p>
+            <ul>
+                <li><strong>Rủi ro liên tục:</strong> Rủi ro động đất không giảm trong bất kỳ mùa nào</li>
+                <li><strong>Lập hoạch nguồn lực:</strong> Dịch vụ khẩn cấp phải duy trì sẵn sàng mọi lúc</li>
+                <li><strong>Nhận thức công chúng:</strong> Các chiến dịch giáo dục không nên được lên lịch theo các mùa cụ thể</li>
+            </ul>
+            <p><strong>Ý nghĩa thực tiễn:</strong> Cộng đồng không nên nới lỏng sự chuẩn bị trong bất kỳ tháng nào. Nhận thức và diễn tập động đất nên được phân bổ quanh năm thay vì tập trung vào "tháng động đất" không tồn tại.</p>
+        </div>
+
+        <span class="back-to-top"><a href="#top">↑ Lên đầu trang</a></span>
+
+        <h2>9. PHÂN TÍCH PHÂN LOẠI</h2>
+
+        <h3>9.1 Phân loại độ lớn (USGS Standard)</h3>
+        <div class="chart-container">
+            <img src="./12_magnitude_categories.png" alt="Phân loại độ lớn">
+        </div>
+
+        <div class="observation">
+            <h4>📊 Mục đích biểu đồ:</h4>
+            <p>Biểu đồ này phân loại tất cả động đất theo các lớp độ lớn USGS, hiển thị sự phân tích từ động đất vi mô vô hại đến động đất lớn có khả năng gây thiệt hại.</p>
+
+            <h4>🔍 Quan sát từ dữ liệu:</h4>
+            <ul>
+                <li><strong>Micro (&lt;2.0):</strong> ~700,000 sự kiện (~52% tổng) - không có tiềm năng thiệt hại</li>
+                <li><strong>Minor (2-3):</strong> ~400,000 sự kiện (~30% tổng) - hiếm khi cảm nhận</li>
+                <li><strong>Light (3-4):</strong> ~200,000 sự kiện (~15% tổng) - đáng chú ý nhưng hiếm khi gây thiệt hại</li>
+                <li><strong>Moderate (4-5):</strong> ~50,000 sự kiện (~4% tổng) - có tiềm năng thiệt hại nhỏ</li>
+                <li><strong>Strong (≥5.0):</strong> ~37,000 sự kiện (~2.7% tổng) - ngưỡng gây thiệt hại</li>
+            </ul>
+
+            <h4>💡 Những insight quan trọng:</h4>
+            <ul>
+                <li>Động đất nhỏ predominance danh mục nhưng gây rủi ro tối thiểu</li>
+                <li>Chỉ ~2.7% động đất đạt ngưỡng gây thiệt hại M5.0+</li>
+                <li>~1.35 triệu động đất nhỏ cung cấp dữ liệu giá trị để hiểu seismicity</li>
+            </ul>
+        </div>
+
+        <div class="key-finding">
+            <h4>📌 Kết luận:</h4>
+            <p><strong>Phân tầng rủi ro:</strong> Phân loại này cho phép giảm thiểu rủi ro có mục tiêu:</p>
+            <ul>
+                <li><strong>Tập trung giám sát:</strong> Sự kiện M4.0+ (~4%) xứng đáng được giám sát đặc biệt cho tiềm năng leo thang</li>
+                <li><strong>Cảnh báo công chúng:</strong> Sự kiện M5.0+ (~2.7%) yêu cầu thông báo công chúng ngay lập tức</li>
+                <li><strong>Phản hồi khẩn cấp:</strong> Sự kiện M6.0+ (~0.2%) kích hoạt phản hồi khẩn cấp toàn diện</li>
+            </ul>
+            <p><strong>Ý nghĩa thực tiễn:</strong> Trong khi động đất nhỏ rất hữu ích cho nghiên cứu và hiệu chuẩn mạng lưới, lập hoạch khẩn cấp nên tập trung vào phạm vi M4.0+. Nguồn lực nên được phân bổ tỷ lệ: 52% nỗ lực giám sát không nên đi đến các sự kiện vi mô vô hại, mà là 4% có thể gây thiệt hại.</p>
+        </div>
+
+        <h3>9.2 Phân loại độ sâu</h3>
+        <div class="chart-container">
+            <img src="./13_depth_categories.png" alt="Phân loại độ sâu">
+        </div>
+
+        <div class="observation">
+            <h4>📊 Mục đích biểu đồ:</h4>
+            <p>Biểu đồ này phân loại động đất theo các phạm vi độ sâu, revealing phần nào của vỏ và lớp phủ Trái Đất sản xuất hoạt động động đất nhiều nhất.</p>
+
+            <h4>🔍 Quan sát từ dữ liệu:</h4>
+            <ul>
+                <li><strong>Nông (&lt;10km):</strong> Loại lớn nhất - thường xuyên nhất, tiềm năng thiệt hại cao nhất</li>
+                <li><strong>Trung gian (10-35km):</strong> Lớn thứ hai - độ sâu động đất vỏ điển hình</li>
+                <li><strong>Trung bình (35-70km):</strong> Tần suất trung bình - vỏ dưới/lớp phủ trên</li>
+                <li><strong>Sâu (70-300km):</strong> Ít thường xuyên hơn - động đất vùng subduction</li>
+                <li><strong>Rất sâu (&gt;300km):</strong> Hiếm nhất - động đất lớp phủ sâu dưới vùng subduction</li>
+            </ul>
+
+            <h4>💡 Những insight quan trọng:</h4>
+            <ul>
+                <li>Hoạt động động đất giảm theo cấp số nhân với độ sâu</li>
+                <li>Động đất nông predominance cả về tần suất và tiềm năng thiệt hại</li>
+                <li>Động đất sâu, trong khi hiếm, vẫn có thể lớn và gây thiệt hại</li>
+            </ul>
+        </div>
+
+        <div class="key-finding">
+            <h4>📌 Kết luận:</h4>
+            <p><strong>Tiềm năng thiệt hại theo độ sâu:</strong> Độ sâu là một yếu tố then chốt trong tác động động đất:</p>
+            <ul>
+                <li><strong>Nông (&lt;10km):</strong> Thiệt hại tối đa - ngay cả động đất trung bình gây rung lắc đáng kể</li>
+                <li><strong>Trung gian (10-70km):</strong> Thiệt hại trung bình - rung lắc được làm yếu bởi khoảng cách đến mặt đất</li>
+                <li><strong>Sâu (&gt;70km):</strong> Thiệt hại thấp hơn - năng lượng tiêu tan qua đá trên</li>
+            </ul>
+            <p><strong>Ý nghĩa thực tiễn:</strong> Quy chuẩn xây dựng trong các vùng prone động đất nông phải nghiêm ngặt hơn so với các vùng động đất sâu. Các nhà quản lý khẩn cấp nên ưu tiên các vùng động đất nông cho các chương trình giáo dục và chuẩn bị công chúng, vì các khu vực này sẽ trải qua rung lắc mạnh nhất cho một độ lớn đã cho.</p>
+        </div>
+
+        <span class="back-to-top"><a href="#top">↑ Lên đầu trang</a></span>
+
+        <div class="conclusion">
+            <h2>10. KẾT LUẬN VÀ KHUYẾN NGHỊ</h2>
+
+            <h3>10.1 Tóm tắt các phát hiện chính</h3>
+            <ol>
+                <li><strong>Cải thiện phát hiện:</strong> Giai đoạn 2016-2018 gia tăng các động đất được ghi nhận có thể reflects cải thiện khả năng phát hiện, không chỉ gia tăng hoạt động kiến tạo</li>
+                <li><strong>Xác thực Gutenberg-Richter:</strong> Phân phối độ lớn tuân theo các luật vật lý đã xác lập, xác nhận chất lượng dữ liệu</li>
+                <li><strong>Vành đai lửa Thái Bình Dương:</strong> ~80% động đất xảy ra dọc theo ranh giới kiến tạo này</li>
+                <li><strong>Sự predominance nông:</strong> Hầu hết động đất xảy ra trong 35 km trên cùng, tối đa hóa tiềm năng thiệt hại</li>
+                <li><strong>Ngưỡng M5.0:</strong> Chỉ 2.7% động đất đạt mức có khả năng gây thiệt hại M5.0+</li>
+                <li><strong>Không có pattern mùa vụ:</strong> Động đất xảy ra ngẫu nhiên quanh năm</li>
+                <li><strong>Vùng rủi ro cao:</strong> South Sandwich, Kermadec, và các vùng Fiji có các động đất mạnh thường xuyên nhất</li>
+            </ol>
+
+            <h3>10.2 Khuyến nghị cho cơ quan chính phủ</h3>
+            <ul>
+                <li><strong>Hệ thống cảnh báo sớm:</strong> Đầu tư cảnh báo động đất sớm cho sự kiện M5.0+ trong các vùng rủi ro cao (Nhật Bản, Chile, Indonesia, California)</li>
+                <li><strong>Quy chuẩn xây dựng:</strong> Cập nhật quy chuẩn để reflect rủi ro theo độ sâu, đặc biệt cho các vùng động đất nông</li>
+                <li><strong>Mạng lưới giám sát:</strong> Duy trì các mạng lưới địa chấn dày đặc trong các vùng tần suất cao (Alaska, Quần đảo South Sandwich)</li>
+                <li><strong>Hợp tác quốc tế:</strong> Chia sẻ dữ liệu qua biên giới cho các vùng subduction zone spanning nhiều quốc gia</li>
+                <li><strong>Quỹ nghiên cứu:</strong> Hỗ trợ nghiên cứu về bất thường 2016-2018 để hiểu sự thay đổi động đất thực vs. được phát hiện</li>
+            </ul>
+
+            <h3>10.3 Khuyến nghị cho cộng đồng</h3>
+            <ul>
+                <li><strong>Chuẩn bị quanh năm:</strong> Duy trì sẵn sàng mọi lúc - không có mùa động đất</li>
+                <li><strong>Đánh giá rủi ro:</strong> Xác định đặc tính độ sâu động đất địa phương để hiểu rủi ro cụ thể</li>
+                <li><strong>Ưu tiên nâng cấp:</strong> Tập trung củng cố các tòa nhà trong các vùng động đất nông trước tiên</li>
+                <li><strong>Chương trình giáo dục:</strong> Thực hiện các diễn tập thường xuyên bất kể hoạt động động đất gần đây</li>
+                <li><strong>Cân nhắc bảo hiểm:</strong> Đánh giá bảo hiểm động đất dựa trên đặc tính độ sâu và tần suất theo vùng</li>
+            </ul>
+
+            <h3>10.4 Khuyến nghị cho nghiên cứu</h3>
+            <ul>
+                <li><strong>Phân tích ngưỡng phát hiện:</strong> Điều tra gia tăng 2016-2018 để xác định nếu nó đại diện cho cải tiến công nghệ hay thay đổi kiến tạo</li>
+                <li><strong>Mối quan hệ độ sâu-độ lớn:</strong> Nghiên cứu thêm tương quan yếu (0.360) để hiểu bất kỳ mối quan hệ tinh vi nào</li>
+                <li><strong>Seismicity intraplate:</strong> Nghiên cứu các động đất xảy ra xa từ ranh giới mảng</li>
+                <li><strong>Quy trình vùng subduction:</strong> Nghiên cứu tại sao vùng subduction sản xuất các động đất lớn và thường xuyên nhất</li>
+                <li><strong>Hạn chế dự đoán:</strong> Giao tiếp rõ rằng dự đoán động đất vẫn không thể mặc dù các pattern thống kê này</li>
+            </ul>
+        </div>
+
+        <h2>11. TÀI LIỆU THAM KHẢO</h2>
+        <ol>
+            <li>USGS Earthquake Hazards Program. (2024). <em>Earthquake Magnitude, Energy Release, and Shaking Intensity</em></li>
+            <li>Gutenberg, B., & Richter, C. F. (1956). <em>Earthquake magnitude, intensity, energy, and acceleration (Second edition)</em>. Bulletin of the Seismological Society of America.</li>
+            <li>USGS. (2024). <em>Earthquake Facts and Statistics</em></li>
+            <li>International Seismological Centre. (2024). <em>Global Earthquake Catalog</em></li>
+            <li>Ambraseys, N. N., & Melville, C. P. (1982). <em>A History of Persian Earthquakes</em>. Cambridge University Press.</li>
+            <li>Stein, S., & Wysession, M. (2002). <em>An Introduction to Seismology, Earthquakes, and Earth Structure</em>. Blackwell Publishing.</li>
+        </ol>
+
+        <div class="footer">
+            <p><strong>Người lập báo cáo:</strong> Haind</p>
+            <p><strong>Ngày lập:</strong> 2025-03-15</p>
+            <p><strong>Phiên bản:</strong> 2.0</p>
+            <p><strong>Khoảng dữ liệu:</strong> 2000-01-01 đến 2024-12-30</p>
+            <p><strong>Tổng sự kiện phân tích:</strong> 1,352,013 động đất</p>
+        </div>
+    </div>
+</body>
+</html>

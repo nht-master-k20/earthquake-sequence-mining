@@ -73,3 +73,17 @@ CSV đã preprocess (ví dụ output từ `preprocess_usgs_quakes.py`) với cá
 - Foreshock/aftershock gán theo khoảng thời gian + bán kính không gian quanh mainshock.
 - Outlier dùng điểm dị thường robust (MAD z-score) kết hợp độ hiếm theo vị trí.
 - Association rules dùng frequent itemsets (max len=3), lọc luật có consequent thuộc location/hotspot.
+
+## Raw Data Workflow
+
+Neu can lam rieng phan visualization + clustering tren file raw `data/dongdat.csv`, dung:
+
+```bash
+.venv/bin/python hoigreen/clustering_pattern_mining/run_raw_visualization_clustering.py \
+  --input-csv data/dongdat.csv \
+  --output-dir hoigreen/clustering_pattern_mining/raw_outputs
+```
+
+Tai lieu tom tat quyet dinh feature, scaling, region id va output nam o:
+
+- `hoigreen/clustering_pattern_mining/RAW_VISUALIZATION_CLUSTERING.md`

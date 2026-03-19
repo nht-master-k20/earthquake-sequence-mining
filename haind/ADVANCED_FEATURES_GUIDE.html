@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hướng dẫn Các Feature Nâng cao cho Dự báo Động đất</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 40px;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 8px;
+        }
+        .header-info {
+            background-color: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        th, td {
+            padding: 12px 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            vertical-align: top;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:nth-child(even):hover {
+            background-color: #f0f0f0;
+        }
+        .tag-time {
+            background-color: #e74c3c;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .tag-mag {
+            background-color: #27ae60;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .tag-both {
+            background-color: #9b59b6;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .tag-indirect {
+            background-color: #95a5a6;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+        .formula {
+            background-color: #f8f9fa;
+            padding: 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            border-left: 3px solid #6c757d;
+        }
+        .summary-box {
+            background-color: #d5f4e6;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 30px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #7f8c8d;
+        }
+        .legend {
+            background-color: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .legend-item {
+            display: inline-block;
+            margin: 5px 15px 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>HƯỚNG DẪN CÁC FEATURE NÂNG CAO CHO DỰ BÁO ĐỘNG ĐẤT</h1>
+
+        <div class="header-info">
+            <p><strong>Mục tiêu:</strong> Dự đoán THỜI GIAN và ĐỘ LỚN của trận động đất tiếp theo</p>
+            <p><strong>Số lượng feature:</strong> 11 feature nâng cao</p>
+            <p><strong>Dữ liệu:</strong> Earthquake catalog (M ≥ 3.0)</p>
+        </div>
+
+        <div class="legend">
+            <strong>Chú thích:</strong>
+            <span class="legend-item"><span class="tag-time">THỜI GIAN</span></span>
+            <span class="legend-item"><span class="tag-mag">ĐỘ LỚN</span></span>
+            <span class="legend-item"><span class="tag-both">CẢ HAI</span></span>
+            <span class="legend-item"><span class="tag-indirect">GIÁN TIẾP</span></span>
+        </div>
+
+        <h2>1. FEATURE PHÁT HIỆN DƯ CHẤN (AFTERSHOCK DETECTION)</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 15%">Tên Feature</th>
+                    <th style="width: 20%">Ý nghĩa</th>
+                    <th style="width: 10%">Dự đoán</th>
+                    <th style="width: 25%">Cơ sở khoa học / Công thức</th>
+                    <th style="width: 30%">Ví dụ</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>is_aftershock</code></td>
+                    <td>Event có phải dư chấn không (Gardner-Knopoff algorithm)</td>
+                    <td><span class="tag-both">CẢ HAI</span></td>
+                    <td>
+                        <div class="formula">Time: t &lt; 10^(0.5×M - 1.0) giây<br>Dist: d &lt; 10^(0.123×M + 0.034) km</div>
+                    </td>
+                    <td>
+                        <strong>Mainshock M7.0:</strong><br>
+                        - Window: 316 ngày, 42 km<br>
+                        - Event trong window → dư chấn<br>
+                        → Event tiếp theo <strong>sớm hơn, nhỏ hơn</strong>
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>mainshock_id</code></td>
+                    <td>ID của trận chính gây ra dư chấn này</td>
+                    <td><span class="tag-indirect">GIÁN TIẾP</span></td>
+                    <td>Liên kết chuỗi dư chấn với trận chính</td>
+                    <td>
+                        Dư chấn #5 của mainshock #1234<br>
+                        → Model học được: "đây là dư chẫn muộn"<br>
+                        → Event tiếp theo <strong>càng muộn</strong>
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>mainshock_mag</code></td>
+                    <td>Độ lớn của trận chính</td>
+                    <td><span class="tag-both">CẢ HAI</span></td>
+                    <td>Båth's Law: M_aftershock ≈ M_main - 1.2</td>
+                    <td>
+                        <strong>M_main = 7.0</strong><br>
+                        → Aftershocks: ~5.8-6.0<br>
+                        → Chuỗi dư chấn kéo dài <strong>hàng năm</strong><br>
+                        → Event tiếp theo ≤ 7.0
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>2. FEATURE KHOẢNG CÁCH ĐỨT GÃY (FAULT PROXIMITY)</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 15%">Tên Feature</th>
+                    <th style="width: 20%">Ý nghĩa</th>
+                    <th style="width: 10%">Dự đoán</th>
+                    <th style="width: 25%">Cơ sở khoa học / Công thức</th>
+                    <th style="width: 30%">Ví dụ</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>dist_to_5th_neighbor_km</code></td>
+                    <td>Khoảng cách đến event thứ 5 gần nhất</td>
+                    <td><span class="tag-time">THỜI GIAN</span></td>
+                    <td>KD-tree spatial query, Haversine distance</td>
+                    <td>
+                        <strong>5 km:</strong> Gần fault hoạt động<br>
+                        → Seismicity cao → Event <strong>sớm</strong><br>
+                        <strong>100 km:</strong> Xa fault → Event <strong>muộn</strong>
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>dist_to_20th_neighbor_km</code></td>
+                    <td>Khoảng cách đến event thứ 20 gần nhất</td>
+                    <td><span class="tag-mag">ĐỘ LỚN</span></td>
+                    <td>Proxy cho fault maturity</td>
+                    <td>
+                        <strong>Cô lập (200 km):</strong> Fault bị khóa<br>
+                        → Đang tích tụ stress → Có thể <strong>M lớn</strong><br>
+                        <strong>Dày (10 km):</strong> Fault đang creep → <strong>M nhỏ</strong>
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>seismicity_density_100km</code></td>
+                    <td>Số event trong bán kính 100 km</td>
+                    <td><span class="tag-both">CẢ HAI</span></td>
+                    <td>KD-tree count within radius</td>
+                    <td>
+                        <strong>High (&gt;50):</strong> Fault đang creep<br>
+                        → <strong>Sớm</strong>, <strong>nhỏ</strong><br>
+                        <strong>Low (&lt;10):</strong> Fault bị khóa<br>
+                        → <strong>Muộn</strong>, có thể <strong>lớn</strong>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>3. FEATURE ỨNG SUẤT COULOMB</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 15%">Tên Feature</th>
+                    <th style="width: 20%">Ý nghĩa</th>
+                    <th style="width: 10%">Dự đoán</th>
+                    <th style="width: 25%">Cơ sở khoa học / Công thức</th>
+                    <th style="width: 30%">Ví dụ</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>coulomb_stress_proxy</code></td>
+                    <td>Ứng suất tích tụ từ các event trước (đơn giản hóa)</td>
+                    <td><span class="tag-time">THỜI GIAN</span></td>
+                    <td>
+                        <div class="formula">stress = Σ(M² / d) × scale</div>
+                        Coulomb Stress Transfer (phiên bản proxy)
+                    </td>
+                    <td>
+                        <strong>High stress:</strong> Gần ngưỡng failure<br>
+                        → Event tiếp theo <strong>rất sớm</strong><br>
+                        <strong>Low stress:</strong> Đang tích tụ<br>
+                        → Event <strong>muộn hơn</strong>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>4. FEATURE ĐỘNG ĐẤT KHU VỰC (REGIONAL)</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 15%">Tên Feature</th>
+                    <th style="width: 20%">Ý nghĩa</th>
+                    <th style="width: 10%">Dự đoán</th>
+                    <th style="width: 25%">Cơ sở khoa học / Công thức</th>
+                    <th style="width: 30%">Ví dụ</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>regional_b_value</code></td>
+                    <td>Hệ số b Gutenberg-Richter (200 km, 5 năm)</td>
+                    <td><span class="tag-mag">ĐỘ LỚN</span></td>
+                    <td>
+                        <div class="formula">log₁₀(N) = a - b×M</div>
+                        b = slope của frequency-magnitude
+                    </td>
+                    <td>
+                        <strong>b = 0.6 (thấp):</strong> Stress cao<br>
+                        → Ít event nhưng <strong>lớn</strong><br>
+                        <strong>b = 1.5 (cao):</strong> Stress thấp<br>
+                        → Nhiều event nhưng <strong>nhỏ</strong>
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>seismic_gap_days</code></td>
+                    <td>Ngày kể từ M5+ gần nhất (200 km)</td>
+                    <td><span class="tag-both">CẢ HAI</span></td>
+                    <td>Seismic Gap Hypothesis</td>
+                    <td>
+                        <strong>&lt; 100 ngày:</strong> Vừa có M5+<br>
+                        → <strong>Sớm</strong>, có thể dư chấn<br>
+                        <strong>&gt; 1000 ngày:</strong> Gap dài<br>
+                        → Có thể <strong>lớn</strong> (nếu fault locked)
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>regional_max_mag_5yr</code></td>
+                    <td>M lớn nhất trong khu vực (5 năm)</td>
+                    <td><span class="tag-mag">ĐỘ LỚN</span></td>
+                    <td>Historical seismicity potential</td>
+                    <td>
+                        <strong>M_max = 6.5:</strong> Vùng có thể M6.5+<br>
+                        → Upper bound cho event tiếp theo<br>
+                        → Event ≤ 6.5 (thường)
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>5. TÓM TẮT TẤT CẢ FEATURE</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    <th>Ý nghĩa ngắn gọn</th>
+                    <th>Thời gian</th>
+                    <th>Độ lớn</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>is_aftershock</code></td>
+                    <td>Phân loại dư chấn</td>
+                    <td>✅ Dư chấn → sớm</td>
+                    <td>✅ Dư chấn → nhỏ</td>
+                </tr>
+                <tr>
+                    <td><code>mainshock_id</code></td>
+                    <td>ID trận chính</td>
+                    <td>⚪ Gián tiếp</td>
+                    <td>⚪ Gián tiếp</td>
+                </tr>
+                <tr>
+                    <td><code>mainshock_mag</code></td>
+                    <td>Độ lớn trận chính</td>
+                    <td>✅ Càng lớn → càng dài</td>
+                    <td>✅ Là cận trên</td>
+                </tr>
+                <tr>
+                    <td><code>dist_to_5th_neighbor_km</code></td>
+                    <td>Khoảng cách event #5</td>
+                    <td>✅ Gần → sớm</td>
+                    <td>⚪ Gián tiếp</td>
+                </tr>
+                <tr>
+                    <td><code>dist_to_20th_neighbor_km</code></td>
+                    <td>Khoảng cách event #20</td>
+                    <td>⚪ Gián tiếp</td>
+                    <td>✅ Cô lập → có thể lớn</td>
+                </tr>
+                <tr>
+                    <td><code>seismicity_density_100km</code></td>
+                    <td>Số event / 100km</td>
+                    <td>✅ Đông → sớm</td>
+                    <td>✅ Đông → nhỏ</td>
+                </tr>
+                <tr>
+                    <td><code>coulomb_stress_proxy</code></td>
+                    <td>Ứng suất tích tụ</td>
+                    <td>✅ Cao → sớm</td>
+                    <td>⚪ Phức tạp</td>
+                </tr>
+                <tr>
+                    <td><code>regional_b_value</code></td>
+                    <td>Hệ số G-R</td>
+                    <td>⚪ Gián tiếp</td>
+                    <td>✅ Thấp → có thể lớn</td>
+                </tr>
+                <tr>
+                    <td><code>seismic_gap_days</code></td>
+                    <td>Ngày kể từ M5+</td>
+                    <td>⚪ Phức tạp</td>
+                    <td>✅ Dài → có thể lớn</td>
+                </tr>
+                <tr>
+                    <td><code>regional_max_mag_5yr</code></td>
+                    <td>M lớn nhất 5 năm</td>
+                    <td>⚪ Gián tiếp</td>
+                    <td>✅ Là cận trên</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="summary-box">
+            <h2>HIỆU SUẤT MONG ĐỢI</h2>
+            <table style="margin: 0;">
+                <thead>
+                    <tr>
+                        <th>Chỉ số</th>
+                        <th>Baseline</th>
+                        <th>With Advanced Features</th>
+                        <th>Cải thiện</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>R² (Time)</strong></td>
+                        <td>0.3 - 0.5</td>
+                        <td>0.5 - 0.7</td>
+                        <td style="color: #e74c3c; font-weight: bold;">+15-25%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>R² (Magnitude)</strong></td>
+                        <td>0.3 - 0.5</td>
+                        <td>0.5 - 0.7</td>
+                        <td style="color: #e74c3c; font-weight: bold;">+10-20%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>MAE (Magnitude)</strong></td>
+                        <td>±0.4 - 0.6</td>
+                        <td>±0.2 - 0.4</td>
+                        <td style="color: #27ae60; font-weight: bold;">-50%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h2>6. KHUYẾN NGHỊ MODEL</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Nhiệm vụ</th>
+                    <th>Models khuyến nghị</th>
+                    <th>Features quan trọng nhất</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Dự đoán thời gian</strong></td>
+                    <td>XGBoost, Random Forest, Neural Network</td>
+                    <td>coulomb_stress_proxy, seismicity_density, is_aftershock</td>
+                </tr>
+                <tr>
+                    <td><strong>Dự đoán độ lớn</strong></td>
+                    <td>XGBoost, Gradient Boosting, SVR</td>
+                    <td>regional_b_value, mainshock_mag, regional_max_mag_5yr</td>
+                </tr>
+                <tr>
+                    <td><strong>Mô hình chuỗi</strong></td>
+                    <td>LSTM, Transformer</td>
+                    <td>mainshock_id, seismic_gap_days, all features</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>7. TÀI LIỆU THAM KHẢO</h2>
+        <ul>
+            <li>Gardner & Knopoff (1974) - Declustering algorithm</li>
+            <li>Båth (1965) - Aftershock magnitude law</li>
+            <li>Gutenberg & Richter (1944) - Frequency-magnitude relationship</li>
+            <li>Stein (1999) - Stress transfer theory</li>
+        </ul>
+
+        <div class="footer">
+            <p><strong>Tác giả:</strong> Haind | <strong>Ngày:</strong> 2025-03-19 | <strong>Dự án:</strong> Earthquake Sequence Mining</p>
+        </div>
+    </div>
+</body>
+</html>

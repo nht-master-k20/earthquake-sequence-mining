@@ -3,10 +3,10 @@
 ## Scope
 
 - Input: `data/dongdat.csv`
-- Rows after basic cleaning: `1,352,013`
-- Rows used for EDA (`earthquake` only): `1,324,122`
+- Rows after basic cleaning: `3,063,852`
+- Rows used for EDA (`earthquake` only): `2,992,511`
 - Time range: `2000-01-01 00:02:46.200000+00:00` -> `2024-12-30 23:56:29.977000+00:00`
-- Distinct analysis regions (`2.5` degree grid): `3,208`
+- Distinct analysis regions (`2.5` degree grid): `3,565`
 
 ## 1. Distribution Analysis
 
@@ -18,10 +18,10 @@
 
 | feature | missing_ratio |
 | --- | --- |
-| dmin | 0.3966 |
-| nst | 0.2946 |
-| gap | 0.2411 |
-| rms | 0.0213 |
+| dmin | 0.3984 |
+| nst | 0.3037 |
+| gap | 0.2664 |
+| rms | 0.0425 |
 | sig | 0.0 |
 
 ## 2. Relationship Analysis
@@ -34,17 +34,17 @@
 
 | feature_a | feature_b | correlation |
 | --- | --- | --- |
-| mag | sig | 0.961 |
-| mag | rms | 0.686 |
-| sig | rms | 0.675 |
-| sig | nst | 0.461 |
-| mag | nst | 0.399 |
+| mag | sig | 0.953 |
+| sig | rms | 0.572 |
+| mag | rms | 0.57 |
+| sig | nst | 0.389 |
+| sig | dmin | 0.36 |
 
 ## 3. Temporal Analysis
 
 - Busiest year by event count: `2020` with `189,020` events
 - Year with strongest maximum magnitude: `2004` with `mag_max = 9.10`
-- Peak month-of-year by total count: `7` with `133,503` events
+- Peak month-of-year by total count: `7` with `299,541` events
 
 ## 4. Spatial Analysis
 
@@ -55,16 +55,16 @@
 
 | region_code | event_count | mag_mean | mag_max | event_share |
 | --- | --- | --- | --- | --- |
-| G051_022 | 130096 | 0.747 | 4.79 | 0.0983 |
-| G049_025 | 118303 | 0.996 | 5.71 | 0.0893 |
-| G051_024 | 110377 | 0.889 | 6.5 | 0.0834 |
-| G043_009 | 77861 | 2.025 | 6.7 | 0.0588 |
-| G050_024 | 60353 | 1.037 | 5.8 | 0.0456 |
-| G060_011 | 43779 | 1.51 | 6.2 | 0.0331 |
-| G061_011 | 34745 | 1.25 | 5.8 | 0.0262 |
-| G050_023 | 28400 | 1.242 | 6.5 | 0.0214 |
-| G061_012 | 27226 | 1.026 | 6.6 | 0.0206 |
-| G043_045 | 26821 | 2.494 | 6.4 | 0.0203 |
+| G051_022 | 302540 | 0.88 | 5.09 | 0.1011 |
+| G049_025 | 270102 | 1.121 | 5.71 | 0.0903 |
+| G051_024 | 201480 | 0.972 | 6.5 | 0.0673 |
+| G050_024 | 159868 | 1.169 | 7.1 | 0.0534 |
+| G043_009 | 153099 | 1.885 | 6.7 | 0.0512 |
+| G050_023 | 109177 | 1.317 | 6.5 | 0.0365 |
+| G060_011 | 104829 | 1.506 | 6.2 | 0.035 |
+| G061_011 | 82373 | 1.276 | 5.8 | 0.0275 |
+| G050_025 | 71209 | 0.879 | 5.51 | 0.0238 |
+| G061_012 | 69652 | 1.182 | 6.6 | 0.0233 |
 
 ## Recommended Follow-up for Pattern Discovering
 

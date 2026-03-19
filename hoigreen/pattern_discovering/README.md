@@ -1,17 +1,17 @@
-# Pattern Discovering Phase
+# Giai đoạn Khai phá Pattern
 
-Phase nay tap trung vao viec tim pattern an trong `dongdat.csv` sau khi da hieu du lieu qua EDA.
+Giai đoạn này tập trung vào việc tìm các pattern ẩn trong `dongdat.csv` sau khi đã hiểu dữ liệu qua bước EDA.
 
-## Muc tieu
+## Mục tiêu
 
-1. Chon feature de tim pattern
-2. Chuan hoa du lieu
-3. Ap dung clustering / pattern mining
-4. Chon so cluster toi uu
-5. Phan tich cluster
-6. Visualization ket qua
+1. Chọn feature để tìm pattern
+2. Chuẩn hóa dữ liệu
+3. Áp dụng clustering / pattern mining
+4. Chọn số cluster tối ưu
+5. Phân tích cluster
+6. Visualization kết quả
 
-## Cach chay
+## Cách chạy
 
 ```bash
 .venv/bin/python hoigreen/pattern_discovering/run_pattern_discovering.py \
@@ -19,7 +19,7 @@ Phase nay tap trung vao viec tim pattern an trong `dongdat.csv` sau khi da hieu 
   --output-dir hoigreen/pattern_discovering/outputs
 ```
 
-## Output chinh
+## Output chính
 
 - `01_event_cluster_assignments.csv`
 - `02_event_cluster_k_eval.csv`
@@ -31,11 +31,11 @@ Phase nay tap trung vao viec tim pattern an trong `dongdat.csv` sau khi da hieu 
 - `08_region_cluster_profile.csv`
 - `09_pipeline_metadata.json`
 - `10_report.md`
-- anh `.png` ve event clusters, region clusters, top regions, heatmap profile
+- ảnh `.png` về event clusters, region clusters, top regions, heatmap profile
 
-## Ghi chu phuong phap
+## Ghi chú phương pháp
 
-- Feature core duoc chon la cac bien co do phu du lieu tot va co y nghia vat ly / chat luong du lieu.
-- Dung `log1p + median imputation + RobustScaler`.
-- Chia khong gian thanh grid de cluster va giai thich ket qua theo region.
-- Folder nay la phase-level entrypoint; no delegate sang pipeline clustering da duoc verify truoc do.
+- Feature core được chọn là các biến có độ phủ dữ liệu tốt và có ý nghĩa vật lý / chất lượng dữ liệu.
+- Dùng `log1p + median imputation + RobustScaler`.
+- Chia không gian thành grid để cluster và giải thích kết quả theo region.
+- Folder này là phase-level entrypoint; nó delegate sang pipeline clustering đã được verify trước đó.

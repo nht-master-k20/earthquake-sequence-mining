@@ -25,13 +25,27 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def resolve_target_script() -> Path:
+    base_dir = Path(__file__).resolve().parents[1]
+    candidate_paths = [
+        base_dir / "clustering_pattern_mining" / "run_raw_visualization_clustering.py",
+        base_dir / "backup" / "clustering_pattern_mining" / "run_raw_visualization_clustering.py",
+    ]
+
+    for path in candidate_paths:
+        if path.exists():
+            return path
+
+    searched = "\n".join(f"- {path}" for path in candidate_paths)
+    raise FileNotFoundError(
+        "Could not locate the clustering pipeline entrypoint. Searched:\n"
+        f"{searched}"
+    )
+
+
 def main() -> None:
     args = parse_args()
-    target_script = (
-        Path(__file__).resolve().parents[1]
-        / "clustering_pattern_mining"
-        / "run_raw_visualization_clustering.py"
-    )
+    target_script = resolve_target_script()
     cmd = [
         sys.executable,
         str(target_script),

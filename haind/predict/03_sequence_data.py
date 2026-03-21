@@ -130,7 +130,7 @@ def main():
     # ============================================================================
     print_step(1, 4, "Loading features")
 
-    data_dir = Path('/home/haind/Desktop/earthquake-sequence-mining/haind/data')
+    data_dir = Path(os.path.dirname(os.path.abspath(__file__))) / 'data'
 
     print_info("Loading train_features.npz...")
     train_data = np.load(data_dir / 'train_features.npz')

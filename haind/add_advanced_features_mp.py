@@ -41,8 +41,9 @@ import os
 # Tự động phát hiện base directory từ vị trí script
 BASE_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
 
-# Số CPU cores sử dụng (để -1 để dùng tất cả, hoặc số cụ thể)
-N_CORES = max(1, cpu_count() - 1)  # Giữ 1 core cho system
+# Số CPU cores sử dụng
+# Giới hạn ở mức tối đa 8 cores để tránh overhead
+N_CORES = min(8, max(1, cpu_count() - 1))
 
 # Chunk size cho multiprocessing
 CHUNK_SIZE = 10000

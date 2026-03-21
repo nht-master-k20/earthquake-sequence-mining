@@ -219,7 +219,7 @@ def main():
     # ============================================================================
     print_step(1, 5, "Loading sequences")
 
-    data_dir = Path('/home/haind/Desktop/earthquake-sequence-mining/haind/data')
+    data_dir = Path(os.path.dirname(os.path.abspath(__file__))) / 'data'
 
     train_data = np.load(data_dir / 'train_sequences.npz')
     X_train, y_train_time, y_train_mag = train_data['X'], train_data['y_time'], train_data['y_mag']
@@ -317,7 +317,7 @@ def main():
             best_val_loss = val_loss
             patience_counter = 0
 
-            model_dir = Path('/home/haind/Desktop/earthquake-sequence-mining/haind/models')
+            model_dir = Path(os.path.dirname(os.path.abspath(__file__))) / 'models'
             model_dir.mkdir(exist_ok=True)
             torch.save(model.state_dict(), model_dir / 'lstm_model.pth')
             print_success("  → Saved best model")
@@ -332,11 +332,12 @@ def main():
     # ============================================================================
     print_step(5, 5, "Final evaluation")
 
-    model.load_state_dict(torch.load('/home/haind/Desktop/earthquake-sequence-mining/haind/models/lstm_model.pth'))
+    model_dir = Path(os.path.dirname(os.path.abspath(__file__))) / 'models'
+    model.load_state_dict(torch.load(model_dir / 'lstm_model.pth'))
     test_metrics = evaluate(model, test_loader, device)
 
     # Save results
-    model_dir = Path('/home/haind/Desktop/earthquake-sequence-mining/haind/models')
+    model_dir = Path(os.path.dirname(os.path.abspath(__file__))) / 'models'
 
     config = {
         'input_size': INPUT_SIZE,

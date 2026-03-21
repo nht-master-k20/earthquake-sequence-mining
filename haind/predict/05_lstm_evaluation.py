@@ -225,8 +225,8 @@ def main():
     # ============================================================================
     print_step(1, 4, "Loading model and data")
 
-    model_dir = Path('/home/haind/Desktop/earthquake-sequence-mining/haind/models')
-    data_dir = Path('/home/haind/Desktop/earthquake-sequence-mining/haind/data')
+    model_dir = Path(os.path.dirname(os.path.abspath(__file__))) / 'models'
+    data_dir = Path(os.path.dirname(os.path.abspath(__file__))) / 'data'
 
     # Load config
     with open(model_dir / 'lstm_config.json', 'r') as f:

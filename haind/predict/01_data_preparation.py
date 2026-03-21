@@ -162,7 +162,7 @@ def main():
     # ============================================================================
     print_step(1, 6, "Loading earthquake data")
 
-    input_path = Path('/home/haind/Desktop/earthquake-sequence-mining/haind/features_advanced.csv')
+    input_path = Path(os.path.dirname(os.path.abspath(__file__))) / 'features_advanced.csv'
 
     # Optimized dtype với 17 advanced features mới
     dtype_opt = {
@@ -296,7 +296,7 @@ def main():
     print_info(f"Test: {len(test):,} (20%)")
 
     # Save to data directory
-    output_dir = Path('/home/haind/Desktop/earthquake-sequence-mining/haind/data')
+    output_dir = Path(os.path.dirname(os.path.abspath(__file__))) / 'data'
     output_dir.mkdir(exist_ok=True)
 
     # Save as CSV cho inspection - với 17 advanced features

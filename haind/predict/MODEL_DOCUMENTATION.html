@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pipeline Dự Báo Động Đất - LSTM Model</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 50px 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .header .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.95;
+            position: relative;
+        }
+
+        .header .meta {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            font-size: 0.9rem;
+            position: relative;
+        }
+
+        nav {
+            background: #1a1a2e;
+            padding: 20px 40px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        nav a {
+            color: #e2e8f0;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        nav a:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .step {
+            margin-bottom: 60px;
+            position: relative;
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .step-number {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-right: 20px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .step-title h2 {
+            color: #1a1a2e;
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        .step-title p {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .step-content {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 30px;
+            border-left: 4px solid #667eea;
+        }
+
+        .sub-section {
+            margin-bottom: 25px;
+        }
+
+        .sub-section h3 {
+            color: #764ba2;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .sub-section h3::before {
+            content: '▸';
+            margin-right: 10px;
+            color: #667eea;
+        }
+
+        .highlight-box {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .highlight-box.warning {
+            border-left: 4px solid #f59e0b;
+            background: #fffbeb;
+        }
+
+        .highlight-box.success {
+            border-left: 4px solid #10b981;
+            background: #ecfdf5;
+        }
+
+        .highlight-box.info {
+            border-left: 4px solid #3b82f6;
+            background: #eff6ff;
+        }
+
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        table th, table td {
+            padding: 14px 18px;
+            text-align: left;
+        }
+
+        table tbody tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        table tbody tr:hover {
+            background: #e9ecef;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        .badge-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .badge-warning {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .badge-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .badge-info {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .badge-purple {
+            background: #8b5cf6;
+            color: white;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s;
+        }
+
+        .card:hover {
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            transform: translateY(-3px);
+        }
+
+        .card h4 {
+            color: #667eea;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+
+        .input-output {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 20px 0;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .io-box {
+            flex: 1;
+            min-width: 250px;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .io-box.input {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .io-box.output {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+        }
+
+        .arrow {
+            font-size: 2rem;
+            color: #667eea;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .metric {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .metric-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .pipeline-flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .pipeline-step {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .pipeline-arrow {
+            font-size: 1.5rem;
+            color: #667eea;
+        }
+
+        footer {
+            background: #1a1a2e;
+            color: #e2e8f0;
+            padding: 35px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .step-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .step-number {
+                margin-right: 0;
+                margin-bottom: 15px;
+            }
+
+            .step-title {
+                text-align: center;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .input-output {
+                flex-direction: column;
+            }
+
+            .arrow {
+                transform: rotate(90deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Pipeline Dự Báo Động Đất</h1>
+            <div class="subtitle">LSTM Earthquake Prediction Model - 5 Steps Pipeline</div>
+            <div class="meta">
+                <p>Phiên bản: 1.0 | Cập nhật: 2025-03-20 | Tác giả: Haind</p>
+            </div>
+        </div>
+
+        <nav>
+            <ul>
+                <li><a href="#step01">01. Data Preparation</a></li>
+                <li><a href="#step02">02. Feature Engineering</a></li>
+                <li><a href="#step03">03. Sequence Data</a></li>
+                <li><a href="#step04">04. LSTM Model</a></li>
+                <li><a href="#step05">05. Evaluation</a></li>
+            </ul>
+        </nav>
+
+        <div class="content">
+            <!-- STEP 01: Data Preparation -->
+            <section id="step01" class="step">
+                <div class="step-header">
+                    <div class="step-number">01</div>
+                    <div class="step-title">
+                        <h2>Data Preparation</h2>
+                        <p>Chuẩn bị dữ liệu từ raw data → train/val/test split</p>
+                    </div>
+                </div>
+
+                <div class="step-content">
+                    <div class="input-output">
+                        <div class="io-box input">
+                            <h4>INPUT</h4>
+                            <p>features_advanced.csv</p>
+                            <small>~1.3M earthquake events</small>
+                        </div>
+                        <div class="arrow">&rarr;</div>
+                        <div class="io-box output">
+                            <h4>OUTPUT</h4>
+                            <p>train.csv, val.csv, test.csv</p>
+                            <small>data_config.json</small>
+                        </div>
+                    </div>
+
+                    <div class="sub-section">
+                        <h3>1.1 Spatial Clustering với DBSCAN</h3>
+                        <div class="highlight-box info">
+                            <p><strong>Mục đích:</strong> Nhóm các sự kiện động đất theo khu vực địa lý để capture spatial patterns của fault lines</p>
+                        </div>
+
+                        <h4 style="color: #667eea; margin: 20px 0 10px 0;">1.1.1 Thuật toán DBSCAN</h4>
+                        <div class="code-block">
+from sklearn.cluster import DBSCAN
+
+# Chuyển tọa độ sang radians cho haversine metric
+coords_rad = np.radians(coords[['latitude', 'longitude']])
+
+# Tính eps_rad từ km
+earth_radius_km = 6371.0
+eps_rad = eps_km / earth_radius_km
+
+# DBSCAN clustering
+clustering = DBSCAN(
+    eps=eps_rad,           # Bán kính 50km
+    min_samples=5,         # Tối thiểu 5 events
+    metric='haversine',    # Khoảng cách mặt cầu
+    n_jobs=-1              # Dùng tất cả CPU
+)
+
+labels = clustering.fit_predict(coords_rad)
+# Output: [0, 0, 0, 1, 1, -1, 2, 2, 2, ...]
+#         └───┬───┘   └─┬─┘  └─┬─┘   └─ noise
+#         cluster 0   cluster1  cluster2
+                        </div>
+
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tham số</th>
+                                    <th>Giá trị</th>
+                                    <th>Ý nghĩa</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>eps_km</code></td>
+                                    <td>50 km</td>
+                                    <td>Bán kính tối đa giữa 2 điểm cùng cluster</td>
+                                </tr>
+                                <tr>
+                                    <td><code>min_samples</code></td>
+                                    <td>5</td>
+                                    <td>Số events tối thiểu để tạo cluster</td>
+                                </tr>
+                                <tr>
+                                    <td><code>metric</code></td>
+                                    <td>haversine</td>
+                                    <td>Khoảng cách great-circle trên Trái Đất</td>
+                                </tr>
+                                <tr>
+                                    <td><code>eps_rad</code></td>
+                                    <td>50/6371</td>
+                                    <td>Chuyển km sang radians</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h4 style="color: #667eea; margin: 20px 0 10px 0;">1.1.2 Xử lý với dữ liệu lớn (>100k points)</h4>
+                        <div class="code-block">
+if len(coords) > 100000:
+    # Bước 1: Sample 100k points ngẫu nhiên
+    sample_indices = np.random.choice(len(coords), 100000, replace=False)
+    sample_labels = clustering.fit_predict(coords_rad[sample_indices])
+
+    # Bước 2: Tính cluster centers từ sample
+    unique_labels = np.unique(sample_labels[sample_labels >= 0])
+    cluster_centers = []
+    for label in unique_labels:
+        mask = sample_labels == label
+        cluster_centers.append(coords_rad[sample_indices][mask].mean(axis=0))
+    cluster_centers = np.array(cluster_centers)
+
+    # Bước 3: Assign remaining points đến nearest cluster
+    kdtree = cKDTree(cluster_centers)
+    distances, indices = kdtree.query(coords_rad)
+
+    # Assign nếu distance < eps_rad, else = noise (-1)
+    labels = np.array([unique_labels[idx] if dist < eps_rad else -1
+                      for idx, dist in zip(indices, distances)])
+                        </div>
+
+                        <div class="highlight-box warning">
+                            <p><strong>Optimization Strategy:</strong></p>
+                            <ul>
+                                <li>Chạy DBSCAN trên 100k points sample → giảm thời gian tính toán</li>
+                                <li>Tính cluster centers từ kết quả sample</li>
+                                <li>Sử dụng k-d tree để assign remaining points nhanh chóng</li>
+                                <li>Các points quá xa tất cả clusters → label = -1 (noise)</li>
+                            </ul>
+                        </div>
+
+                        <h4 style="color: #667eea; margin: 20px 0 10px 0;">1.1.3 So sánh DBSCAN vs K-Means</h4>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tiêu chí</th>
+                                    <th>DBSCAN</th>
+                                    <th>K-Means</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Số clusters</td>
+                                    <td><span class="badge badge-success">Tự động xác định</span></td>
+                                    <td><span class="badge badge-danger">Phải chỉ định trước</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Xử lý noise</td>
+                                    <td><span class="badge badge-success">Có (label=-1)</span></td>
+                                    <td><span class="badge badge-danger">Không</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Hình dạng clusters</td>
+                                    <td><span class="badge badge-success">Bất kỳ</span></td>
+                                    <td><span class="badge badge-warning">Chỉ hình cầu</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Capture fault lines</td>
+                                    <td><span class="badge badge-success">Có</span></td>
+                                    <td><span class="badge badge-danger">Không</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Tham số</td>
+                                    <td>eps, min_samples</td>
+                                    <td>k (số clusters)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h4 style="color: #667eea; margin: 20px 0 10px 0;">1.1.4 Kết quả đầu ra</h4>
+                        <div class="grid">
+                            <div class="card">
+                                <h4>Labels</h4>
+                                <p><code>[0, 0, 0, 1, 1, -1, 2, 2, 2, ...]</code></p>
+                                <small>
+                                    <strong>0, 1, 2:</strong> cluster IDs<br>
+                                    <strong>-1:</strong> noise (outliers)
+                                </small>
+                            </div>
+                            <div class="card">
+                                <h4>Số clusters</h4>
+                                <p><strong>~50-100 clusters</strong></p>
+                                <small>Tự động xác định từ data</small>
+                            </div>
+                            <div class="card">
+                                <h4>Cluster size</h4>
+                                <p><strong>min=5, max=varies</strong></p>
+                                <small>median=~1000 events/cluster</small>
+                            </div>
+                            <div class="card">
+                                <h4>Noise points</h4>
+                                <p><strong>~5-10%</strong></p>
+                                <small>Label=-1, không thuộc cluster nào</small>
+                            </div>
+                        </div>
+
+                        <h4 style="color: #667eea; margin: 20px 0 10px 0;">1.1.5 Visual Flow</h4>
+                        <div class="highlight-box">
+                            <div class="pipeline-flow">
+                                <div class="pipeline-step">Input: 1.3M events (lat, lon)</div>
+                                <div class="pipeline-arrow">&rarr;</div>
+                                <div class="pipeline-step">Convert to radians</div>
+                                <div class="pipeline-arrow">&rarr;</div>
+                                <div class="pipeline-step">Sample 100k (if >100k)</div>
+                                <div class="pipeline-arrow">&rarr;</div>
+                                <div class="pipeline-step">DBSCAN (haversine)</div>
+                                <div class="pipeline-arrow">&rarr;</div>
+                                <div class="pipeline-step">Find cluster centers</div>
+                                <div class="pipeline-arrow">&rarr;</div>
+                                <div class="pipeline-step">Assign remaining (k-d tree)</div>
+                                <div class="pipeline-arrow">&rarr;</div>
+                                <div class="pipeline-step">Output: spatial_cluster</div>
+                            </div>
+                        </div>
+
+                        <div class="highlight-box success">
+                            <p><strong>Tại sao DBSCAN phù hợp cho earthquake prediction?</strong></p>
+                            <ul>
+                                <li>Động đất tập trung theo fault lines → hình dạng phức tạp, không cầu</li>
+                                <li>Có các events độc lập (noise) không thuộc fault lines nào</li>
+                                <li>Không biết trước số lượng fault zones/clusters</li>
+                                <li>Haversine metric chính xác cho khoảng cách địa lý</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="sub-section">
+                        <h3>1.2 Target Variables Creation</h3>
+                        <div class="code-block">
+# Tạo target variables
+df['time_to_next_days'] = (next_event_time - current_time).total_seconds() / 86400
+df['next_mag'] = df['mag'].shift(-1)
+
+# Log transform để xử lý skewness
+df['log_time_to_next_days'] = np.log1p(df['time_to_next_days'])
+                        </div>
+                        <div class="highlight-box warning">
+                            <p><strong>Log Transform:</strong> Phân phối time bị lệch phải (right-skewed) - log1p giúp phân phối đối xứng hơn</p>
+                        </div>
+                    </div>
+
+                    <div class="sub-section">
+                        <h3>1.3 Time Since Last Feature</h3>
+                        <div class="highlight-box">
+                            <p><strong>Tính thời gian kể từ event gần nhất CÙNG cluster:</strong></p>
+                            <ul>
+                                <li>Ngắn → Giai đoạn địa chấn hoạt động</li>
+                                <li>Dài → Giai đoạn yên tĩnh, stress đang tích tụ</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="sub-section">
+                        <h3>1.4 Train/Val/Test Split</h3>
+                        <div class="metric-grid">
+                            <div class="metric">
+                                <div class="metric-label">Train</div>
+                                <div class="metric-value">60%</div>
+                                <small>Earliest events</small>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-label">Validation</div>
+                                <div class="metric-value">20%</div>
+                                <small>Middle events</small>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-label">Test</div>
+                                <div class="metric-value">20%</div>
+                                <small>Latest events</small>
+                            </div>
+                        </div>
+                        <div class="highlight-box info">
+                            <p><strong>Time-based split:</strong> Ngăn chặn data leakage, mô phỏng kịch bản thực tế</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- STEP 02: Feature Engineering -->
+            <section id="step02" class="step">
+                <div class="step-header">
+                    <div class="step-number">02</div>
+                    <div class="step-title">
+                        <h2>Feature Engineering</h2>
+                        <p>Tạo features từ base data → normalization</p>
+                    </div>
+                </div>
+
+                <div class="step-content">
+                    <div class="input-output">
+                        <div class="io-box input">
+                            <h4>INPUT</h4>
+                            <p>train.csv, val.csv, test.csv</p>
+                            <small>Base features từ step 01</small>
+                        </div>
+                        <div class="arrow">&rarr;</div>
+                        <div class="io-box output">
+                            <h4>OUTPUT</h4>
+                            <p>train_features.npz, val_features.npz, test_features.npz</p>
+                            <small>features.json, scaler_params.json</small>
+                        </div>
+                    </div>
+
+                    <div class="sub-section">
+                        <h3>2.1 Log Transform Features</h3>
+                        <div class="highlight-box">
+                            <p><strong>Xử lý skewness cho 9 features:</strong></p>
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">
+                                <span class="badge badge-info">log_coulomb_stress</span>
+                                <span class="badge badge-info">log_seismicity_density</span>
+                                <span class="badge badge-info">log_dist_5th</span>
+                                <span class="badge badge-info">log_dist_10th</span>
+                                <span class="badge badge-info">log_time_since_last</span>
+                                <span class="badge badge-purple">log_stress_sigma_1</span>
+                                <span class="badge badge-purple">log_stress_tau_max</span>
+                                <span class="badge badge-purple">log_stress_rate</span>
+                                <span class="badge badge-purple">log_fault_length</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sub-section">
+                        <h3>2.2 Rolling Window Features</h3>
+                        <div class="code-block">
+# Thống kê qua 10 events trước đó
+df['rolling_mag_mean'] = df['mag'].rolling(window=10).mean()
+df['rolling_mag_std'] = df['mag'].rolling(window=10).std()
+df['rolling_depth_mean'] = df['depth'].rolling(window=10).mean()
+                        </div>
+                        <div class="highlight-box success">
+                            <p><strong>Capture:</strong> Xu hướng địa chấn cục bộ (mag_mean tăng → hoạt động gia tăng)</p>
+                        </div>
+                    </div>
+
+                    <div class="sub-section">
+                        <h3>2.3 Cluster-Based Features</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Feature</th>
+                                    <th>Mô tả</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>cluster_mag_mean</code></td>
+                                    <td>Độ lớn trung bình của cluster</td>
+                                </tr>
+                                <tr>
+                                    <td><code>cluster_mag_std</code></td>
+                                    <td>Độ biến thiên magnitude trong cluster</td>
+                                </tr>
+                                <tr>
+                                    <td><code>cluster_count</code></td>
+                                    <td>Số events trong cluster</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="sub-section">
+                        <h3>2.4 Interaction Features</h3>
+                        <div class="code-block">
+df['mag_x_time_since_last'] = df['mag'] * np.log1p(df['time_since_last'])
+df['stress_x_density'] = df['coulomb_stress_proxy'] * df['seismicity_density_100km']
+df['mag_x_regional_max'] = df['mag'] * df['regional_max_mag_5yr']
+                        </div>
+                    </div>
+
+                    <div class="sub-section">
+                        <h3>2.5 Feature Normalization (StandardScaler)</h3>
+                        <div class="highlight-box warning">
+                            <p><strong>Quan trọng:</strong> Fit trên training data ONLY, sau đó transform val và test</p>
+                        </div>
+                        <div class="grid">
+                            <div class="card">
+                                <h4>Method</h4>
+                                <p><strong>StandardScaler</strong></p>
+                                <p>Mean = 0, Std = 1</p>
+                            </div>
+                            <div class="card">
+                                <h4>Applied to</h4>
+                                <p><strong>40 numeric features</strong></p>
+                                <p>Không chuẩn hóa categorical</p>
+                            </div>
+                            <div class="card">
+                                <h4>Output</h4>
+                                <p><strong>scaler_params.json</strong></p>
+                                <p>Để inverse transform khi cần</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sub-section">
+                        <h3>2.6 Final Feature Set (42 features)</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nhóm</th>
+                                    <th>Số lượng</th>
+                                    <th>Features</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Basic</td>
+                                    <td>4</td>
+                                    <td>lat, lon, depth, mag</td>
+                                </tr>
+                                <tr>
+                                    <td>Aftershock</td>
+                                    <td>2</td>
+                                    <td>is_aftershock, mainshock_mag</td>
+                                </tr>
+                                <tr>
+                                    <td>Fault</td>
+                                    <td>3</td>
+                                    <td>dist_5th, dist_10th, seismicity_density</td>
+                                </tr>
+                                <tr>
+                                    <td>Stress</td>
+                                    <td>1</td>
+                                    <td>coulomb_stress_proxy</td>
+                                </tr>
+                                <tr>
+                                    <td>Regional</td>
+                                    <td>3</td>
+                                    <td>b_value, gap_days, max_mag_5yr</td>
+                                </tr>
+                                <tr>
+                                    <td>Stress Tensor</td>
+                                    <td>5</td>
+                                    <td>sigma_1, sigma_3, tau_max, rate, drop</td>
+                                </tr>
+                                <tr>
+                                    <td>Fault Geometry</td>
+                                    <td>4</td>
+                                    <td>fault_depth, strike, dip, length</td>
+                                </tr>
+                                <tr>
+                                    <td>Cluster</td>
+                                    <td>4</td>
+                                    <td>cluster_id, mag_mean, mag_std, count</td>
+                                </tr>
+                                <tr>
+                                    <td>Temporal</td>
+                                    <td>1</td>
+                                    <td>time_since_last</td>
+                                </tr>
+                                <tr>
+                                    <td>Log Transform</td>
+                                    <td>9</td>
+                                    <td>9 log-transformed features</td>
+                                </tr>
+                                <tr>
+                                    <td>Rolling</td>
+                                    <td>3</td>
+                                    <td>rolling_mag_mean, std, depth_mean</td>
+                                </tr>
+                                <tr>
+                                    <td>Interaction</td>
+                                    <td>3</td>
+                                    <td>mag_x_time, stress_x_density, mag_x_regional_max</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- STEP 03: Sequence Data -->
+            <section id="step03" class="step">
+                <div class="step-header">
+                    <div class="step-number">03</div>
+                    <div class="step-title">
+                        <h2>Sequence Data Preparation</h2>
+                        <p>Tạo sequences cho LSTM từ features</p>
+                    </div>
+                </div>
+
+                <div class="step-content">
+                    <div class="input-output">
+                        <div class="io-box input">
+                            <h4>INPUT</h4>
+                            <p>train_features.npz, val_features.npz, test_features.npz</p>
+                            <small>Normalized features</small>
+                        </div>
+                        <div class="arrow">&rarr;</div>
+                        <div class="io-box output">
+                            <h4>OUTPUT</h4>
+                            <p>train_sequences.npz, val_sequences.npz, test_sequences.npz</p>
+                            <small>sequence_config.json</small>
+                        </div>
+                    </div>
+
+                    <div class="sub-section">
+                        <h3>3.1 Sliding Window per Cluster</h3>
+                        <div class="highlight-box info">
+                            <p><strong>Ý tưởng:</strong> Với mỗi event trong cluster, dùng N events trước đó làm input để predict event tiếp theo</p>
+                        </div>
+
+                        <div class="code-block">
+# Ví dụ với seq_len=3:
+# Events: [E0, E1, E2, E3, E4, E5]
+#
+# Sequence 0: [E0, E1, E2] → Target: E3
+# Sequence 1: [E1, E2, E3] → Target: E4
+# Sequence 2: [E2, E3, E4] → Target: E5
+
+for i in range(seq_len, len(cluster_indices)):
+    seq = features[i-seq_len:i]  # Sequence
+    target = features[i]          # Next event
+                        </div>
+                    </div>
+
+                    <div class="sub-section">
+                        <h3>3.2 Sequence Parameters</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tham số</th>
+                                    <th>Giá trị</th>
+                                    <th>Ý nghĩa</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>seq_len</code></td>
+                                    <td>10</td>
+                                    <td>Số events trước đó dùng để predict</td>
+                                </tr>
+                                <tr>
+                                    <td><code>min_cluster_size</code></td>
+                                    <td>12</td>
+                                    <td>Cluster phải có ít nhất 12 events</td>
+                                </tr>
+                                <tr>
+                                    <td><code>method</code></td>
+                                    <td>sliding_window</td>
+                                    <td>Cửa sổ trượt trên mỗi cluster</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="sub-section">
+                        <h3>3.3 Output Shape</h3>
+                        <div class="metric-grid">
+                            <div class="metric">
+                                <div class="metric-label">Input Shape</div>
+                                <div class="metric-value">(N, 10, 42)</div>
+                                <small>(sequences, seq_len, features)</small>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-label">Time Target</div>
+                                <div class="metric-value">(N, 1)</div>
+                                <small>log_time_to_next</small>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-label">Mag Target</div>
+                                <div class="metric-value">(N, 1)</div>
+                                <small>next_mag</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sub-section">
+                        <h3>3.4 Handling Missing Values</h3>
+                        <div class="highlight-box warning">
+                            <p><strong>Skip sequences nếu:</strong></p>
+                            <ul>
+                                <li>Target is NaN</li>
+                                <li>Sequence contains NaN</li>
+                                <li>Cluster size < min_cluster_size</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- STEP 04: LSTM Model -->
+            <section id="step04" class="step">
+                <div class="step-header">
+                    <div class="step-number">04</div>
+                    <div class="step-title">
+                        <h2>LSTM Model Training</h2>
+                        <p>Train LSTM model với sequences data</p>
+                    </div>
+                </div>
+
+                <div class="step-content">
+                    <div class="input-output">
+                        <div class="io-box input">
+                            <h4>INPUT</h4>
+                            <p>train_sequences.npz, val_sequences.npz, test_sequences.npz</p>
+                            <small>Sequences ready for training</small>
+                        </div>
+                        <div class="arrow">&rarr;</div>
+                        <div class="io-box output">
+                            <h4>OUTPUT</h4>
+                            <p>lstm_model.pth, lstm_config.json, lstm_results.json</p>
+                            <small>Trained model + configs</small>
+                        </div>
+                    </div>
+
+                    <div class="sub-section">
+                        <h3>4.1 Input & Output của Mô Hình</h3>
+                        <div class="grid">
+                            <div class="card" style="border: 3px solid #10b981;">
+                                <h4 style="color: #10b981;">INPUT - Đầu Vào</h4>
+                                <div class="code-block" style="background: #ecfdf5; color: #065f46;">
+Shape: (batch, seq_len=10, features=42)
+
+Giải thích:
+- batch: Số sequences trong 1 batch (256)
+- seq_len=10: 10 events động đất trước đó
+- features=42: 42 features cho mỗi event
+
+Ví dụ 1 sequence:
+[
+  Event_0: [lat, lon, depth, mag, ..., 42 features],
+  Event_1: [lat, lon, depth, mag, ..., 42 features],
+  ...
+  Event_9: [lat, lon, depth, mag, ..., 42 features]
+]
+
+→ Target: Dự đoán Event_10
+                                </div>
+                            </div>
+                            <div class="card" style="border: 3px solid #3b82f6;">
+                                <h4 style="color: #3b82f6;">OUTPUT - Đầu Ra</h4>
+                                <div class="code-block" style="background: #eff6ff; color: #1e40af;">
+Shape: 2 outputs
+
+1. pred_time: (batch,)
+   → log(time_to_next_days)
+   → Thời gian đến event tiếp theo (log scale)
+
+2. pred_mag: (batch,)
+   → next_magnitude
+   → Độ lớn của event tiếp theo
+
+Convert về scale gốc:
+time_days = expm1(pred_time)  # days
+magnitude = pred_mag           # magnitude
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sub-section">
+                        <h3>4.2 EarthquakeLSTM Architecture</h3>
+                        <div class="highlight-box">
+                            <div class="pipeline-flow">
+                                <div class="pipeline-step">Input (N, 10, 42)</div>
+                                <div class="pipeline-arrow">&rarr;</div>
+                                <div class="pipeline-step">LSTM (2×128)</div>
+                                <div class="pipeline-arrow">&rarr;</div>
+                                <div class="pipeline-step">Dropout (0.3)</div>
+                                <div class="pipeline-arrow">&rarr;</div>
+                                <div class="pipeline-step">Dual Heads</div>
+                                <div class="pipeline-arrow">&rarr;</div>
+                                <div class="pipeline-step">Time + Mag</div>
+                            </div>
+                        </div>
+
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Layer</th>
+                                    <th>Config</th>
+                                    <th>Output Shape</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>LSTM</td>
+                                    <td>2 layers, hidden=128</td>
+                                    <td>(N, 10, 128)</td>
+                                </tr>
+                                <tr>
+                                    <td>Last Hidden</td>
+                                    <td>Take timestep -1</td>
+                                    <td>(N, 128)</td>
+                                </tr>
+                                <tr>
+                                    <td>Dropout</td>
+                                    <td>p=0.3</td>
+                                    <td>(N, 128)</td>
+                                </tr>
+                                <tr>
+                                    <td>FC Time</td>
+                                    <td>128 → 64 → 1</td>
+                                    <td>(N, 1)</td>
+                                </tr>
+                                <tr>
+                                    <td>FC Mag</td>
+                                    <td>128 → 64 → 1</td>
+                                    <td>(N, 1)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="sub-section">
+                        <h3>4.2 Multi-Task Learning</h3>
+                        <div class="code-block">
+# Dual outputs for different prediction tasks
+pred_time, pred_mag = model(X)
+
+# Combined loss
+loss_time = MSELoss(pred_time, true_time)
+loss_mag = MSELoss(pred_mag, true_mag)
+loss = loss_time + loss_mag
+                        </div>
+                        <div class="highlight-box info">
+                            <p><strong>Why Multi-Task?</strong> Dự đoán cả thời gian VÀ độ lớn → model học được patterns chung</p>
+                        </div>
+                    </div>
+
+                    <div class="sub-section">
+                        <h3>4.3 Training Configuration</h3>
+                        <div class="grid">
+                            <div class="card">
+                                <h4>Optimizer</h4>
+                                <p><strong>Adam</strong></p>
+                                <p>lr=0.001</p>
+                            </div>
+                            <div class="card">
+                                <h4>Batch Size</h4>
+                                <p><strong>256</strong></p>
+                                <p>Balance speed/memory</p>
+                            </div>
+                            <div class="card">
+                                <h4>Max Epochs</h4>
+                                <p><strong>50</strong></p>
+                                <p>With early stopping</p>
+                            </div>
+                            <div class="card">
+                                <h4>Scheduler</h4>
+                                <p><strong>ReduceLROnPlateau</strong></p>
+                                <p>factor=0.5, patience=5</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sub-section">
+                        <h3>4.4 Regularization Techniques</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Technique</th>
+                                    <th>Parameter</th>
+                                    <th>Purpose</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Dropout</td>
+                                    <td>p=0.3</td>
+                                    <td>Prevent co-adaptation</td>
+                                </tr>
+                                <tr>
+                                    <td>Weight Decay</td>
+                                    <td>1e-5</td>
+                                    <td>L2 regularization</td>
+                                </tr>
+                                <tr>
+                                    <td>Gradient Clipping</td>
+                                    <td>max_norm=1.0</td>
+                                    <td>Prevent exploding gradients</td>
+                                </tr>
+                                <tr>
+                                    <td>Early Stopping</td>
+                                    <td>patience=10</td>
+                                    <td>Stop when overfitting</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="sub-section">
+                        <h3>4.5 Training Loop</h3>
+                        <div class="code-block">
+for epoch in range(NUM_EPOCHS):
+    # Train
+    train_loss = train_epoch(model, train_loader, optimizer)
+
+    # Validate
+    val_metrics = evaluate(model, val_loader)
+
+    # Learning rate scheduling
+    scheduler.step(train_loss)
+
+    # Save best model
+    if val_loss < best_val_loss:
+        save_model()
+    else:
+        patience_counter += 1
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- STEP 05: Evaluation -->
+            <section id="step05" class="step">
+                <div class="step-header">
+                    <div class="step-number">05</div>
+                    <div class="step-title">
+                        <h2>Model Evaluation</h2>
+                        <p>Đánh giá model và tạo visualizations</p>
+                    </div>
+                </div>
+
+                <div class="step-content">
+                    <div class="input-output">
+                        <div class="io-box input">
+                            <h4>INPUT</h4>
+                            <p>lstm_model.pth, test_sequences.npz</p>
+                            <small>Trained model + test data</small>
+                        </div>
+                        <div class="arrow">&rarr;</div>
+                        <div class="io-box output">
+                            <h4>OUTPUT</h4>
+                            <p>lstm_evaluation.json, lstm_evaluation_plots.png</p>
+                            <small>lstm_predictions.csv</small>
+                        </div>
+                    </div>
+
+                    <div class="sub-section">
+                        <h3>5.1 Evaluation Metrics</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Target</th>
+                                    <th>Metric</th>
+                                    <th>Formula</th>
+                                    <th>Interpretation</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td rowspan="3"><strong>Time</strong></td>
+                                    <td>R² (log)</td>
+                                    <td>1 - SS_res/SS_tot</td>
+                                    <td>Phần trăm variance được giải thích</td>
+                                </tr>
+                                <tr>
+                                    <td>MAE (days)</td>
+                                    <td>mean(|pred - true|)</td>
+                                    <td>Lỗi trung bình (ngày)</td>
+                                </tr>
+                                <tr>
+                                    <td>RMSE (days)</td>
+                                    <td>sqrt(mean((pred-true)²))</td>
+                                    <td>Trừng phạt lỗi lớn</td>
+                                </tr>
+                                <tr>
+                                    <td rowspan="3"><strong>Magnitude</strong></td>
+                                    <td>R²</td>
+                                    <td>1 - SS_res/SS_tot</td>
+                                    <td>Phần trăm variance được giải thích</td>
+                                </tr>
+                                <tr>
+                                    <td>MAE</td>
+                                    <td>mean(|pred - true|)</td>
+                                    <td>Lỗi trung bình</td>
+                                </tr>
+                                <tr>
+                                    <td>RMSE</td>
+                                    <td>sqrt(mean((pred-true)²))</td>
+                                    <td>Root mean squared error</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="sub-section">
+                        <h3>5.2 Visualization Plots</h3>
+                        <div class="grid">
+                            <div class="card">
+                                <h4>Predicted vs Actual</h4>
+                                <p>Scatter plot so sánh predicted vs actual values cho cả time và magnitude</p>
+                                <small>Đường y=x cho prediction hoàn hảo</small>
+                            </div>
+                            <div class="card">
+                                <h4>Residuals Plot</h4>
+                                <p>Phân phối lỗi (pred - true) vs predicted values</p>
+                                <small>Phát hiện bias trong predictions</small>
+                            </div>
+                            <div class="card">
+                                <h4>Error Distribution</h4>
+                                <p>Histogram của errors để xem phân phối lỗi</p>
+                                <small>Kiểm tra nếu errors có bias</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sub-section">
+                        <h3>5.3 Sample Predictions</h3>
+                        <div class="highlight-box success">
+                            <p><strong>CSV Output:</strong> 1000 sample predictions với:</p>
+                            <ul>
+                                <li>true_time_days, pred_time_days, time_error_days</li>
+                                <li>true_mag, pred_mag, mag_error</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="sub-section">
+                        <h3>5.4 Expected Performance</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Target</th>
+                                    <th>Metric</th>
+                                    <th>Baseline</th>
+                                    <th>LSTM Target</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td rowspan="2">Time</td>
+                                    <td>R² (log)</td>
+                                    <td>0.1 - 0.3</td>
+                                    <td>0.4 - 0.6</td>
+                                </tr>
+                                <tr>
+                                    <td>MAE (days)</td>
+                                    <td>2 - 5</td>
+                                    <td>0.5 - 2</td>
+                                </tr>
+                                <tr>
+                                    <td rowspan="2">Magnitude</td>
+                                    <td>R²</td>
+                                    <td>0.2 - 0.4</td>
+                                    <td>0.5 - 0.7</td>
+                                </tr>
+                                <tr>
+                                    <td>MAE</td>
+                                    <td>0.5 - 0.8</td>
+                                    <td>0.3 - 0.5</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Summary Section -->
+            <section class="step">
+                <div class="step-header">
+                    <div class="step-number">!</div>
+                    <div class="step-title">
+                        <h2>Pipeline Summary</h2>
+                        <p>Quy trình tổng thể từ raw data → trained model</p>
+                    </div>
+                </div>
+
+                <div class="step-content">
+                    <div class="pipeline-flow">
+                        <div class="pipeline-step">01: Data Prep</div>
+                        <div class="pipeline-arrow">&rarr;</div>
+                        <div class="pipeline-step">02: Features</div>
+                        <div class="pipeline-arrow">&rarr;</div>
+                        <div class="pipeline-step">03: Sequences</div>
+                        <div class="pipeline-arrow">&rarr;</div>
+                        <div class="pipeline-step">04: Train</div>
+                        <div class="pipeline-arrow">&rarr;</div>
+                        <div class="pipeline-step">05: Evaluate</div>
+                    </div>
+
+                    <div class="grid">
+                        <div class="card">
+                            <h4>Input Data</h4>
+                            <p>~1.3M earthquake events</p>
+                            <p>features_advanced.csv</p>
+                        </div>
+                        <div class="card">
+                            <h4>Features</h4>
+                            <p>42 features total</p>
+                            <p>Normalized (StandardScaler)</p>
+                        </div>
+                        <div class="card">
+                            <h4>Sequences</h4>
+                            <p>Length: 10 events</p>
+                            <p>Sliding window per cluster</p>
+                        </div>
+                        <div class="card">
+                            <h4>Model</h4>
+                            <p>LSTM (2×128)</p>
+                            <p>Dual output heads</p>
+                        </div>
+                        <div class="card">
+                            <h4>Training</h4>
+                            <p>Batch: 256</p>
+                            <p>Early stopping</p>
+                        </div>
+                        <div class="card">
+                            <h4>Output</h4>
+                            <p>Time prediction</p>
+                            <p>Magnitude prediction</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <footer>
+            <p><strong>LSTM Earthquake Prediction Pipeline</strong></p>
+            <p>Phiên bản: 1.0 | Cập nhật: 2025-03-20 | Tác giả: Haind</p>
+            <p style="margin-top: 15px; font-size: 0.85rem; opacity: 0.8;">
+                Earthquake Sequence Mining Project - 5 Steps Pipeline Documentation
+            </p>
+        </footer>
+    </div>
+</body>
+</html>

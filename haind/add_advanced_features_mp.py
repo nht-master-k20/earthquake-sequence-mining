@@ -36,6 +36,11 @@ warnings.filterwarnings('ignore')
 # ============================================================================
 # CONFIGURATION
 # ============================================================================
+import os
+
+# Tự động phát hiện base directory từ vị trí script
+BASE_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
+
 # Số CPU cores sử dụng (để -1 để dùng tất cả, hoặc số cụ thể)
 N_CORES = max(1, cpu_count() - 1)  # Giữ 1 core cho system
 
@@ -43,11 +48,12 @@ N_CORES = max(1, cpu_count() - 1)  # Giữ 1 core cho system
 CHUNK_SIZE = 10000
 
 print(f"Using {N_CORES} CPU cores for multiprocessing")
+print(f"Base directory: {BASE_DIR}")
 
 # ============================================================================
 # CHECKPOINT CONFIGURATION
 # ============================================================================
-CHECKPOINT_DIR = Path('/home/haind/Desktop/earthquake-sequence-mining/haind/checkpoints')
+CHECKPOINT_DIR = BASE_DIR / 'checkpoints'
 CHECKPOINT_DIR.mkdir(exist_ok=True)
 
 CHECKPOINT_FILE = CHECKPOINT_DIR / 'add_features_mp_checkpoint.pkl'
@@ -418,7 +424,7 @@ else:
 # ============================================================================
 if 1 not in completed_steps:
     print("\n[1/8] Loading data...")
-    df = pd.read_csv('/home/haind/Desktop/earthquake-sequence-mining/dongdat.csv')
+    df = pd.read_csv(BASE_DIR.parent / 'dongdat.csv')
     df['time'] = pd.to_datetime(df['time'])
     df = df.sort_values('time').reset_index(drop=True)
     df_work = df.copy().reset_index(drop=True)
@@ -897,7 +903,7 @@ for feat in all_new_features:
         print(f"  ✓ {feat}")
 
 # Save to CSV
-output_file = '/home/haind/Desktop/earthquake-sequence-mining/haind/features_advanced.csv'
+output_file = BASE_DIR / 'features_advanced.csv'
 df_work.to_csv(output_file, index=False)
 
 print(f"\n✓ SAVED: {output_file}")

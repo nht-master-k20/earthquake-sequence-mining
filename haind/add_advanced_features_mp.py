@@ -246,7 +246,7 @@ def process_seismic_gap_chunk(args):
         if np.any(valid_mask):
             valid_times = m5_times[idxs[valid_mask]]
             time_delta = current_time - valid_times.max()
-            gap_days = time_delta.astype('timedelta64[s]').astype(float) / 86400
+            gap_days = time_delta.total_seconds() / 86400
             results.append(gap_days)
         else:
             results.append(365 * 10)

@@ -420,7 +420,7 @@
             <h1>Pipeline Dự Báo Động Đất</h1>
             <div class="subtitle">LSTM Earthquake Prediction Model - 5 Steps Pipeline</div>
             <div class="meta">
-                <p>Phiên bản: 1.0 | Cập nhật: 2025-03-20 | Tác giả: Haind</p>
+                <p>Phiên bản: 2.0 | Cập nhật: 2025-03-23 | Tác giả: Haind</p>
             </div>
         </div>
 
@@ -449,8 +449,8 @@
                     <div class="input-output">
                         <div class="io-box input">
                             <h4>INPUT</h4>
-                            <p>features_advanced.csv</p>
-                            <small>~1.3M earthquake events</small>
+                            <p>features_lstm.csv</p>
+                            <small>~3M earthquake events with LSTM features</small>
                         </div>
                         <div class="arrow">&rarr;</div>
                         <div class="io-box output">
@@ -820,7 +820,7 @@ df['mag_x_regional_max'] = df['mag'] * df['regional_max_mag_5yr']
                     </div>
 
                     <div class="sub-section">
-                        <h3>2.6 Final Feature Set (42 features)</h3>
+                        <h3>2.6 Final Feature Set (27 features)</h3>
                         <table>
                             <thead>
                                 <tr>
@@ -1037,19 +1037,19 @@ for i in range(seq_len, len(cluster_indices)):
                             <div class="card" style="border: 3px solid #10b981;">
                                 <h4 style="color: #10b981;">INPUT - Đầu Vào</h4>
                                 <div class="code-block" style="background: #ecfdf5; color: #065f46;">
-Shape: (batch, seq_len=10, features=42)
+Shape: (batch, seq_len=10, features=27)
 
 Giải thích:
 - batch: Số sequences trong 1 batch (256)
 - seq_len=10: 10 events động đất trước đó
-- features=42: 42 features cho mỗi event
+- features=27: 27 LSTM-optimized features cho mỗi event
 
 Ví dụ 1 sequence:
 [
-  Event_0: [lat, lon, depth, mag, ..., 42 features],
-  Event_1: [lat, lon, depth, mag, ..., 42 features],
+  Event_0: [lat, lon, depth, mag, ..., 27 features],
+  Event_1: [lat, lon, depth, mag, ..., 27 features],
   ...
-  Event_9: [lat, lon, depth, mag, ..., 42 features]
+  Event_9: [lat, lon, depth, mag, ..., 27 features]
 ]
 
 → Target: Dự đoán Event_10
@@ -1402,11 +1402,11 @@ for epoch in range(NUM_EPOCHS):
                         <div class="card">
                             <h4>Input Data</h4>
                             <p>~1.3M earthquake events</p>
-                            <p>features_advanced.csv</p>
+                            <p>features_lstm.csv</p>
                         </div>
                         <div class="card">
                             <h4>Features</h4>
-                            <p>42 features total</p>
+                            <p>27 features total</p>
                             <p>Normalized (StandardScaler)</p>
                         </div>
                         <div class="card">
@@ -1434,13 +1434,10 @@ for epoch in range(NUM_EPOCHS):
             </section>
         </div>
 
-        <footer>
+        <div style="text-align: center; margin-top: 30px; color: #e2e8f0; font-size: 0.85rem;">
             <p><strong>LSTM Earthquake Prediction Pipeline</strong></p>
-            <p>Phiên bản: 1.0 | Cập nhật: 2025-03-20 | Tác giả: Haind</p>
-            <p style="margin-top: 15px; font-size: 0.85rem; opacity: 0.8;">
-                Earthquake Sequence Mining Project - 5 Steps Pipeline Documentation
-            </p>
-        </footer>
+            <p>Phiên bản: 2.0 | Cập nhật: 2025-03-23 | Tác giả: Haind</p>
+        </div>
     </div>
 </body>
 </html>

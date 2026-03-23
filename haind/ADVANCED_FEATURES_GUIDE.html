@@ -34,7 +34,7 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
@@ -155,89 +155,123 @@
             background: var(--secondary);
         }
 
-        /* Table */
-        .feature-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-
-        .feature-table th {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-            font-size: 0.9em;
-        }
-
-        .feature-table th:first-child {
-            border-radius: 10px 0 0 0;
-        }
-
-        .feature-table th:last-child {
-            border-radius: 0 10px 0 0;
-        }
-
-        .feature-table td {
-            padding: 15px;
-            border-bottom: 1px solid var(--border);
-            font-size: 0.9em;
-        }
-
-        .feature-table tr:hover {
-            background: #f8fafc;
-        }
-
-        .feature-table tr:last-child td {
-            border-bottom: none;
-        }
-
-        .code {
-            font-family: 'Fira Code', 'Consolas', monospace;
-            background: #f1f5f9;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 0.9em;
-            color: var(--primary);
-            font-weight: 500;
-        }
-
-        /* Note Box */
-        .note-box {
-            margin-top: 20px;
-            padding: 20px;
+        /* Feature Detail Card */
+        .feature-detail {
+            margin-bottom: 30px;
+            padding: 25px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
             border-radius: 12px;
-            background: #eff6ff;
             border-left: 4px solid var(--primary);
         }
 
-        .note-box.target {
-            background: #d1fae5;
-            border-left-color: var(--success);
+        .feature-detail.core {
+            border-left-color: var(--primary);
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
         }
 
-        .note-box.lstm {
-            background: #f3e8ff;
+        .feature-detail.lstm {
             border-left-color: var(--secondary);
+            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
         }
 
-        .note-box h4 {
-            font-weight: 600;
-            margin-bottom: 10px;
+        .feature-detail.target {
+            border-left-color: var(--success);
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
         }
 
-        .note-box.target h4 {
-            color: #059669;
+        .feature-detail.original {
+            border-left-color: #64748b;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
         }
 
-        .note-box.lstm h4 {
-            color: var(--secondary);
+        .feature-name {
+            font-size: 1.3em;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--text);
         }
 
-        .note-box p {
-            color: var(--text-light);
+        .feature-name .code {
+            font-family: 'Fira Code', 'Consolas', monospace;
+            background: white;
+            padding: 6px 14px;
+            border-radius: 8px;
             font-size: 0.9em;
+            color: var(--primary);
+            font-weight: 600;
+            border: 2px solid var(--primary);
+        }
+
+        .feature-detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .info-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .info-box h4 {
+            font-size: 0.95em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+            color: var(--text-light);
+        }
+
+        .info-box p {
+            font-size: 0.95em;
+            color: var(--text);
+        }
+
+        .info-box .formula {
+            font-family: 'Fira Code', monospace;
+            background: #f1f5f9;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 8px;
+            font-size: 0.85em;
+            color: var(--primary-dark);
+        }
+
+        .info-box .example {
+            background: #fef3c7;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 8px;
+            font-size: 0.85em;
+        }
+
+        /* Importance Badge */
+        .importance {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-left: 10px;
+        }
+
+        .importance-high {
+            background: var(--danger);
+            color: white;
+        }
+
+        .importance-medium {
+            background: var(--warning);
+            color: white;
+        }
+
+        .importance-low {
+            background: var(--success);
+            color: white;
         }
 
         /* TOC */
@@ -299,58 +333,6 @@
             background: var(--secondary);
         }
 
-        /* Feature Groups */
-        .feature-groups {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .feature-group {
-            padding: 20px;
-            border-radius: 12px;
-            border-left: 4px solid;
-        }
-
-        .feature-group.original {
-            background: #ecfdf5;
-            border-left-color: var(--success);
-        }
-
-        .feature-group.core {
-            background: #eff6ff;
-            border-left-color: var(--primary);
-        }
-
-        .feature-group.lstm {
-            background: #f3e8ff;
-            border-left-color: var(--secondary);
-        }
-
-        .feature-group.target {
-            background: #fef3c7;
-            border-left-color: var(--warning);
-        }
-
-        .feature-group h4 {
-            font-size: 1.1em;
-            margin-bottom: 15px;
-            font-weight: 600;
-        }
-
-        .feature-group.original h4 { color: #059669; }
-        .feature-group.core h4 { color: var(--primary); }
-        .feature-group.lstm h4 { color: var(--secondary); }
-        .feature-group.target h4 { color: #d97706; }
-
-        .feature-list {
-            font-family: 'Fira Code', monospace;
-            font-size: 0.85em;
-            color: var(--text-light);
-            line-height: 1.8;
-        }
-
         /* Footer */
         footer {
             background: var(--card-bg);
@@ -377,22 +359,7 @@
                 grid-template-columns: repeat(2, 1fr);
             }
 
-            .feature-table {
-                font-size: 0.8em;
-            }
-
-            .feature-table th,
-            .feature-table td {
-                padding: 10px 8px;
-            }
-
-            .section-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-
-            .feature-groups {
+            .feature-detail-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -401,8 +368,8 @@
 <body>
     <div class="container">
         <header>
-            <h1>🧠 Hướng Dẫn LSTM Features</h1>
-            <p class="subtitle">Các Tính Năng Tối ưu Cho LSTM Earthquake Prediction</p>
+            <h1>🧠 Hướng Dẫn LSTM Features Chi Tiết</h1>
+            <p class="subtitle">Giải Thích Chi Tiết: Ý Nghĩa, Cách Tính, Tác Dụng Cho Dự Báo Động Đất</p>
             <div class="meta">File: haind/add_advanced_features_mp.py | 27 Features (LSTM-Optimized)</div>
         </header>
 
@@ -436,10 +403,9 @@
             <ul class="toc-list">
                 <li><a href="#g0">0. Original Features (5) <span class="toc-count">5</span></a></li>
                 <li><a href="#g1">1. Core Features (5) <span class="toc-count">5</span></a></li>
-                <li><a href="#g2">2. LSTM Temporal Features (7) <span class="toc-count">7</span></a></li>
-                <li><a href="#g3">3. LSTM Rolling Features (9) <span class="toc-count">9</span></a></li>
+                <li><a href="#g2">2. LSTM Temporal Features (7) <span class="toc-count lstm">7</span></a></li>
+                <li><a href="#g3">3. LSTM Rolling Features (9) <span class="toc-count lstm">9</span></a></li>
                 <li><a href="#g4">4. Target Variables (3) <span class="toc-count target">3</span></a></li>
-                <li><a href="#final">5. Tổng Kết Features <span class="toc-count">27</span></a></li>
             </ul>
         </div>
 
@@ -449,48 +415,156 @@
                 <h2 class="section-title">0. Original Features</h2>
                 <span class="section-badge">5 Features</span>
             </div>
-            <table class="feature-table">
-                <thead>
-                    <tr>
-                        <th style="width:22%">Tên Feature</th>
-                        <th style="width:10%">Kiểu</th>
-                        <th style="width:48%">Ý Nghĩa</th>
-                        <th style="width:20%">Đơn vị</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><span class="code">time</span></td>
-                        <td>Datetime</td>
-                        <td>Thời gian xảy ra động đất</td>
-                        <td>ISO 8601</td>
-                    </tr>
-                    <tr>
-                        <td><span class="code">latitude</span></td>
-                        <td>Float</td>
-                        <td>Vĩ độ tọa độ</td>
-                        <td>Decimal degrees</td>
-                    </tr>
-                    <tr>
-                        <td><span class="code">longitude</span></td>
-                        <td>Float</td>
-                        <td>Kinh độ tọa độ</td>
-                        <td>Decimal degrees</td>
-                    </tr>
-                    <tr>
-                        <td><span class="code">depth</span></td>
-                        <td>Float</td>
-                        <td>Độ sâu tiêu điểm</td>
-                        <td>Km</td>
-                    </tr>
-                    <tr>
-                        <td><span class="code">mag</span></td>
-                        <td>Float</td>
-                        <td>Độ lớn động đất</td>
-                        <td>Moment Magnitude</td>
-                    </tr>
-                </tbody>
-            </table>
+
+            <!-- time -->
+            <div class="feature-detail original">
+                <div class="feature-name">
+                    <span class="code">time</span>
+                    <span class="importance importance-high">⭐ Quan trọng</span>
+                </div>
+                <div class="feature-detail-grid">
+                    <div class="info-box">
+                        <h4>📖 Ý Nghĩa</h4>
+                        <p>Thời điểm xảy ra động đất (khoảnh khắc cụ thể). Đây là dấu thời gian quan trọng nhất để phân tích chuỗi thời gian. Mỗi dòng dữ liệu có một time value riêng biệt.</p>
+                        <p style="margin-top: 10px; font-size: 0.9em; color: var(--text-light);">Ví dụ: 2023-03-15 14:32:45 nghĩa là động đất xảy ra vào ngày 15 tháng 3 năm 2023, lúc 14 giờ 32 phút 45 giây.</p>
+                    </div>
+                    <div class="info-box">
+                        <h4>🧮 Cách Tính</h4>
+                        <p>Được lấy trực tiếp từ dữ liệu USGS (Cục Khảo sát Địa chất Hoa Kỳ). Dữ liệu gốc thường dạng Unix timestamp (số giây tính từ 1/1/1970), sau đó chuyển đổi sang format ngày giờ dễ đọc.</p>
+                        <div class="formula">Input: 1678888365 (Unix timestamp) → Output: 2023-03-15 14:32:45</div>
+                        <div class="example">Unix timestamp là một số nguyên đếm số giây, giúp tính toán khoảng thời gian giữa 2 event rất dễ dàng (chỉ cần trừ 2 số)</div>
+                    </div>
+                    <div class="info-box">
+                        <h4>🎯 Tác Dụng Cho Dự Báo</h4>
+                        <p><strong>Đây là BASE FEATURE cho tất cả các tính năng khác:</strong></p>
+                        <ul style="margin-left: 15px; font-size: 0.9em; margin-top: 8px;">
+                            <li><strong>Sắp xếp dữ liệu:</strong> LSTM cần dữ liệu theo đúng thứ tự thời gian để học pattern</li>
+                            <li><strong>Tính khoảng thời gian:</strong> Δt = time[i] - time[i-1] → biết 2 động đất cách nhau bao lâu</li>
+                            <li><strong>Phát hiện chuỗi:</strong> Nếu Δt nhỏ → động đất liên tục (swarm). Nếu Δt lớn → đang có khoảng nghỉ</li>
+                            <li><strong>Rolling window:</strong> Đếm số động đất trong 1 giờ/ngày/tuần qua</li>
+                        </ul>
+                        <div class="example">time_since_last_event = 3600 giây → động đất cách đây 1 tiếng → region đang active</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- latitude, longitude -->
+            <div class="feature-detail original">
+                <div class="feature-name">
+                    <span class="code">latitude</span> / <span class="code">longitude</span>
+                    <span class="importance importance-medium">☆ Cần thiết</span>
+                </div>
+                <div class="feature-detail-grid">
+                    <div class="info-box">
+                        <h4>📖 Ý Nghĩa</h4>
+                        <p>Tọa độ địa lý của điểm phát sinh động đất trên bề mặt Trái Đất (nơi đá bắt đầu bị vỡ).</p>
+                        <p style="margin-top: 10px; font-size: 0.9em; color: var(--text-light);"><strong>Vĩ độ (latitude):</strong> Vị trí Bắc-Nam. Giá trị từ -90° đến +90° (+ = Bắc bán cầu, - = Nam bán cầu)</p>
+                        <p style="font-size: 0.9em; color: var(--text-light);"><strong>Kinh độ (longitude):</strong> Vị trí Đông-Tây. Giá trị từ -180° đến +180° (+ = Đông, - = Tây)</p>
+                    </div>
+                    <div class="info-box">
+                        <h4>🧮 Cách Tính</h4>
+                        <p>Được đo bằng mạng lưới trạm địa chấn trên toàn cầu. Khi động đất xảy ra, các trạm ghi nhận thời gian sóng đến và tính toán ngược vị trí.</p>
+                        <div class="formula">Dùng hình cầu tam giác: Từ ≥3 trạm → tính điểm giao nhau → tọa độ động đất</div>
+                        <div class="example">Việt Nam: latitude ~10-23°N, longitude ~102-110°E. Động đất ở Kon Tum: lat=14.8°N, lon=108.2°E</div>
+                    </div>
+                    <div class="info-box">
+                        <h4>🎯 Tác Dụng Cho Dự Báo</h4>
+                        <p><strong>Tại sao tọa độ quan trọng:</strong></p>
+                        <ul style="margin-left: 15px; font-size: 0.9em; margin-top: 8px;">
+                            <li><strong>Nhóm theo vùng:</strong> Mỗi vùng có đặc điểm động đất khác nhau (vùng X thường có M6+, vùng Y chỉ M4-)</li>
+                            <li><strong>Dòng đứt gãy:</strong> Động đất thường xảy ra gần các đường đứt gãy (fault lines). Tọa độ giúp xác định vùng nào đang active</li>
+                            <li><strong>Mật độ hoạt động:</strong> Đếm số động đất trong bán kính 100km → biết vùng đó "nóng" hay "lạnh"</li>
+                            <li><strong>Không gian học:</strong> LSTM học pattern: "Vùng A vừa có M5.0 → 24h sau thường có thêm động đất"</li>
+                        </ul>
+                        <div class="example">Động đất liên tục ở vị trí gần nhau → cùng một fault line đang active. Model học pattern này để dự báo</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- depth -->
+            <div class="feature-detail original">
+                <div class="feature-name">
+                    <span class="code">depth</span>
+                    <span class="importance importance-low">○ Tham khảo</span>
+                </div>
+                <div class="feature-detail-grid">
+                    <div class="info-box">
+                        <h4>📖 Ý Nghĩa</h4>
+                        <p>Độ sâu của nơi phát sinh động đất tính từ mặt đất xuống. Đơn vị thường dùng là kilômét (km).</p>
+                        <p style="margin-top: 10px; font-size: 0.9em; color: var(--text-light);"><strong>Phân loại độ sâu:</strong></p>
+                        <ul style="margin-left: 15px; font-size: 0.85em; color: var(--text-light);">
+                            <li>Shallow (nông): < 70km - Nguy hiểm nhất cho bề mặt</li>
+                            <li>Intermediate (trung bình): 70-300km</li>
+                            <li>Deep (sâu): > 300km - Cảm nhận rộng nhưng ít thiệt hại hơn</li>
+                        </ul>
+                    </div>
+                    <div class="info-box">
+                        <h4>🧮 Cách Tính</h4>
+                        <p>Được tính toán từ mạng lưới trạm địa chấn dựa trên thời gian đến của các loại sóng địa chấn:</p>
+                        <ul style="margin-left: 15px; font-size: 0.85em; margin-top: 8px;">
+                            <li><strong>Sóng P (Primary):</strong> Sóng nén đi nhanh nhất</li>
+                            <li><strong>Sóng S (Secondary):</strong> Sóng cắt đi chậm hơn</li>
+                        </ul>
+                        <div class="formula">Khoảng cách Δt giữa sóng P và S đến trạm → tính độ sâu</div>
+                        <div class="example">M5.0, depth=10km → rất nguy hiểm vì gần bề mặt. M5.0, depth=600km → ít nguy hiểm hơn</div>
+                    </div>
+                    <div class="info-box">
+                        <h4>🎯 Tác Dụng Cho Dự Báo</h4>
+                        <p><strong>Độ sâu ảnh hưởng đến mức độ nguy hiểm:</strong></p>
+                        <ul style="margin-left: 15px; font-size: 0.9em; margin-top: 8px;">
+                            <li><strong>Động đất nông (< 35km):</strong> Năng lượng tập trung gần bề mặt → phá hủy mạnh. Model cần cảnh báo sớm</li>
+                            <li><strong>Động đất sâu (> 100km):</strong> Năng lượng tiêu hao khi lan truyền → bề mặt ít ảnh hưởng hơn</li>
+                            <li><strong>Pattern học:</strong> Một vùng thường có độ sâu đặc trưng. Nếu depth thay đổi đột ngột → có thể là dấu hiệu bất thường</li>
+                        </ul>
+                        <div class="example">M6.0 ở độ sâu 10km có thể gây phá hủy diện rộng. M6.0 ở độ sâu 600km có thể chỉ cảm nhận nhẹ</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- mag -->
+            <div class="feature-detail original">
+                <div class="feature-name">
+                    <span class="code">mag</span>
+                    <span class="importance importance-high">⭐⭐⭐ Quan trọng nhất</span>
+                </div>
+                <div class="feature-detail-grid">
+                    <div class="info-box">
+                        <h4>📖 Ý Nghĩa</h4>
+                        <p><strong>Magnitude (Độ lớn):</strong> Thước đo năng lượng giải phóng khi động đất xảy ra. Đây là thang đo logarit - mỗi tăng 1 đơn vị = năng lượng tăng gấp 32 lần!</p>
+                        <p style="margin-top: 10px; font-size: 0.9em; color: var(--text-light);"><strong>Thang Moment Magnitude (Mw):</strong> Thang đo hiện đại nhất, chính xác nhất cho mọi loại động đất.</p>
+                        <ul style="margin-left: 15px; font-size: 0.85em; color: var(--text-light); margin-top: 5px;">
+                            <li>M2-3: Gần như không cảm nhận được</li>
+                            <li>M4-5: Cảm thấy rõ, có thể gây thiệt hại nhỏ</li>
+                            <li>M6-7: Có thể gây thiệt hại nghiêm trọng</li>
+                            <li>M8+: Động đất lớn, có thể gây thảm họa diện rộng</li>
+                        </ul>
+                    </div>
+                    <div class="info-box">
+                        <h4>🧮 Cách Tính</h4>
+                        <p><strong>Công thức Mw (Moment Magnitude):</strong></p>
+                        <div class="formula">Mw = (2/3) × log10(M0) - 6.07</div>
+                        <p style="font-size: 0.85em; color: var(--text-light);">Trong đó M0 = Seismic Moment (Mô-men địa chấn)</p>
+                        <p style="font-size: 0.85em; color: var(--text-light);">M0 = μ × D × A:</p>
+                        <ul style="margin-left: 15px; font-size: 0.85em; color: var(--text-light);">
+                            <li>μ = mô-đun cắt (độ cứng của đá)</li>
+                            <li>D = độ dịch chuyển trung bình của fault</li>
+                            <li>A = diện tích mặt đứt gãy</li>
+                        </ul>
+                        <div class="example">M6.0 giải phóng năng lượng ~63 terajoule. M7.0 giải phóng ~2000 terajoule (gấp ~32 lần)</div>
+                    </div>
+                    <div class="info-box">
+                        <h4>🎯 Tác Dụng Cho Dự Báo</h4>
+                        <p><strong>Đây là FEATURE QUAN TRỌNG NHẤT vì:</strong></p>
+                        <ul style="margin-left: 15px; font-size: 0.9em; margin-top: 8px;">
+                            <li><strong>Dự báo magnitude tiếp theo:</strong> Model phải đoán xem động đất tới sẽ lớn bao nhiêu</li>
+                            <li><strong>Cảnh báo nguy hiểm:</strong> M5+ cần cảnh báo, M7+ cần sơ tán</li>
+                            <li><strong>Pattern học:</strong> Sau M6.0 thường có nhiều aftershock M4-5. Sau M3.0 thường không có gì</li>
+                            <li><strong>Đánh giá stress:</strong> Nhiều M4-5 liên tiếp → stress đang tăng → có thể sắp có M6+</li>
+                        </ul>
+                        <div class="example">Dự báo: "24h tới có động đất M6.2 ± 0.5" → Chính quyền có thể chuẩn bị sơ tán, cứu hộ</div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Group 1: Core Features -->
@@ -499,51 +573,223 @@
                 <h2 class="section-title">1. Core Features</h2>
                 <span class="section-badge">5 Features</span>
             </div>
-            <table class="feature-table">
-                <thead>
-                    <tr>
-                        <th style="width:22%">Tên Feature</th>
-                        <th style="width:10%">Kiểu</th>
-                        <th style="width:48%">Ý Nghĩa</th>
-                        <th style="width:20%">Thông số</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><span class="code">is_aftershock</span></td>
-                        <td>Integer (0/1)</td>
-                        <td>Event có phải aftershock? (1 = yes)</td>
-                        <td>Simplified detection</td>
-                    </tr>
-                    <tr>
-                        <td><span class="code">mainshock_mag</span></td>
-                        <td>Float</td>
-                        <td>Độ lớn của mainshock liên quan</td>
-                        <td>Time window only</td>
-                    </tr>
-                    <tr>
-                        <td><span class="code">seismicity_density_100km</span></td>
-                        <td>Float</td>
-                        <td>Mật độ hoạt động trong vùng</td>
-                        <td>Spatial bins</td>
-                    </tr>
-                    <tr>
-                        <td><span class="code">coulomb_stress_proxy</span></td>
-                        <td>Float</td>
-                        <td>Stress tích tụ từ events trước đó</td>
-                        <td>Lookback: 20 events</td>
-                    </tr>
-                    <tr>
-                        <td><span class="code">regional_b_value</span></td>
-                        <td>Float</td>
-                        <td>Giá trị b của Gutenberg-Richter (regional)</td>
-                        <td>100km, 1 year</td>
-                    </tr>
-                </tbody>
-            </table>
-            <div class="note-box">
-                <h4>📝 Ghi Chú</h4>
-                <p><strong>Core features</strong> là những features quan trọng nhất được giữ lại từ phiên bản trước. Aftershock detection được đơn giản hóa (time-only) để tăng tốc độ. B-value là tham số quan trọng nhất trong seismology.</p>
+
+            <!-- is_aftershock -->
+            <div class="feature-detail core">
+                <div class="feature-name">
+                    <span class="code">is_aftershock</span>
+                    <span class="importance importance-medium">☆ Quan trọng</span>
+                </div>
+                <div class="feature-detail-grid">
+                    <div class="info-box">
+                        <h4>📖 Ý Nghĩa</h4>
+                        <p><strong>Feature nhị phân (0 hoặc 1):</strong> Xác định xem động đất này là "dư chấn" (aftershock) hay là động đất chính (mainshock) hoặc động đất độc lập.</p>
+                        <ul style="margin-left: 15px; font-size: 0.9em; color: var(--text-light); margin-top: 10px;">
+                            <li><strong>1 = Aftershock:</strong> Động đất xảy ra SAU một động đất lớn hơn</li>
+                            <li><strong>0 = Mainshock/Independent:</strong> Động đất chính hoặc động đất độc lập</li>
+                        </ul>
+                        <p style="margin-top: 10px; font-size: 0.85em; color: var(--text-light);"><strong>Hiểu đơn giản:</strong> M7.0 là mainshock. Các M4-5 xảy ra sau đó là aftershocks.</p>
+                    </div>
+                    <div class="info-box">
+                        <h4>🧮 Cách Tính (Phương pháp Gardner-Knopoff)</h4>
+                        <p><strong>Logic:</strong> Kiểm tra xem có động đất LỚN HƠN nào xảy ra trong khoảng thời gian "cửa sổ" SAU động đất hiện tại không.</p>
+                        <p style="font-size: 0.85em; color: var(--text-light); margin-top: 8px;"><strong>Công thức tính cửa sổ thời gian:</strong></p>
+                        <div class="formula">time_window = 10^(0.5 × mag - 1.0) giây</div>
+                        <div class="example">
+                            <strong>Ví dụ tính:</strong><br>
+                            • M5.0 → time_window = 10^(2.5 - 1.0) = 10^1.5 ≈ 31,623 giây (~8.8 giờ)<br>
+                            • M6.0 → time_window = 10^(3.0 - 1.0) = 10^2 = 100,000 giây (~27.8 giờ)<br>
+                            • M7.0 → time_window = 10^(3.5 - 1.0) = 10^2.5 ≈ 316,228 giây (~3.7 ngày)
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <h4>🎯 Tác Dụng Cho Dự Báo</h4>
+                        <p><strong>Tại sao cần phân loại aftershock:</strong></p>
+                        <ul style="margin-left: 15px; font-size: 0.9em; margin-top: 8px;">
+                            <li><strong>Tách dữ liệu (Declustering):</strong> Aftershocks là hệ quả của mainshock, không phải event độc lập. Nên loại bỏ khi train model để tránh bias</li>
+                            <li><strong>Dự báo chính xác hơn:</strong> Sau M7.0, model biết rằng sắp có nhiều aftershocks M4-5 → không cần cảnh báo "sắp có động đất lớn"</li>
+                            <li><strong>Pattern học:</strong> Aftershocks thường giảm dần theo thời gian (theo luật Omori-Utsu)</li>
+                        </ul>
+                        <div class="example">
+                            <strong>Thực tế:</strong> Sau M7.0 tại Nhật Bản, có hơn 500 aftershocks trong tuần đầu. Nếu không có feature này, model sẽ dự báo "sắp có động đất lớn" sai lầm
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- mainshock_mag -->
+            <div class="feature-detail core">
+                <div class="feature-name">
+                    <span class="code">mainshock_mag</span>
+                    <span class="importance importance-medium">☆ Quan trọng</span>
+                </div>
+                <div class="feature-detail-grid">
+                    <div class="info-box">
+                        <h4>📖 Ý Nghĩa</h4>
+                        <p><strong>Magnitude của động đất chính liên quan:</strong> Nếu động đất hiện tại là aftershock, đây là magnitude của mainshock (động đất lớn hơn gây ra nó). Nếu không phải aftershock, magnitude chính nó.</p>
+                        <p style="margin-top: 10px; font-size: 0.85em; color: var(--text-light);"><strong>Hiểu đơn giản:</strong> M4.5 này là aftershock của mainshock nào? → mainshock_mag = M6.5</p>
+                    </div>
+                    <div class="info-box">
+                        <h4>🧮 Cách Tính</h4>
+                        <p>Tìm động đất LỚN NHẤT trong "cửa sổ thời gian" (xem feature is_aftershock), trả về magnitude của động đất đó.</p>
+                        <div class="formula">mainshock_mag = max(mag của các events trong time_window trước đó)</div>
+                        <div class="example">
+                            <strong>Ví dụ:</strong><br>
+                            • Có 3 events: M5.0 (10:00), M4.5 (10:30), M3.0 (11:00)<br>
+                            • Với M4.5: mainshock_mag = 5.0 (vì M5.0 lớn hơn và xảy ra trước)<br>
+                            • Với M3.0: mainshock_mag = 5.0 (vì vẫn trong time_window của M5.0)
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <h4>🎯 Tác Dụng Cho Dự Báo</h4>
+                        <p><strong>Tại sao cần biết mainshock magnitude:</strong></p>
+                        <ul style="margin-left: 15px; font-size: 0.9em; margin-top: 8px;">
+                            <li><strong>Độ nguy hiểm:</strong> Aftershock của M7.0 có thể đạt M6 (nguy hiểm). Aftershock của M5.0 thường chỉ M4 (ít nguy hiểm)</li>
+                            <li><strong>Dự báo:</strong> Nếu mainshock_mag = M7.0 → model biết sắp có nhiều aftershocks M4-5 trong vài ngày tới</li>
+                            <li><strong>Context:</strong> Mỗi mainshock magnitude tương ứng với một pattern aftershock khác nhau</li>
+                        </ul>
+                        <div class="example">
+                            <strong>Thực tế:</strong><br>
+                            • M7.0 → sắp có ~100 aftershocks, lớn nhất có thể M6<br>
+                            • M5.0 → sắp có ~10 aftershocks, lớn nhất thường M4
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- seismicity_density_100km -->
+            <div class="feature-detail core">
+                <div class="feature-name">
+                    <span class="code">seismicity_density_100km</span>
+                    <span class="importance importance-high">⭐ Quan trọng</span>
+                </div>
+                <div class="feature-detail-grid">
+                    <div class="info-box">
+                        <h4>📖 Ý Nghĩa</h4>
+                        <p><strong>Mật độ hoạt động địa chấn:</strong> Số lượng động đất đã xảy ra trong bán kính 100km tính đến thời điểm hiện tại.</p>
+                        <p style="margin-top: 10px; font-size: 0.85em; color: var(--text-light);"><strong>Hiểu đơn giản:</strong> "Vùng này có nhiều động đất hay ít?"</p>
+                        <ul style="margin-left: 15px; font-size: 0.85em; color: var(--text-light); margin-top: 5px;">
+                            <li><strong>Density cao:</strong> Vùng đang "sôi động", fault line đang hoạt động mạnh</li>
+                            <li><strong>Density thấp:</strong> Vùng yên tĩnh, HOẶC stress đang tích tụ (seismic gap)</li>
+                        </ul>
+                    </div>
+                    <div class="info-box">
+                        <h4>🧮 Cách Tính</h4>
+                        <p>Đếm số lượng động đất trong bán kính 100km từ vị trí hiện tại, sau đó chuẩn hóa theo diện tích.</p>
+                        <div class="formula">density = (số events trong 100km) / (diện tích hình tròn bán kính 100km)</div>
+                        <div class="formula">diện tích = π × R² = 3.14 × 100² ≈ 31,416 km²</div>
+                        <div class="example">
+                            <strong>Ví dụ:</strong><br>
+                            • Có 500 events trong 100km → density = 500 / 31,416 ≈ 0.016 events/km²<br>
+                            • Có 50 events trong 100km → density = 50 / 31,416 ≈ 0.0016 events/km²
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <h4>🎯 Tác Dụng Cho Dự Báo</h4>
+                        <p><strong>Density cho biết trạng thái của vùng:</strong></p>
+                        <ul style="margin-left: 15px; font-size: 0.9em; margin-top: 8px;">
+                            <li><strong>Density tăng đột ngột:</strong> Vùng đang active → có thể đang có swarm hoặc foreshock sequence</li>
+                            <li><strong>Density rất thấp:</strong> Có thể là "seismic gap" - vùng đang tích tụ stress, sắp có động đất lớn</li>
+                            <li><strong>Density ổn định cao:</strong> Vùng có fault line hoạt động liên tục</li>
+                        </ul>
+                        <div class="example">
+                            <strong>Thực tế:</strong><br>
+                            • Vùng A: density = 0.016 → active fault zone, nguy cơ cao<br>
+                            • Vùng B: density = 0.0005 → quiet region, CÓ THỜ đang tích tụ stress
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- coulomb_stress_proxy -->
+            <div class="feature-detail core">
+                <div class="feature-name">
+                    <span class="code">coulomb_stress_proxy</span>
+                    <span class="importance importance-high">⭐⭐ Quan trọng</span>
+                </div>
+                <div class="feature-detail-grid">
+                    <div class="info-box">
+                        <h4>📖 Ý Nghĩa</h4>
+                        <p><strong>Mức độ stress (ứng suất) tích tụ:</strong> Tổng năng lượng từ các động đất trước đó đã "chuyển" sang các fault lân cận.</p>
+                        <p style="margin-top: 10px; font-size: 0.85em; color: var(--text-light);"><strong>Lý thuyết Coulomb Stress Transfer:</strong> Khi một fault vỡ (động đất xảy ra), stress được chuyển sang các fault xung quanh. Khi stress vượt quá ngưỡng → fault đó cũng vỡ → động đất mới.</p>
+                        <p style="font-size: 0.85em; color: var(--text-light);"><strong>Hiểu đơn giản:</strong> Mỗi động đất "đẩy" stress sang các fault gần đó. Push đủ nhiều → fault vỡ → động đất tiếp theo.</p>
+                    </div>
+                    <div class="info-box">
+                        <h4>🧮 Cách Tính (Proxy = Đại lượng ước tính)</h4>
+                        <p>Tính tổng mô-men địa chấn (seismic moment) từ 20 động đất gần nhất. Seismic moment tỉ lệ với năng lượng giải phóng.</p>
+                        <div class="formula">coulomb_stress = Σ(10^(1.5 × mag_i)) cho 20 events gần nhất</div>
+                        <div class="example">
+                            <strong>Ví dụ tính:</strong><br>
+                            • M5.0 → stress = 10^(1.5×5) = 10^7.5 ≈ 31,600,000<br>
+                            • M4.0 → stress = 10^(1.5×4) = 10^6 = 1,000,000<br>
+                            • Tổng: 2 M5.0 + 10 M4.0 → stress ≈ 73,200,000
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <h4>🎯 Tác Dụng Cho Dự Báo</h4>
+                        <p><strong>Stress cao = Nguy cơ cao:</strong></p>
+                        <ul style="margin-left: 15px; font-size: 0.9em; margin-top: 8px;">
+                            <li><strong>Trigger mechanism:</strong> Khi stress vượt ngưỡng → fault vỡ → động đất xảy ra</li>
+                            <li><strong>Chain reaction:</strong> M6.0 vừa xảy ra → stress tăng tại fault B → fault B có thể vỡ tiếp</li>
+                            <li><strong>Cảnh báo sớm:</strong> Stress đang tăng dần trong nhiều ngày → dấu hiệu sắp có động đất lớn</li>
+                        </ul>
+                        <div class="example">
+                            <strong>Thực tế:</strong><br>
+                            • Nhật Bản 2011: M9.0 → stress tăng → hàng trăm aftershocks M5-7 trong vài ngày sau<br>
+                            • Stress cao = fault "sắp vỡ" → nguy cơ động đất cao
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- regional_b_value -->
+            <div class="feature-detail core">
+                <div class="feature-name">
+                    <span class="code">regional_b_value</span>
+                    <span class="importance importance-high">⭐⭐⭐ Rất quan trọng</span>
+                </div>
+                <div class="feature-detail-grid">
+                    <div class="info-box">
+                        <h4>📖 Ý Nghĩa</h4>
+                        <p><strong>Tham số b (b-value):</strong> Một con số đặc trưng cho mỗi vùng, cho biết TỶ LỆ giữa động đất nhỏ và động đất lớn.</p>
+                        <p style="margin-top: 10px; font-size: 0.85em; color: var(--text-light);"><strong>Luật Gutenberg-Richter:</strong> log10(N) = a - b×M</p>
+                        <ul style="margin-left: 15px; font-size: 0.85em; color: var(--text-light); margin-top: 5px;">
+                            <li>N = số lượng động đất có magnitude ≥ M</li>
+                            <li>b = tham số cho biết tỷ lệ động đất nhỏ/lớn</li>
+                        </ul>
+                        <p style="font-size: 0.85em; color: var(--text-light); margin-top: 5px;"><strong>Hiểu đơn giản:</strong></p>
+                        <ul style="margin-left: 15px; font-size: 0.85em; color: var(--text-light);">
+                            <li>b thấp (0.5-0.7): Vùng có NHIỀU động đất lớn, stress đang cao</li>
+                            <li>b trung bình (1.0): Vùng "bình thường"</li>
+                            <li>b cao (1.2-1.5): Vùng có NHIỀU động đất nhỏ, stress đang thấp</li>
+                        </ul>
+                    </div>
+                    <div class="info-box">
+                        <h4>🧮 Cách Tính (Phương pháp Maximum Likelihood)</h4>
+                        <p>Sử dụng các động đất trong bán kính 100km, trong 1 năm gần nhất, chỉ tính M≥3.0.</p>
+                        <div class="formula">b = log10(e) / (mean_mag - min_mag) = 0.4343 / (trung bình mag - mag nhỏ nhất)</div>
+                        <div class="example">
+                            <strong>Ví dụ:</strong><br>
+                            • Region có events: [3.0, 3.5, 4.0, 4.5, 5.0, 6.0]<br>
+                            • mean_mag = 4.33, min_mag = 3.0<br>
+                            • b = 0.4343 / (4.33 - 3.0) ≈ 0.33 → RẤT THẤP → nguy hiểm
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <h4>🎯 Tác Dụng Cho Dự Báo</h4>
+                        <p><strong>b-value là chỉ báo stress level:</strong></p>
+                        <ul style="margin-left: 15px; font-size: 0.9em; margin-top: 8px;">
+                            <li><strong>b giảm (< 0.7):</strong> Stress đang TĂNG, sắp có động đất lớn. Vùng đang "nạp" stress</li>
+                            <li><strong>b tăng (> 1.2):</strong> Stress đang GIẢM, vừa có động đất lớn, đang giải tỏa</li>
+                            <li><strong>b ổn định (~1.0):</strong> Vùng ổn định, không có thay đổi lớn</li>
+                        </ul>
+                        <div class="example">
+                            <strong>Dấu hiệu cảnh báo:</strong><br>
+                            • b giảm từ 1.2 → 0.5 trong 3 tháng → Stress đang tăng nhanh → Sắp có M6+<br>
+                            • b tăng từ 0.5 → 1.3 sau M7.0 → Stress đang giải tỏa → Sẽ yên tĩnh trong thời gian tới
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -553,65 +799,131 @@
                 <h2 class="section-title">2. LSTM Temporal Features</h2>
                 <span class="section-badge lstm">7 Features</span>
             </div>
-            <table class="feature-table">
-                <thead>
-                    <tr>
-                        <th style="width:22%">Tên Feature</th>
-                        <th style="width:10%">Kiểu</th>
-                        <th style="width:48%">Ý Nghĩa LSTM</th>
-                        <th style="width:20%">Công Thức</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><span class="code">time_since_last_event</span></td>
-                        <td>Float</td>
-                        <td>⚡ CRITICAL: Thời gian kể từ event trước</td>
-                        <td>
-                            <div class="formula-box">Δt = current_time - prev_time</div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><span class="code">time_since_last_M5</span></td>
-                        <td>Float</td>
-                        <td>Thời gian kể từ động đất M≥5.0 gần nhất</td>
-                        <td>Big earthquake cycle</td>
-                    </tr>
-                    <tr>
-                        <td><span class="code">interval_lag1</span></td>
-                        <td>Float</td>
-                        <td>⚡ Sequence pattern: Interval từ event t-1</td>
-                        <td>Δt[t-1]</td>
-                    </tr>
-                    <tr>
-                        <td><span class="code">interval_lag2</span></td>
-                        <td>Float</td>
-                        <td>⚡ Sequence pattern: Interval từ event t-2</td>
-                        <td>Δt[t-2]</td>
-                    </tr>
-                    <tr>
-                        <td><span class="code">interval_lag3</span></td>
-                        <td>Float</td>
-                        <td>⚡ Sequence pattern: Interval từ event t-3</td>
-                        <td>Δt[t-3]</td>
-                    </tr>
-                    <tr>
-                        <td><span class="code">interval_lag4</span></td>
-                        <td>Float</td>
-                        <td>⚡ Sequence pattern: Interval từ event t-4</td>
-                        <td>Δt[t-4]</td>
-                    </tr>
-                    <tr>
-                        <td><span class="code">interval_lag5</span></td>
-                        <td>Float</td>
-                        <td>⚡ Sequence pattern: Interval từ event t-5</td>
-                        <td>Δt[t-5]</td>
-                    </tr>
-                </tbody>
-            </table>
-            <div class="note-box lstm">
-                <h4>🧠 Tại sao LSTM cần Temporal Features?</h4>
-                <p><strong>Time-series prediction</strong> requires understanding temporal patterns. Interval sequences help LSTM learn the "rhythm" of earthquake occurrence. Short intervals → high activity period. Long intervals → stress accumulation phase.</p>
+
+            <!-- time_since_last_event -->
+            <div class="feature-detail lstm">
+                <div class="feature-name">
+                    <span class="code">time_since_last_event</span>
+                    <span class="importance importance-high">⭐⭐⭐ Cực quan trọng</span>
+                </div>
+                <div class="feature-detail-grid">
+                    <div class="info-box">
+                        <h4>📖 Ý Nghĩa</h4>
+                        <p><strong>Khoảng thời gian từ động đất trước đó:</strong> Số giây tính từ động đất gần nhất ĐẦY RỜI đến động đất hiện tại.</p>
+                        <p style="margin-top: 10px; font-size: 0.85em; color: var(--text-light);"><strong>Ví dụ:</strong> Nếu M5.0 xảy ra lúc 10:00 và M4.5 xảy ra lúc 12:00, thì với M4.5, time_since_last_event = 2 giờ = 7200 giây.</p>
+                        <p style="font-size: 0.85em; color: var(--text-light);"><strong>Đây là FEATURE QUAN TRỌNG NHẤT cho LSTM vì nó cho biết "nhịp điệu" của động đất.</strong></p>
+                    </div>
+                    <div class="info-box">
+                        <h4>🧮 Cách Tính</h4>
+                        <p>Trừ thời gian động đất hiện tại trừ thời gian động đất ngay trước đó.</p>
+                        <div class="formula">time_since_last = time[i] - time[i-1]</div>
+                        <div class="example">
+                            <strong>Ví dụ tính:</strong><br>
+                            • Event[i-1]: 2023-03-15 10:00:00<br>
+                            • Event[i]: 2023-03-15 12:30:00<br>
+                            • time_since_last = 2.5 giờ = 9000 giây
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <h4>🎯 Tác Dụng Cho Dự Báo</h4>
+                        <p><strong>LSTM học "nhịp điệu" của động đất:</strong></p>
+                        <ul style="margin-left: 15px; font-size: 0.9em; margin-top: 8px;">
+                            <li><strong>Interval rất ngắn (< 1 giờ):</strong> Swarm activity! Động đất liên tục → có thể là foreshock sequence</li>
+                            <li><strong>Interval trung bình (1-24 giờ):</strong> Hoạt động bình thường, không đáng lo</li>
+                            <li><strong>Interval dài (> 7 ngày):</strong> Seismic gap! Fault đang "khóa lại", stress tích tụ → NGUY HIỂM</li>
+                        </ul>
+                        <div class="example">
+                            <strong>Pattern học:</strong><br>
+                            • [10s, 15s, 20s, 30s, 1m] → Rất ngắn → Swarm, có thể sắp có mainshock<br>
+                            • [1d, 2d, 5d, 10d, 30d] → Rất dài → Stress tích tụ → Sắp có M6+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- time_since_last_M5 -->
+            <div class="feature-detail lstm">
+                <div class="feature-name">
+                    <span class="code">time_since_last_M5</span>
+                    <span class="importance importance-medium">☆ Quan trọng</span>
+                </div>
+                <div class="feature-detail-grid">
+                    <div class="info-box">
+                        <h4>📖 Ý Nghĩa</h4>
+                        <p><strong>Khoảng thời gian từ động đất lớn gần nhất:</strong> Số giây tính từ động đất M≥5.0 (hoặc M6.0, M7.0) gần nhất đến thời điểm hiện tại.</p>
+                        <p style="margin-top: 10px; font-size: 0.85em; color: var(--text-light);"><strong>Khác với time_since_last_event:</strong> Feature này CHỈ tính các động đất LỚN (M≥5.0), bỏ qua các động đất nhỏ.</p>
+                        <p style="font-size: 0.85em; color: var(--text-light);"><strong>Hiểu đơn giản:</strong> "Bao lâu rồi rồi không có động đất M5+?"</p>
+                    </div>
+                    <div class="info-box">
+                        <h4>🧮 Cách Tính</h4>
+                        <p>Tìm tất cả các động đất có magnitude ≥ 5.0, lấy cái gần nhất trước thời điểm hiện tại, tính khoảng thời gian.</p>
+                        <div class="formula">time_since_last_M5 = current_time - thời_gần_nhất_của_M5+</div>
+                        <div class="example">
+                            <strong>Ví dụ:</strong><br>
+                            • M6.0 xảy ra cách đây 2 ngày → time_since_last_M5 = 172,800 giây<br>
+                            • M7.0 xảy ra cách đây 5 năm → time_since_last_M5 = 157,680,000 giây (~5 năm)
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <h4>🎯 Tác Dụng Cho Dự Báo</h4>
+                        <p><strong>Chu kỳ động đất lớn (Big Earthquake Cycle):</strong></p>
+                        <ul style="margin-left: 15px; font-size: 0.9em; margin-top: 8px;">
+                            <li><strong>Mới có M5+ (1-7 ngày):</strong> Fault vừa "giải tỏa" stress → yên tĩnh trong thời gian tới</li>
+                            <li><strong>Đã 1-5 năm:</strong> Fault đã "nghỉ" đủ, có thể active lại bất cứ lúc nào</li>
+                            <li><strong>Đã 10+ năm:</strong> RẤT NGUY HIỂM! Fault đang tích tụ stress quá lâu → sắp có M6+</li>
+                        </ul>
+                        <div class="example">
+                            <strong>Thực tế:</strong><br>
+                            • Vùng X không có M5+ trong 10 năm → Stress tích tụ → Sắp có M7<br>
+                            • Vùng Y vừa có M5 cách đây 2 ngày → Stress vừa release → Yên tĩnh
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- interval_lag1 to interval_lag5 -->
+            <div class="feature-detail lstm">
+                <div class="feature-name">
+                    <span class="code">interval_lag1..5</span>
+                    <span class="importance importance-high">⭐⭐ Quan trọng</span>
+                </div>
+                <div class="feature-detail-grid">
+                    <div class="info-box">
+                        <h4>📖 Ý Nghĩa</h4>
+                        <p><strong>Chuỗi 5 khoảng thời gian gần nhất:</strong> [t-1, t-2, t-3, t-4, t-5] trong đó t-1 là khoảng thời gian giữa 2 động đất gần nhất, t-5 là khoảng thời gian xa hơn.</p>
+                        <p style="margin-top: 10px; font-size: 0.85em; color: var(--text-light);"><strong>Đây là INPUT CHÍNH cho LSTM:</strong> LSTM nhận chuỗi này và học pattern để dự báo động đất tiếp theo.</p>
+                        <p style="font-size: 0.85em; color: var(--text-light);"><strong>Hiểu đơn giản:</strong> LSTM "nhìn" lại 5 khoảng thời gian gần nhất để đoán xem động đất tới sẽ cách bao lâu và lớn bao nhiêu.</p>
+                    </div>
+                    <div class="info-box">
+                        <h4>🧮 Cách Tính</h4>
+                        <p>Tính khoảng thời gian giữa các cặp động đất liên tiếp, lấy 5 giá trị gần nhất.</p>
+                        <div class="formula">
+                            interval_lag1 = time[i-1] - time[i-2]<br>
+                            interval_lag2 = time[i-2] - time[i-3]<br>
+                            ...<br>
+                            interval_lag5 = time[i-5] - time[i-6]
+                        </div>
+                        <div class="example">
+                            <strong>Ví dụ:</strong><br>
+                            • Events: [10:00, 10:01, 10:01:30, 10:02, 10:02:10]<br>
+                            • Intervals: [60s, 30s, 30s, 10s]<br>
+                            • interval_lag1 = 10s, lag2 = 30s, lag3 = 30s, lag4 = 60s
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <h4>🎯 Tác Dụng Cho Dự Báo</h4>
+                        <p><strong>LSTM học các pattern từ chuỗi intervals:</strong></p>
+                        <ul style="margin-left: 15px; font-size: 0.9em; margin-top: 8px;">
+                            <li><strong>[10s, 10s, 10s, 10s, 10s]:</strong> Rất đều, rất ngắn → Swarm activity! → Sắp có mainshock</li>
+                            <li><strong>[1d, 1d, 1d, 1h, 1h]:</strong> Tăng dần tần suất → Foreshock pattern → Mainshock tới</li>
+                            <li><strong>[1y, 1y, 6m, 6m, 1m]:</strong> Tăng dần nhanh → ACCELERATING! → Sắp có M7+</li>
+                            <li><strong>[10m, 20m, 30m, 40m, 50m]:</strong> Giảm dần → Aftershock sequence → Yên tĩnh</li>
+                        </ul>
+                        <div class="example">
+                            <strong>Dự báo:</strong> Nếu LSTM thấy [1d, 12h, 6h, 3h, 1h] + magnitude tăng → Dự báo: Sắp có M6+ trong 1h tới
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -621,75 +933,136 @@
                 <h2 class="section-title">3. LSTM Rolling Statistics Features</h2>
                 <span class="section-badge lstm">9 Features</span>
             </div>
-            <table class="feature-table">
-                <thead>
-                    <tr>
-                        <th style="width:25%">Tên Feature</th>
-                        <th style="width:10%">Kiểu</th>
-                        <th style="width:45%">Ý Nghĩa LSTM</th>
-                        <th style="width:20%">Window</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><span class="code">rolling_count_1h</span></td>
-                        <td>Integer</td>
-                        <td>Số events trong 1 giờ gần nhất</td>
-                        <td>1 hour</td>
-                    </tr>
-                    <tr>
-                        <td><span class="code">rolling_count_24h</span></td>
-                        <td>Integer</td>
-                        <td>Số events trong 24 giờ gần nhất</td>
-                        <td>24 hours</td>
-                    </tr>
-                    <tr>
-                        <td><span class="code">rolling_count_7d</span></td>
-                        <td>Integer</td>
-                        <td>Số events trong 7 ngày gần nhất</td>
-                        <td>7 days</td>
-                    </tr>
-                    <tr>
-                        <td><span class="code">rolling_mean_mag_1h</span></td>
-                        <td>Float</td>
-                        <td>Mean magnitude trong 1 giờ</td>
-                        <td>1 hour</td>
-                    </tr>
-                    <tr>
-                        <td><span class="code">rolling_mean_mag_24h</span></td>
-                        <td>Float</td>
-                        <td>Mean magnitude trong 24 giờ</td>
-                        <td>24 hours</td>
-                    </tr>
-                    <tr>
-                        <td><span class="code">rolling_mean_mag_7d</span></td>
-                        <td>Float</td>
-                        <td>Mean magnitude trong 7 ngày</td>
-                        <td>7 days</td>
-                    </tr>
-                    <tr>
-                        <td><span class="code">rolling_max_mag_1h</span></td>
-                        <td>Float</td>
-                        <td>Max magnitude trong 1 giờ</td>
-                        <td>1 hour</td>
-                    </tr>
-                    <tr>
-                        <td><span class="code">rolling_max_mag_24h</span></td>
-                        <td>Float</td>
-                        <td>Max magnitude trong 24 giờ</td>
-                        <td>24 hours</td>
-                    </tr>
-                    <tr>
-                        <td><span class="code">rolling_max_mag_7d</span></td>
-                        <td>Float</td>
-                        <td>Max magnitude trong 7 ngày</td>
-                        <td>7 days</td>
-                    </tr>
-                </tbody>
-            </table>
-            <div class="note-box lstm">
-                <h4>🧠 Tại sao LSTM cần Rolling Features?</h4>
-                <p><strong>Multi-time-scale analysis</strong> helps LSTM capture both short-term and long-term patterns. 1h = immediate activity, 24h = daily pattern, 7d = weekly trend. Mean mag = energy level, Max mag = largest recent event.</p>
+
+            <!-- rolling_count features -->
+            <div class="feature-detail lstm">
+                <div class="feature-name">
+                    <span class="code">rolling_count_1h, 24h, 7d</span>
+                    <span class="importance importance-high">⭐⭐ Quan trọng</span>
+                </div>
+                <div class="feature-detail-grid">
+                    <div class="info-box">
+                        <h4>📖 Ý Nghĩa</h4>
+                        <p><strong>Số lượng động đất trong khoảng thời gian cửa sổ:</strong> Đếm có bao nhiêu động đất đã xảy ra trong 1 giờ, 24 giờ, hoặc 7 ngày gần nhất.</p>
+                        <p style="margin-top: 10px; font-size: 0.85em; color: var(--text-light);"><strong>Đa tầng thời gian:</strong></p>
+                        <ul style="margin-left: 15px; font-size: 0.85em; color: var(--text-light); margin-top: 5px;">
+                            <li><strong>1h:</strong> Hoạt động tức thời (ngắn hạn)</li>
+                            <li><strong>24h:</strong> Mẫu hoạt động trong ngày (trung hạn)</li>
+                            <li><strong>7d:</strong> Xu hướng trong tuần (dài hạn)</li>
+                        </ul>
+                        <p style="font-size: 0.85em; color: var(--text-light);"><strong>Hiểu đơn giản:</strong> "Trong X giờ qua, có bao nhiêu động đất?"</p>
+                    </div>
+                    <div class="info-box">
+                        <h4>🧮 Cách Tính</h4>
+                        <p>Đếm số lượng động đất trong khoảng thời gian cửa sổ, tính ngược từ thời điểm hiện tại.</p>
+                        <div class="formula">
+                            rolling_count_1h = count(events trong [current_time - 1h, current_time])<br>
+                            rolling_count_24h = count(events trong [current_time - 24h, current_time])<br>
+                            rolling_count_7d = count(events trong [current_time - 7d, current_time])
+                        </div>
+                        <div class="example">
+                            <strong>Ví dụ:</strong><br>
+                            • Có 15 events trong 1 giờ qua → rolling_count_1h = 15<br>
+                            • Có 100 events trong 24h qua → rolling_count_24h = 100<br>
+                            • Có 500 events trong 7 ngày qua → rolling_count_7d = 500
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <h4>🎯 Tác Dụng Cho Dự Báo</h4>
+                        <p><strong>Tần suất động đất thay đổi = Dấu hiệu:</strong></p>
+                        <ul style="margin-left: 15px; font-size: 0.9em; margin-top: 8px;">
+                            <li><strong>count_1h tăng đột ngột (2 → 50):</strong> SWARM! → Foreshock detected</li>
+                            <li><strong>count_24h tăng dần:</strong> Vùng đang "kích hoạt" → Cảnh báo</li>
+                            <li><strong>count_7d giảm sau khi tăng:</strong> Stress đang giải tỏa → Yên tĩnh</li>
+                        </ul>
+                        <div class="example">
+                            <strong>Pattern học:</strong><br>
+                            • count_1h: [2, 2, 2, 50, 80] → Tăng đột ngột → Sắp có M6+<br>
+                            • count_24h: [10, 20, 30, 40, 50] → Tăng dần → Stress tích tụ<br>
+                            • count_7d: [100, 80, 50, 30, 10] → Giảm dần → Yên tĩnh
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- rolling_mean_mag features -->
+            <div class="feature-detail lstm">
+                <div class="feature-name">
+                    <span class="code">rolling_mean_mag_1h, 24h, 7d</span>
+                    <span class="importance importance-medium">☆ Quan trọng</span>
+                </div>
+                <div class="feature-detail-grid">
+                    <div class="info-box">
+                        <h4>📖 Ý Nghĩa</h4>
+                        <p><strong>Trung bình magnitude trong khoảng thời gian:</strong> Magnitude trung bình của các động đất đã xảy ra trong 1 giờ, 24 giờ, hoặc 7 ngày gần nhất.</p>
+                        <p style="margin-top: 10px; font-size: 0.85em; color: var(--text-light);"><strong>Hiểu đơn giản:</strong> "Trong X giờ qua, động đất trung bình lớn bao nhiêu?"</p>
+                        <p style="font-size: 0.85em; color: var(--text-light);"><strong>Ý nghĩa:</strong> Cho biết "mức năng lượng" trung bình của vùng. Mean cao = vùng đang có nhiều động đất lớn = stress cao.</p>
+                    </div>
+                    <div class="info-box">
+                        <h4>🧮 Cách Tính</h4>
+                        <p>Tính trung bình cộng (arithmetic mean) của magnitude cho các động đất trong khoảng thời gian cửa sổ.</p>
+                        <div class="formula">rolling_mean_mag = (mag1 + mag2 + ... + magN) / N</div>
+                        <div class="example">
+                            <strong>Ví dụ:</strong><br>
+                            • Events trong 1h: [3.2, 4.1, 3.8, 4.5, 3.5]<br>
+                            • mean = (3.2 + 4.1 + 3.8 + 4.5 + 3.5) / 5 = 19.1 / 5 = 3.82
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <h4>🎯 Tác Dụng Cho Dự Báo</h4>
+                        <p><strong>Mean magnitude tăng = Stress đang tích tụ:</strong></p>
+                        <ul style="margin-left: 15px; font-size: 0.9em; margin-top: 8px;">
+                            <li><strong>Mean tăng từ 3.0 → 4.5:</strong> Foreshock sequence! Vùng đang "sôi dần"</li>
+                            <li><strong>Mean giảm sau M7.0:</strong> Aftershock sequence, stress đang giải tỏa</li>
+                            <li><strong>Mean ổn định ~3.5:</strong> Hoạt động bình thường</li>
+                        </ul>
+                        <div class="example">
+                            <strong>Pattern học:</strong><br>
+                            • mean_7d: [3.0, 3.2, 3.5, 4.0, 4.5] → Tăng dần → Stress tích tụ → Sắp có M6+<br>
+                            • mean_7d: [5.0, 4.5, 4.0, 3.5, 3.0] → Giảm dần → Stress giải tỏa → Yên tĩnh
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- rolling_max_mag features -->
+            <div class="feature-detail lstm">
+                <div class="feature-name">
+                    <span class="code">rolling_max_mag_1h, 24h, 7d</span>
+                    <span class="importance importance-medium">☆ Quan trọng</span>
+                </div>
+                <div class="feature-detail-grid">
+                    <div class="info-box">
+                        <h4>📖 Ý Nghĩa</h4>
+                        <p><strong>Magnitude lớn nhất trong khoảng thời gian:</strong> Động đất lớn nhất đã xảy ra trong 1 giờ, 24 giờ, hoặc 7 ngày gần nhất.</p>
+                        <p style="margin-top: 10px; font-size: 0.85em; color: var(--text-light);"><strong>Hiểu đơn giản:</strong> "Trong X giờ qua, động đất lớn nhất là bao nhiêu?"</p>
+                        <p style="font-size: 0.85em; color: var(--text-light);"><strong>Ý nghĩa:</strong> Cho biết đỉnh năng lượng giải phóng gần đây. Nếu vừa có M6.0 trong 24h → stress đã được giải tỏa → ít nguy cơ có M6+ khác ngay.</p>
+                    </div>
+                    <div class="info-box">
+                        <h4>🧮 Cách Tính</h4>
+                        <p>Tìm magnitude lớn nhất trong các động đất trong khoảng thời gian cửa sổ.</p>
+                        <div class="formula">rolling_max_mag = max(mag1, mag2, ..., magN)</div>
+                        <div class="example">
+                            <strong>Ví dụ:</strong><br>
+                            • Events trong 24h: [3.2, 5.1, 3.8, 4.2, 6.5]<br>
+                            • max_mag_24h = 6.5 (M6.5 là động đất lớn nhất trong 24h qua)
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <h4>🎯 Tác Dụng Cho Dự Báo</h4>
+                        <p><strong>Max cho biết trạng thái stress của fault:</strong></p>
+                        <ul style="margin-left: 15px; font-size: 0.9em; margin-top: 8px;">
+                            <li><strong>max_7d = M7.0:</strong> Fault vừa "vỡ", stress vừa release → Yên tĩnh trong thời gian tới</li>
+                            <li><strong>max_7d tăng từ M5 → M6:</strong> Stress đang tích tụ → NGUY HIỂM</li>
+                            <li><strong>max_24h = M6.5, mean vẫn cao:</strong> Stress vẫn cao → Có thể có động đất khác</li>
+                        </ul>
+                        <div class="example">
+                            <strong>Thực tế:</strong><br>
+                            • Vừa có M7.0 cách đây 1 ngày → max_24h = 7.0 → Stress release → Yên tĩnh<br>
+                            • max_7d tăng [M5 → M5.5 → M6 → M6.5] → Stress building → Sắp có M7+
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -699,131 +1072,167 @@
                 <h2 class="section-title">4. Target Variables</h2>
                 <span class="section-badge target">3 Features</span>
             </div>
-            <table class="feature-table">
-                <thead>
-                    <tr>
-                        <th style="width:22%">Tên Feature</th>
-                        <th style="width:10%">Kiểu</th>
-                        <th style="width:48%">Ý Nghĩa - Prediction Task</th>
-                        <th style="width:20%">Range</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><span class="code">target_time_to_next</span></td>
-                        <td>Float</td>
-                        <td>🎯 TARGET 1: Thời gian đến earthquake tiếp theo (giây)</td>
-                        <td>0 - ∞</td>
-                    </tr>
-                    <tr>
-                        <td><span class="code">target_next_mag</span></td>
-                        <td>Float</td>
-                        <td>🎯 TARGET 2: Độ lớn của earthquake tiếp theo</td>
-                        <td>0.0 - 10.0+</td>
-                    </tr>
-                    <tr>
-                        <td><span class="code">target_next_mag_binary</span></td>
-                        <td>Integer (0/1)</td>
-                        <td>🎯 TARGET 3 (optional): Next earthquake ≥ M5.0?</td>
-                        <td>0 or 1</td>
-                    </tr>
-                </tbody>
-            </table>
-            <div class="note-box target">
-                <h4>🎯 Multi-Task Learning</h4>
-                <p><strong>Dual prediction:</strong> Model dự đoán CẢ thời gian VÀ độ lớn của earthquake tiếp theo. Binary target là optional cho classification task (động đất nguy hiểm hay không).</p>
+
+            <!-- target_time_to_next -->
+            <div class="feature-detail target">
+                <div class="feature-name">
+                    <span class="code">target_time_to_next</span>
+                    <span class="importance importance-high">⭐⭐⭐ TARGET 1</span>
+                </div>
+                <div class="feature-detail-grid">
+                    <div class="info-box">
+                        <h4>📖 Ý Nghĩa</h4>
+                        <p><strong>BIẾN MỤC TIÊU 1:</strong> Thời gian (tính bằng giây) từ động đất hiện tại đến động đất TIẾP THEO.</p>
+                        <p style="margin-top: 10px; font-size: 0.85em; color: var(--text-light);"><strong>Đây là GIÁ TRỊ MODEL CẦN DỰ BÁO:</strong> Model phải đoán xem "Bao lâu nữa nữa sẽ có động đất?"</p>
+                        <p style="font-size: 0.85em; color: var(--text-light);"><strong>Ví dụ:</strong> Nếu động đất hiện tại lúc 10:00 và động đất tiếp theo lúc 10:30, target = 1800 giây (30 phút).</p>
+                    </div>
+                    <div class="info-box">
+                        <h4>🧮 Cách Tính</h4>
+                        <p>Trừ thời gian động đất tiếp theo trừ thời gian động đất hiện tại.</p>
+                        <div class="formula">target_time_to_next = time[i+1] - time[i]</div>
+                        <div class="example">
+                            <strong>Ví dụ tính:</strong><br>
+                            • Event[i]: 2023-03-15 10:00:00<br>
+                            • Event[i+1]: 2023-03-15 10:30:00<br>
+                            • target = 1800 giây (30 phút)
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <h4>🎯 Tác Dụng Cho Dự Báo</h4>
+                        <p><strong>Ứng dụng thực tế của dự báo thời gian:</strong></p>
+                        <ul style="margin-left: 15px; font-size: 0.9em; margin-top: 8px;">
+                            <li><strong>Cảnh báo sớm:</strong> "Trong 24h tới sẽ có động đất M5+" → Chuẩn bị</li>
+                            <li><strong>Sơ tán:</strong> "Chỉ có 1 giờ để sơ tán" → Hành động ngay</li>
+                            <li><strong>Phân bổ nguồn lực:</strong> "Triển khai sensor vào giai đoạn nguy cơ cao"</li>
+                        </ul>
+                        <div class="example">
+                            <strong>Dự báo:</strong> Model dự đoán target = 3600s (1 giờ) + confidence 80% → "Có 80% confident sẽ có động đất trong 1 giờ tới"
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- target_next_mag -->
+            <div class="feature-detail target">
+                <div class="feature-name">
+                    <span class="code">target_next_mag</span>
+                    <span class="importance importance-high">⭐⭐⭐ TARGET 2</span>
+                </div>
+                <div class="feature-detail-grid">
+                    <div class="info-box">
+                        <h4>📖 Ý Nghĩa</h4>
+                        <p><strong>BIẾN MỤC TIÊU 2:</strong> Magnitude (độ lớn) của động đất TIẾP THEO sẽ xảy ra.</p>
+                        <p style="margin-top: 10px; font-size: 0.85em; color: var(--text-light);"><strong>Đây là GIÁ TRỊ MODEL CẦN DỰ BÁO:</strong> Model phải đoán xem "Động đất tới sẽ lớn bao nhiêu?"</p>
+                        <p style="font-size: 0.85em; color: var(--text-light);"><strong>Ví dụ:</strong> Nếu động đất hiện tại là M5.2 và động đất tiếp theo là M4.8, target = 4.8.</p>
+                    </div>
+                    <div class="info-box">
+                        <h4>🧮 Cách Tính</h4>
+                        <p>Lấy magnitude của động đất tiếp theo trong dữ liệu đã sắp xếp theo thời gian.</p>
+                        <div class="formula">target_next_mag = mag[i+1]</div>
+                        <div class="example">
+                            <strong>Ví dụ tính:</strong><br>
+                            • Event[i]: mag = 5.2<br>
+                            • Event[i+1]: mag = 4.8<br>
+                            • target_next_mag = 4.8
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <h4>🎯 Tác Dụng Cho Dự Báo</h4>
+                        <p><strong>Ứng dụng thực tế của dự báo magnitude:</strong></p>
+                        <ul style="margin-left: 15px; font-size: 0.9em; margin-top: 8px;">
+                            <li><strong>Cảnh báo:</strong> "Động đất tới sẽ là M6.0" → Cần chuẩn bị</li>
+                            <li><strong>Đánh giá rủi ro:</strong> "M7.0+ dự báo" → Cần sơ tán ngay</li>
+                            <li><strong>Phản hồi:</strong> "M5.0" → Giám sát, "M7.0" → Phản hồi toàn lực</li>
+                        </ul>
+                        <div class="example">
+                            <strong>Dự báo:</strong> Model dự đoán target = 6.2 ± 0.4 → Confidence interval: 5.8 - 6.6 → Chuẩn bị cho động đất M6
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- target_next_mag_binary -->
+            <div class="feature-detail target">
+                <div class="feature-name">
+                    <span class="code">target_next_mag_binary</span>
+                    <span class="importance importance-medium">☆ Optional TARGET</span>
+                </div>
+                <div class="feature-detail-grid">
+                    <div class="info-box">
+                        <h4>📖 Ý Nghĩa</h4>
+                        <p><strong>BIẾN MỤC TIÊU PHÂN LỚP (NHỊ PHÂN):</strong> Động đất tiếp theo có NGUY HIỂM (magnitude ≥ M5.0) hay KHÔNG NGUY HIỂM (< M5.0)?</p>
+                        <p style="margin-top: 10px; font-size: 0.85em; color: var(--text-light);"><strong>Giá trị:</strong> 1 = Nguy hiểm (≥ M5.0), 0 = Không nguy hiểm (< M5.0)</p>
+                        <p style="font-size: 0.85em; color: var(--text-light);"><strong>Tại sao M5.0:</strong> M5.0 là ngưỡng thường được dùng để phân loại động đất có nguy cơ gây thiệt hại.</p>
+                    </div>
+                    <div class="info-box">
+                        <h4>🧮 Cách Tính</h4>
+                        <p>So sánh magnitude của động đất tiếp theo với ngưỡng M5.0.</p>
+                        <div class="formula">target_binary = 1 if mag[i+1] >= 5.0 else 0</div>
+                        <div class="example">
+                            <strong>Ví dụ tính:</strong><br>
+                            • Event[i+1]: M4.8 → target_binary = 0 (không nguy hiểm)<br>
+                            • Event[i+1]: M5.2 → target_binary = 1 (nguy hiểm)
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <h4>🎯 Tác Dụng Cho Dự Báo</h4>
+                        <p><strong>Mục tiêu PHÂN LỚP (Classification):</strong></p>
+                        <ul style="margin-left: 15px; font-size: 0.9em; margin-top: 8px;">
+                            <li><strong>Hệ thống cảnh báo:</strong> Tự động cảnh báo khi dự báo M5.0+</li>
+                            <li><strong>Ưu tiên:</strong> Chỉ cảnh báo các event có nguy cơ cao, tránh false alarm</li>
+                            <li><strong>Multi-task learning:</strong> Có thể kết hợp với target_next_mag để học cả regression và classification</li>
+                        </ul>
+                        <div class="example">
+                            <strong>Dự báo:</strong> Model dự đoán binary=0.8 (80% confident) → "Động đất tiếp theo ≥ M5.0 với xác suất 80%"
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Tổng kết -->
-        <div class="section" id="final">
+        <!-- Summary -->
+        <div class="section">
             <div class="section-header">
-                <h2 class="section-title">5. Tổng Kết Features</h2>
-                <span class="section-badge">27 Features</span>
+                <h2 class="section-title">5. Tổng Kết - Features Cho LSTM Dự Báo Động Đất</h2>
             </div>
 
-            <h3 style="margin: 25px 0 15px; font-size: 1.2em;">📦 Danh Sách Theo Nhóm</h3>
-            <div class="feature-groups">
-                <div class="feature-group original">
-                    <h4>Original Features (5)</h4>
-                    <div class="feature-list">
-                        time<br>
-                        latitude<br>
-                        longitude<br>
-                        depth<br>
-                        mag
-                    </div>
-                </div>
-                <div class="feature-group core">
-                    <h4>Core Features (5)</h4>
-                    <div class="feature-list">
-                        is_aftershock<br>
-                        mainshock_mag<br>
-                        seismicity_density_100km<br>
-                        coulomb_stress_proxy<br>
-                        regional_b_value
-                    </div>
-                </div>
-                <div class="feature-group lstm">
-                    <h4>LSTM Temporal (7)</h4>
-                    <div class="feature-list">
-                        time_since_last_event<br>
-                        time_since_last_M5<br>
-                        interval_lag1<br>
-                        interval_lag2<br>
-                        interval_lag3<br>
-                        interval_lag4<br>
-                        interval_lag5
-                    </div>
-                </div>
-                <div class="feature-group lstm">
-                    <h4>LSTM Rolling (9)</h4>
-                    <div class="feature-list">
-                        rolling_count_1h<br>
-                        rolling_count_24h<br>
-                        rolling_count_7d<br>
-                        rolling_mean_mag_1h<br>
-                        rolling_mean_mag_24h<br>
-                        rolling_mean_mag_7d<br>
-                        rolling_max_mag_1h<br>
-                        rolling_max_mag_24h<br>
-                        rolling_max_mag_7d
-                    </div>
-                </div>
-                <div class="feature-group target">
-                    <h4>Targets (3)</h4>
-                    <div class="feature-list">
-                        target_time_to_next<br>
-                        target_next_mag<br>
-                        target_next_mag_binary
-                    </div>
-                </div>
-            </div>
-
-            <div class="note-box" style="margin-top: 25px; background: #f0fdf4; border-left-color: var(--success);">
-                <h4 style="color: #059669;">✅ Tối ưu hóa cho LSTM</h4>
+            <div style="margin-top: 20px; padding: 20px; background: #f0fdf4; border-left: 4px solid var(--success); border-radius: 10px;">
+                <h4 style="color: #059669; margin-bottom: 10px;">✅ Tại Sao 27 Features Này Hiệu Quả Cho LSTM?</h4>
                 <ul style="margin-left: 20px; color: var(--text-light); font-size: 0.9em;">
-                    <li><strong>Removed 11 redundant features:</strong> stress_tensor, fault_geometry, distance features</li>
-                    <li><strong>Focus on temporal patterns:</strong> intervals, rolling statistics, time windows</li>
-                    <li><strong>Multi-scale analysis:</strong> 1h, 24h, 7d windows capture different patterns</li>
-                    <li><strong>Ready for sequences:</strong> All features designed for LSTM input</li>
+                    <li><strong>Tập trung vào chuỗi thời gian (Time-series focus):</strong> 14/27 features (~52%) liên quan đến thời gian → phù hợp với LSTM vốn mạnh trong phân tích chuỗi thời gian. Các features như time_since_last_event, interval_lag, rolling_count giúp LSTM học được "nhịp điệu" của động đất</li>
+                    <li><strong>Đa tầng thời gian (Multi-scale):</strong> 3 cửa sổ thời gian (1h, 24h, 7d) → Capture cả xu hướng ngắn hạn và dài hạn. Giúp LSTM vừa phát hiện swarm activity (ngắn hạn) vừa phát hiện seismic gap (dài hạn)</li>
+                    <li><strong>Input sequence trực tiếp:</strong> interval_lag1..5 → Input trực tiếp cho LSTM → Học temporal patterns hiệu quả. LSTM "nhìn" chuỗi 5 intervals gần nhất để dự báo động đất tới</li>
+                    <li><strong>Cơ sở khoa học (Scientific basis):</strong> Core features dựa trên địa chấn học (b-value, coulomb stress) → Không phải số ngẫu nhiên. Các features này được chứng minh bởi nghiên cứu khoa học</li>
+                    <li><strong>Tối ưu (Compact):</strong> 27 features vs 42 features cũ → Giảm overfitting, train nhanh hơn, dễ interpret hơn</li>
                 </ul>
             </div>
 
-            <div class="note-box" style="margin-top: 15px; background: #fffbeb; border-left-color: var(--warning);">
-                <h4 style="color: #d97706;">⚠️ Lưu Ý Khi Sử Dụng</h4>
+            <div style="margin-top: 15px; padding: 20px; background: #fef3c7; border-left: 4px solid var(--warning); border-radius: 10px;">
+                <h4 style="color: #d97706; margin-bottom: 10px;">⚠️ Lưu Ý Khi Sử Dụng</h4>
                 <ul style="margin-left: 20px; color: var(--text-light); font-size: 0.9em;">
-                    <li><strong>Sequence length:</strong> Khuyến nghị 50-100 events cho LSTM input</li>
-                    <li><strong>Normalization:</strong> Chuẩn hóa tất cả continuous features trước khi train</li>
-                    <li><strong>Time split:</strong> Train trên early data, test trên recent data (không shuffle)</li>
-                    <li><strong>Multi-task:</strong> Có thể train separate models cho time và magnitude, hoặc joint model</li>
+                    <li><strong>Độ dài chuỗi (Sequence length):</strong> Khuyến nghị 50-100 events cho LSTM input (tương đương 5-10 ngày với dữ liệu hiện tại). Chuỗi quá ngắn → không học được pattern. Chuỗi quá dài → train chậm, có thể overfit</li>
+                    <li><strong>Chuẩn hóa (Normalization):</strong> Chuẩn hóa tất cả continuous features bằng StandardScaler (trung bình=0, độ lệch=1) hoặc MinMaxScaler (0-1). Bắt buộc vì LSTM nhạy cảm với scale của features</li>
+                    <li><strong>Chia theo thời gian (Time split):</strong> Train trên dữ liệu cũ (70-80%), test trên dữ liệu mới (20-30%) - KHÔNG SHUFFLE! Phải giữ thứ tự thời gian để test thực tế</li>
+                    <li><strong>Multi-task learning:</strong> Có thể train kết hợp (time + mag) hoặc 2 models riêng. Model kết hợp có thể học correlation giữa 2 targets</li>
+                    <li><strong>Feature importance:</strong> Dùng SHAP analysis để xác định features quan trọng nhất, có thể bỏ features ít quan trọng để đơn giản hóa model</li>
+                </ul>
+            </div>
+
+            <div style="margin-top: 15px; padding: 20px; background: #eff6ff; border-left: 4px solid var(--primary); border-radius: 10px;">
+                <h4 style="color: #1d4ed8; margin-bottom: 10px;">💡 Gợi Ý Cải Tiến Model</h4>
+                <ul style="margin-left: 20px; color: var(--text-light); font-size: 0.9em;">
+                    <li><strong>Attention mechanism:</strong> Thêm attention layer để LSTM tập trung vào các intervals quan trọng nhất</li>
+                    <li><strong>Ensemble:</strong> Kết hợp LSTM với GRU hoặc Transformer để capture multiple temporal patterns</li>
+                    <li><strong>Uncertainty quantification:</strong> Dùng Monte Carlo Dropout hoặc Bayesian LSTM để estimate uncertainty của prediction</li>
+                    <li><strong>Transfer learning:</strong> Pre-train trên vùng có nhiều data, fine-tune trên vùng ít data</li>
+                    <li><strong>Online learning:</strong> Update model periodically với new data để adapt với changing seismic patterns</li>
                 </ul>
             </div>
         </div>
 
         <div style="text-align: center; margin-top: 30px; color: var(--text-light); font-size: 0.85em;">
             <p>File: haind/add_advanced_features_mp.py | Output: haind/features_lstm.csv</p>
-            <p>Cập nhật: 2025-03-23 | LSTM-Optimized Version</p>
+            <p>Cập nhật: 2025-03-23 | LSTM-Optimized Version for Earthquake Prediction</p>
         </div>
     </div>
 </body>

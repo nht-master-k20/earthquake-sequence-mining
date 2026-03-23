@@ -45,8 +45,8 @@ BASE_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
 # Giới hạn ở mức tối đa 8 cores để tránh overhead
 N_CORES = min(8, max(1, cpu_count() - 1))
 
-# Chunk size cho multiprocessing
-CHUNK_SIZE = 10000
+# Chunk size cho multiprocessing - tăng lên cho dataset lớn (3M records)
+CHUNK_SIZE = 50000  # Tăng từ 10k lên 50k để giảm overhead
 
 print(f"Using {N_CORES} CPU cores for multiprocessing")
 print(f"Base directory: {BASE_DIR}")
@@ -255,24 +255,51 @@ def process_seismic_gap_chunk(args):
 
 def process_regional_max_mag_chunk(args):
     """Process một chunk cho regional max magnitude"""
-    chunk_start, chunk_end, df_work, cartesian_coords, mags, kdtree_cartesian, radius_m = args
+    chunk_start, chunk_end, time_numeric, cartesian_coords, mags, kdtree_cartesian, radius_m = args
 
     results = []
-    for i in range(chunk_start, chunk_end):
-        current_time = df_work.loc[i, 'time']
-        time_window = pd.Timedelta(days=365*5)
+    time_window_sec = 365 * 5 * 24 * 3600  # 5 years in seconds
 
+    for i in range(chunk_start, chunk_end):
+        current_time = time_numeric[i]
         nearby_indices = kdtree_cartesian.query_ball_point(cartesian_coords[i], radius_m)
-        time_mask = (df_work.loc[nearby_indices, 'time'] >= current_time - time_window) & \
-                    (df_work.loc[nearby_indices, 'time'] <= current_time)
-        nearby_indices = [nearby_indices[i] for i, mask in enumerate(time_mask) if mask]
+
+        # Fast numpy boolean indexing
+        nearby_indices = np.array(nearby_indices)
+        time_mask = (time_numeric[nearby_indices] >= current_time - time_window_sec) & \
+                    (time_numeric[nearby_indices] <= current_time)
+        nearby_indices = nearby_indices[time_mask]
 
         if len(nearby_indices) > 0:
             results.append(mags[nearby_indices].max())
         else:
-            results.append(df_work.loc[i, 'mag'])
+            results.append(mags[i])
 
     return chunk_start, results
+
+def process_regional_max_mag_sample_chunk(args):
+    """Process một chunk cho regional max magnitude - SAMPLING VERSION"""
+    indices, time_numeric, cartesian_coords, mags, kdtree_cartesian, radius_m = args
+
+    results = []
+    time_window_sec = 365 * 5 * 24 * 3600  # 5 years in seconds
+
+    for i in indices:
+        current_time = time_numeric[i]
+        nearby_indices = kdtree_cartesian.query_ball_point(cartesian_coords[i], radius_m)
+
+        # Fast numpy boolean indexing
+        nearby_indices = np.array(nearby_indices)
+        time_mask = (time_numeric[nearby_indices] >= current_time - time_window_sec) & \
+                    (time_numeric[nearby_indices] <= current_time)
+        nearby_indices = nearby_indices[time_mask]
+
+        if len(nearby_indices) > 0:
+            results.append(mags[nearby_indices].max())
+        else:
+            results.append(mags[i])
+
+    return indices, results
 
 def process_stress_tensor_chunk(args):
     """Process một chunk cho stress tensor calculation"""
@@ -696,31 +723,51 @@ if 'regional' not in completed_steps:
     else:
         df_work['seismic_gap_days'] = 365 * 10
 
-    # 4.3 Regional max magnitude (MULTIPROCESSING)
-    print("  Computing regional max magnitude (MULTIPROCESSING)...")
+    # 4.3 Regional max magnitude (MULTIPROCESSING + SAMPLING)
+    print("  Computing regional max magnitude (SAMPLING + MULTIPROCESSING)...")
     radius_km = 200
     radius_m = radius_km * 1000
 
-    n_events = len(df_work)
+    # SAMPLING: Tính cho 1/20 events để giảm thời gian
+    SAMPLE_RATIO = 20
+    sample_indices = np.arange(0, len(df_work), SAMPLE_RATIO)
+    print(f"    Sampling: Computing for {len(sample_indices):,} / {len(df_work):,} events (1/{SAMPLE_RATIO})")
+
+    # Pre-compute time as numeric for fast comparison
+    time_numeric = df_work['time'].values.astype(np.int64) / 1e9
+
+    # Chỉ tính cho sample
+    n_samples = len(sample_indices)
     args_list = []
     chunk_size = CHUNK_SIZE
 
-    for chunk_start in range(0, n_events, chunk_size):
-        chunk_end = min(chunk_start + chunk_size, n_events)
-        args_list.append((chunk_start, chunk_end, df_work, cartesian_coords, mags, kdtree_cartesian, radius_m))
+    for i in range(0, n_samples, chunk_size):
+        chunk_end = min(i + chunk_size, n_samples)
+        sample_chunk = sample_indices[i:chunk_end]
+        args_list.append((sample_chunk, time_numeric, cartesian_coords, mags, kdtree_cartesian, radius_m))
 
-    regional_max_mag = np.zeros(n_events)
+    sample_results = {}
 
     with Pool(N_CORES) as pool:
         results = list(tqdm(
-            pool.imap(process_regional_max_mag_chunk, args_list),
+            pool.imap(process_regional_max_mag_sample_chunk, args_list),
             total=len(args_list),
             desc="  Regional max mag"
         ))
 
-    for chunk_start, mags in results:
-        for i, mag in enumerate(mags):
-            regional_max_mag[chunk_start + i] = mag
+    for indices, max_mags in results:
+        for idx, mag in zip(indices, max_mags):
+            sample_results[idx] = mag
+
+    # Interpolate cho tất cả events
+    print("    Interpolating for all events...")
+    sample_indices_array = np.array(list(sample_results.keys()))
+    sample_values = np.array(list(sample_results.values()))
+
+    f_interp = interp1d(sample_indices_array, sample_values,
+                        kind='linear', bounds_error=False,
+                        fill_value=(sample_values[0], sample_values[-1]))
+    regional_max_mag = f_interp(np.arange(len(df_work)))
 
     df_work['regional_max_mag_5yr'] = regional_max_mag
 

@@ -737,8 +737,9 @@ if 'regional' not in completed_steps:
     radius_km = 200
     radius_m = radius_km * 1000
 
-    # SAMPLING: Tính cho 1/10 events (giảm từ 1/20 để tăng accuracy)
-    SAMPLE_RATIO = 10
+    # SAMPLING: Tính cho 1/50 events (balance giữa tốc độ và accuracy)
+    # Regional max mag có tính continuity, interpolation vẫn đáng tin cậy
+    SAMPLE_RATIO = 50
     sample_indices = np.arange(0, len(df_work), SAMPLE_RATIO)
     print(f"    Sampling: Computing for {len(sample_indices):,} / {len(df_work):,} events (1/{SAMPLE_RATIO})")
 

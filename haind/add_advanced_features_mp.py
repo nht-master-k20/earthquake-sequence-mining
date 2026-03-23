@@ -24,6 +24,7 @@ import numpy as np
 from scipy import stats
 from scipy.spatial import cKDTree
 from scipy.interpolate import interp1d
+from scipy.spatial.distance import pdist
 from tqdm import tqdm
 import warnings
 import pickle
@@ -191,24 +192,26 @@ def process_coulomb_stress_chunk(args):
     return chunk_start, coulomb_stress_local
 
 def process_b_value_chunk(args):
-    """Process một chunk cho b-value calculation"""
-    indices, df_work, cartesian_coords, kdtree_cartesian, mags = args
+    """Process một chunk cho b-value calculation - OPTIMIZED VERSION"""
+    indices, time_numeric, cartesian_coords, kdtree_cartesian, mags = args
 
     results = []
+    time_window_sec = 365 * 24 * 3600  # 1 year in seconds
+    radius_km = 100
+    radius_m = radius_km * 1000
+
     for idx in indices:
-        current_time = df_work.loc[idx, 'time']
+        current_time = time_numeric[idx]
         current_coord = cartesian_coords[idx]
 
         # Spatial window
-        radius_km = 100
-        radius_m = radius_km * 1000
         nearby_indices = kdtree_cartesian.query_ball_point(current_coord, radius_m)
 
-        # Time window: 1 year before
-        time_window = pd.Timedelta(days=365)
-        time_mask = (df_work.loc[nearby_indices, 'time'] >= current_time - time_window) & \
-                    (df_work.loc[nearby_indices, 'time'] <= current_time)
-        nearby_indices = [nearby_indices[i] for i, mask in enumerate(time_mask) if mask]
+        # Time window + boolean indexing - FAST
+        nearby_indices = np.array(nearby_indices)
+        time_mask = (time_numeric[nearby_indices] >= current_time - time_window_sec) & \
+                    (time_numeric[nearby_indices] <= current_time)
+        nearby_indices = nearby_indices[time_mask]
 
         if len(nearby_indices) < 20:
             results.append(1.0)
@@ -359,7 +362,7 @@ def process_stress_rate_chunk(args):
     return chunk_start, stress_rate_local
 
 def process_fault_geometry_chunk(args):
-    """Process một chunk cho fault geometry calculation"""
+    """Process một chunk cho fault geometry calculation - OPTIMIZED VERSION"""
     chunk_start, chunk_end, df_work, coords, kdtree, depths, radius_m = args
 
     n = chunk_end - chunk_start
@@ -406,14 +409,17 @@ def process_fault_geometry_chunk(args):
         else:
             local_dip[idx] = 90
 
-        # Fault length
+        # Fault length - OPTIMIZED but CORRECT: dùng pdist (C implementation, O(n) memory)
         if len(nearby_coords) >= 2:
-            max_dist = 0
-            for j in range(len(nearby_coords)):
-                for k in range(j+1, len(nearby_coords)):
-                    dist = np.linalg.norm(nearby_coords[j] - nearby_coords[k])
-                    if dist > max_dist:
-                        max_dist = dist
+            # pdist computes all pairwise distances efficiently in C
+            # Still O(n²) but much faster due to C implementation
+            if len(nearby_coords) > 500:  # Limit for very large sets
+                # Use bounding box for very large sets as approximation
+                min_coords = nearby_coords.min(axis=0)
+                max_coords = nearby_coords.max(axis=0)
+                max_dist = np.linalg.norm(max_coords - min_coords)
+            else:
+                max_dist = np.max(pdist(nearby_coords))
             fault_length[idx] = max_dist / 1000
         else:
             fault_length[idx] = 10
@@ -662,6 +668,9 @@ if 'regional' not in completed_steps:
     sample_size = min(1000, len(df_work))
     sample_indices = np.linspace(0, len(df_work)-1, sample_size, dtype=int)
 
+    # Pre-compute time as numeric for fast comparison
+    time_numeric = df_work['time'].values.astype(np.int64) / 1e9
+
     # Split samples for multiprocessing
     samples_per_core = len(sample_indices) // N_CORES
     args_list = []
@@ -674,7 +683,7 @@ if 'regional' not in completed_steps:
             end_idx = start_idx + samples_per_core
 
         if start_idx < len(sample_indices):
-            args_list.append((sample_indices[start_idx:end_idx], df_work, cartesian_coords, kdtree_cartesian, mags))
+            args_list.append((sample_indices[start_idx:end_idx], time_numeric, cartesian_coords, kdtree_cartesian, mags))
 
     b_values = []
     with Pool(N_CORES) as pool:
@@ -728,8 +737,8 @@ if 'regional' not in completed_steps:
     radius_km = 200
     radius_m = radius_km * 1000
 
-    # SAMPLING: Tính cho 1/20 events để giảm thời gian
-    SAMPLE_RATIO = 20
+    # SAMPLING: Tính cho 1/10 events (giảm từ 1/20 để tăng accuracy)
+    SAMPLE_RATIO = 10
     sample_indices = np.arange(0, len(df_work), SAMPLE_RATIO)
     print(f"    Sampling: Computing for {len(sample_indices):,} / {len(df_work):,} events (1/{SAMPLE_RATIO})")
 

@@ -1,11 +1,11 @@
-# Visualization and Clustering Report
+# Pattern Discovering Report
 
 ## Scope
 
-- Input file: `data/data.csv`
+- Input file: `data/data_with_region_code.csv`
 - Filtered event type: `earthquake`
-- Rows after filtering: `2,992,511`
-- Distinct regions with grid size `2.5` degree: `3,565`
+- Rows after filtering: `3,119,538`
+- Distinct regions with grid size `2.5` degree: `3,611`
 
 ## Feature Strategy
 
@@ -19,10 +19,10 @@
 
 | column | missing_ratio |
 | --- | --- |
-| dmin | 0.3984 |
-| nst | 0.3037 |
-| gap | 0.2664 |
-| rms | 0.0425 |
+| dmin | 0.3887 |
+| nst | 0.2979 |
+| gap | 0.2621 |
+| rms | 0.0407 |
 | depth | 0.0 |
 | mag | 0.0 |
 | sig | 0.0 |
@@ -37,30 +37,30 @@
 
 | event_cluster | event_count | mag_mean | depth_mean | sig_mean | top_mag_type | top_depth_band |
 | --- | --- | --- | --- | --- | --- | --- |
-| 0 | 2843224 | 1.653 | 21.035 | 61.862 | ml | shallow |
-| 1 | 149287 | 4.366 | 90.897 | 300.046 | mb | shallow |
+| 0 | 2957228 | 1.649 | 20.928 | 61.517 | ml | shallow |
+| 1 | 162310 | 4.382 | 89.865 | 301.889 | mb | shallow |
 
 ### Region cluster summary
 
 | region_cluster | region_count | total_events | mag_mean | depth_mean | major_quake_ratio | tsunami_rate |
 | --- | --- | --- | --- | --- | --- | --- |
-| 0 | 1297 | 2957768 | 3.816 | 27.696 | 0.1044 | 0.0019 |
-| 1 | 48 | 24081 | 4.349 | 398.432 | 0.1198 | 0.0029 |
+| 0 | 1313 | 3083567 | 3.828 | 27.424 | 0.1046 | 0.002 |
+| 1 | 48 | 25108 | 4.351 | 398.831 | 0.1198 | 0.0028 |
 
 ## Top Regions
 
 | region_id | region_code | event_count | mag_mean | mag_max | region_cluster |
 | --- | --- | --- | --- | --- | --- |
-| 2357 | G051_022 | 302540 | 0.88 | 5.09 | 0 |
-| 2174 | G049_025 | 270102 | 1.121 | 5.71 | 0 |
-| 2359 | G051_024 | 201480 | 0.972 | 6.5 | 0 |
-| 2264 | G050_024 | 159868 | 1.169 | 7.1 | 0 |
-| 1789 | G043_009 | 153099 | 1.885 | 6.7 | 0 |
-| 2263 | G050_023 | 109177 | 1.317 | 6.5 | 0 |
-| 3102 | G060_011 | 104829 | 1.506 | 6.2 | 0 |
-| 3170 | G061_011 | 82373 | 1.276 | 5.8 | 0 |
-| 2265 | G050_025 | 71209 | 0.879 | 5.51 | 0 |
-| 3171 | G061_012 | 69652 | 1.182 | 6.6 | 0 |
+| 2387 | G051_022 | 319782 | 0.878 | 5.09 | 0 |
+| 2202 | G049_025 | 280718 | 1.116 | 5.71 | 0 |
+| 2389 | G051_024 | 203553 | 0.974 | 6.5 | 0 |
+| 2293 | G050_024 | 163839 | 1.17 | 7.1 | 0 |
+| 1811 | G043_009 | 155056 | 1.886 | 6.7 | 0 |
+| 2292 | G050_023 | 112049 | 1.317 | 6.5 | 0 |
+| 3137 | G060_011 | 109354 | 1.504 | 6.2 | 0 |
+| 3206 | G061_011 | 84160 | 1.285 | 5.8 | 0 |
+| 2294 | G050_025 | 72555 | 0.881 | 5.51 | 0 |
+| 3207 | G061_012 | 70740 | 1.19 | 6.6 | 0 |
 
 ## Files Generated
 

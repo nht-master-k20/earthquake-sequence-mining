@@ -1,7 +1,7 @@
 {
-  "input_csv": "data/data.csv",
+  "input_csv": "data/data_with_region_code.csv",
   "output_dir": "hoigreen/pattern_discovering/outputs",
-  "rows_after_filtering": 2992511,
+  "rows_after_filtering": 3119538,
   "event_type": "earthquake",
   "region_grid_size": 2.5,
   "core_event_cluster_features": [
@@ -40,17 +40,17 @@
   ],
   "best_event_k": 2,
   "best_region_k": 2,
-  "region_count": 3565,
-  "eligible_region_count": 1345,
-  "sparse_region_count": 2220,
+  "region_count": 3611,
+  "eligible_region_count": 1361,
+  "sparse_region_count": 2250,
   "event_feature_fill_values": {
-    "mag": 1.44,
-    "depth_log1p": 2.2493952644799267,
+    "mag": 1.45,
+    "depth_log1p": 2.250875922654538,
     "sig_log1p": 3.4965075614664802,
-    "gap": 108.965,
+    "gap": 108.0,
     "rms_log1p": 0.15700374880966475,
     "nst_log1p": 2.302585092994046,
-    "dmin_log1p": 0.011928570865273802,
+    "dmin_log1p": 0.01260028197573843,
     "tsunami": 0.0
   }
 }

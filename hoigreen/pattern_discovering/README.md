@@ -1,6 +1,6 @@
 # Giai đoạn Khai phá Pattern
 
-Giai đoạn này tập trung vào việc tìm các pattern ẩn trong `dongdat.csv` sau khi đã hiểu dữ liệu qua bước EDA.
+Giai đoạn này tập trung vào việc tìm các pattern ẩn trong dataset sau khi đã hiểu dữ liệu qua bước EDA.
 
 ## Mục tiêu
 
@@ -15,7 +15,7 @@ Giai đoạn này tập trung vào việc tìm các pattern ẩn trong `dongdat.
 
 ```bash
 .venv/bin/python hoigreen/pattern_discovering/run_pattern_discovering.py \
-  --input-csv data/dongdat.csv \
+  --input-csv data/<<input_data>> \
   --output-dir hoigreen/pattern_discovering/outputs
 ```
 
@@ -38,4 +38,4 @@ Giai đoạn này tập trung vào việc tìm các pattern ẩn trong `dongdat.
 - Feature core được chọn là các biến có độ phủ dữ liệu tốt và có ý nghĩa vật lý / chất lượng dữ liệu.
 - Dùng `log1p + median imputation + RobustScaler`.
 - Chia không gian thành grid để cluster và giải thích kết quả theo region.
-- Folder này là phase-level entrypoint; nó delegate sang pipeline clustering đã được verify trước đó.
+- Toàn bộ implementation của phase nằm trực tiếp trong `run_pattern_discovering.py`, không gọi sang code trong `hoigreen/backup`.

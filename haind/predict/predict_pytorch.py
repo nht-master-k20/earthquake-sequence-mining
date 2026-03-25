@@ -14,6 +14,7 @@ import argparse
 import os
 import sys
 import json
+from pathlib import Path
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -47,8 +48,40 @@ def parse_args():
                        help='Depth (km) for manual prediction')
     parser.add_argument('--mag', type=float,
                        help='Magnitude for manual prediction')
+    parser.add_argument('--device', type=str, default='auto',
+                       choices=['auto', 'cpu', 'cuda'],
+                       help='Device to use (default: auto - detects GPU automatically)')
 
     return parser.parse_args()
+
+
+def get_device(device_arg='auto'):
+    """
+    Get device for inference
+    Auto-detects CUDA if available
+
+    Args:
+        device_arg: 'auto', 'cpu', or 'cuda'
+    """
+    if device_arg == 'auto':
+        if torch.cuda.is_available():
+            device = torch.device('cuda')
+            print(f"  ✓ Auto-detected GPU: {torch.cuda.get_device_name(0)}")
+            return device
+        else:
+            print(f"  ⚠️  No GPU detected, using CPU")
+            return torch.device('cpu')
+    elif device_arg == 'cuda':
+        if torch.cuda.is_available():
+            device = torch.device('cuda')
+            print(f"  ✓ Using GPU: {torch.cuda.get_device_name(0)}")
+            return device
+        else:
+            print(f"  ⚠️  CUDA requested but not available, using CPU")
+            return torch.device('cpu')
+    else:  # device_arg == 'cpu'
+        print(f"  Using CPU")
+        return torch.device('cpu')
 
 
 def find_latest_model(region=None):
@@ -278,7 +311,13 @@ def main():
     """Main prediction function"""
     args = parse_args()
 
-    device = 'cuda' if torch.cuda.is_available() and args.device == 'cuda' else 'cpu'
+    print(f"\n{'='*70}")
+    print(" PYTORCH LSTM PREDICTION")
+    print(f"{'='*70}")
+
+    # Get device with auto-detection
+    device = get_device(args.device)
+    print(f"Device: {device}")
 
     # Find model if not specified
     if args.model:

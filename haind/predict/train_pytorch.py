@@ -58,20 +58,42 @@ def parse_args():
                        help='Train on specific region only (default: all regions)')
     parser.add_argument('--min-events', type=int, default=100,
                        help='Minimum events per region to include (default: 100)')
-    parser.add_argument('--device', type=str, default='cpu',
-                       choices=['cpu', 'cuda'],
-                       help='Device to use')
+    parser.add_argument('--device', type=str, default='auto',
+                       choices=['auto', 'cpu', 'cuda'],
+                       help='Device to use (default: auto - detects GPU automatically)')
     parser.add_argument('--test', action='store_true',
                        help='Run in test mode (5 epochs)')
 
     return parser.parse_args()
 
 
-def get_device(device_arg):
-    """Get device for training"""
-    if device_arg == 'cuda' and torch.cuda.is_available():
-        return torch.device('cuda')
-    return torch.device('cpu')
+def get_device(device_arg='auto'):
+    """
+    Get device for training
+    Auto-detects CUDA if available
+
+    Args:
+        device_arg: 'auto', 'cpu', or 'cuda'
+    """
+    if device_arg == 'auto':
+        if torch.cuda.is_available():
+            device = torch.device('cuda')
+            print(f"  ✓ Auto-detected GPU: {torch.cuda.get_device_name(0)}")
+            return device
+        else:
+            print(f"  ⚠️  No GPU detected, using CPU")
+            return torch.device('cpu')
+    elif device_arg == 'cuda':
+        if torch.cuda.is_available():
+            device = torch.device('cuda')
+            print(f"  ✓ Using GPU: {torch.cuda.get_device_name(0)}")
+            return device
+        else:
+            print(f"  ⚠️  CUDA requested but not available, using CPU")
+            return torch.device('cpu')
+    else:  # device_arg == 'cpu'
+        print(f"  Using CPU")
+        return torch.device('cpu')
 
 
 def prepare_data(args):

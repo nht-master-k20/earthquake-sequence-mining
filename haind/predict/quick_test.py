@@ -19,6 +19,35 @@ from data_preparer import DataPreparer
 from model_pytorch import EarthquakeLSTM, EarthquakeTrainer, EarthquakeDataset
 
 
+def get_device(device_arg='auto'):
+    """
+    Get device for training
+    Auto-detects CUDA if available
+
+    Args:
+        device_arg: 'auto', 'cpu', or 'cuda'
+    """
+    if device_arg == 'auto':
+        if torch.cuda.is_available():
+            device = torch.device('cuda')
+            print(f"  ✓ Auto-detected GPU: {torch.cuda.get_device_name(0)}")
+            return device
+        else:
+            print(f"  ⚠️  No GPU detected, using CPU")
+            return torch.device('cpu')
+    elif device_arg == 'cuda':
+        if torch.cuda.is_available():
+            device = torch.device('cuda')
+            print(f"  ✓ Using GPU: {torch.cuda.get_device_name(0)}")
+            return device
+        else:
+            print(f"  ⚠️  CUDA requested but not available, using CPU")
+            return torch.device('cpu')
+    else:  # device_arg == 'cpu'
+        print(f"  Using CPU")
+        return torch.device('cpu')
+
+
 def quick_test():
     """Quick test with region R257_114 (most events)"""
     print("\n" + "="*70)
@@ -70,8 +99,9 @@ def quick_test():
     print(f"\nModel: {n_features} features, LSTM hidden: [64, 32]")
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 
-    # Train for a few epochs
-    device = 'cpu'
+    # Train for a few epochs - auto-detect GPU
+    device = get_device('auto')
+    print(f"Device: {device}")
     trainer = EarthquakeTrainer(model, device=device, learning_rate=0.001)
 
     print("\n" + "="*70)

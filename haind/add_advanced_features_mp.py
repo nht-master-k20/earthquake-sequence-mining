@@ -64,7 +64,7 @@ CHECKPOINT_DATA_FILE = CHECKPOINT_DIR / 'checkpoint_data.pkl'
 # ============================================================================
 # Set TEST_MODE = False to process full data (2000-2025)
 # Set TEST_MODE = True to process subset for testing (e.g., 2000-2005)
-TEST_MODE = True
+TEST_MODE = False
 START_YEAR = 2000
 END_YEAR = 2006  # Exclusive (will process 2000-2005)
 

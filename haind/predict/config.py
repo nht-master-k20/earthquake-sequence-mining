@@ -12,6 +12,7 @@ import sys
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
+from pathlib import Path
 
 # Add parent directory to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -19,15 +20,15 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # =============================================================================
 # CONFIGURATION
 # =============================================================================
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.dirname(BASE_DIR)
-FEATURES_FILE = os.path.join(DATA_DIR, 'features_lstm.csv')
-MODEL_DIR = os.path.join(BASE_DIR, 'models')
-LOG_DIR = os.path.join(BASE_DIR, 'logs')
+BASE_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
+DATA_DIR = BASE_DIR.parent
+FEATURES_FILE = str(DATA_DIR / 'features_lstm.csv')
+MODEL_DIR = BASE_DIR / 'models'
+LOG_DIR = BASE_DIR / 'logs'
 
 # Create directories
-os.makedirs(MODEL_DIR, exist_ok=True)
-os.makedirs(LOG_DIR, exist_ok=True)
+os.makedirs(str(MODEL_DIR), exist_ok=True)
+os.makedirs(str(LOG_DIR), exist_ok=True)
 
 # Model parameters
 SEQUENCE_LENGTH = 5  # Number of past events to consider
@@ -52,6 +53,6 @@ TARGET_FEATURES = ['target_time_to_next', 'target_next_mag', 'target_next_mag_bi
 INPUT_FEATURES = [f for f in (ORIGINAL_FEATURES + CORE_FEATURES + SEQUENCE_FEATURES + LSTM_FEATURES) if f != 'time']
 
 print(f"✓ Configuration loaded")
-print(f"  Data dir: {DATA_DIR}")
+print(f"  Data dir: {str(DATA_DIR)}")
 print(f"  Features file: {FEATURES_FILE}")
 print(f"  Input features: {len(INPUT_FEATURES)}")

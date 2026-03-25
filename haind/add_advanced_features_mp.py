@@ -60,13 +60,11 @@ CHECKPOINT_META_FILE = CHECKPOINT_DIR / 'checkpoint_meta.json'
 CHECKPOINT_DATA_FILE = CHECKPOINT_DIR / 'checkpoint_data.pkl'
 
 # ============================================================================
-# TEST MODE CONFIGURATION
+# TIME RANGE CONFIGURATION
 # ============================================================================
-# Set TEST_MODE = False to process full data (2000-2025)
-# Set TEST_MODE = True to process subset for testing (e.g., 2000-2005)
-TEST_MODE = False
+# Data filtering by year range
 START_YEAR = 2000
-END_YEAR = 2026  # Exclusive (will process 2000-2025) - FULL DATA
+END_YEAR = 2026  # Exclusive (will process 2000-2025)
 
 # ============================================================================
 # CHECKPOINT HELPER FUNCTIONS
@@ -536,12 +534,6 @@ ALL_STEPS = [
 # Initialize progress tracker
 progress = ProgressTracker(total_steps=7)
 
-# Show test mode status
-if TEST_MODE:
-    print(f"\n{'='*70}")
-    print(f" TEST MODE ENABLED: Processing {START_YEAR}-{END_YEAR-1} only ")
-    print(f"{'='*70}")
-
 # ============================================================================
 # CHECKPOINT SYSTEM
 # ============================================================================
@@ -570,16 +562,15 @@ if 'step1_load_data' not in completed_steps:
     df = pd.read_csv(BASE_DIR.parent / 'dongdat.csv')
     df['time'] = pd.to_datetime(df['time'])
 
-    # Filter by year range if TEST_MODE is enabled
-    if TEST_MODE:
-        print(f"\n  [TEST MODE] Filtering data: {START_YEAR}-{END_YEAR-1}")
-        original_count = len(df)
-        df = df[(df['time'].dt.year >= START_YEAR) & (df['time'].dt.year < END_YEAR)]
-        filtered_count = len(df)
-        removed_count = original_count - filtered_count
-        print(f"  Original: {original_count:,} rows")
-        print(f"  Filtered: {filtered_count:,} rows ({filtered_count/original_count*100:.1f}%)")
-        print(f"  Removed: {removed_count:,} rows")
+    # Filter by year range
+    print(f"\n  Filtering data: {START_YEAR}-{END_YEAR-1}")
+    original_count = len(df)
+    df = df[(df['time'].dt.year >= START_YEAR) & (df['time'].dt.year < END_YEAR)]
+    filtered_count = len(df)
+    removed_count = original_count - filtered_count
+    print(f"  Original: {original_count:,} rows")
+    print(f"  Filtered: {filtered_count:,} rows ({filtered_count/original_count*100:.1f}%)")
+    print(f"  Removed: {removed_count:,} rows")
 
     # Calculate region_code based on geographic grid (~50km)
     # Grid size: 0.5 degrees ≈ 55km

@@ -92,7 +92,8 @@ class EarthquakeLSTM(nn.Module):
         # Dense layers
         self.fc1 = nn.Linear(lstm_hidden[-1], 64)
         self.relu = nn.ReLU()
-        self.bn1 = nn.BatchNorm1d(64)
+        # Removed BatchNorm1d to avoid issues with batch size=1
+        # self.bn1 = nn.BatchNorm1d(64)
 
         # Output heads
         self.output_time = nn.Linear(64, 1)  # Time to next (positive)
@@ -125,7 +126,8 @@ class EarthquakeLSTM(nn.Module):
         # Dense layers
         out = self.fc1(lstm_out)
         out = self.relu(out)
-        out = self.bn1(out)
+        # Removed BatchNorm1d
+        # out = self.bn1(out)
         out = self.dropout(out)
 
         # Multi-output

@@ -1,0 +1,419 @@
+{
+  "timestamp": "2026-03-25 23:07:38",
+  "n_predictions": 15,
+  "summary": {
+    "time_mae_seconds": 55128523.566,
+    "time_mae_formatted": "638d 1h",
+    "time_rmse_seconds": 211385662.88139376,
+    "mag_mae": 0.635809144337972,
+    "mag_rmse": 0.755446795555349,
+    "n_samples": 15
+  },
+  "predictions": [
+    {
+      "sequence_number": 1,
+      "region": "0.0",
+      "input_events_summary": {
+        "start_idx": 0,
+        "end_idx": 4,
+        "last_event": {
+          "magnitude": 0.75,
+          "depth_km": 2.00999999046326
+        }
+      },
+      "prediction": {
+        "time_to_next_seconds": 447652.15625,
+        "time_to_next_formatted": "5d 4h",
+        "next_magnitude": 1.226283073425293
+      },
+      "ground_truth": {
+        "time_to_next_seconds": 4942.95,
+        "time_to_next_formatted": "1h 22m",
+        "next_magnitude": 0.71
+      },
+      "error": {
+        "time_absolute": 442709.20625,
+        "time_formatted": "5d 2h",
+        "mag_absolute": 0.516283073425293
+      }
+    },
+    {
+      "sequence_number": 2,
+      "region": "0.0",
+      "input_events_summary": {
+        "start_idx": 1,
+        "end_idx": 5,
+        "last_event": {
+          "magnitude": 0.94,
+          "depth_km": 2.24000000953674
+        }
+      },
+      "prediction": {
+        "time_to_next_seconds": 655285.5,
+        "time_to_next_formatted": "7d 14h",
+        "next_magnitude": 1.4027018547058105
+      },
+      "ground_truth": {
+        "time_to_next_seconds": 1939.59,
+        "time_to_next_formatted": "32m 19s",
+        "next_magnitude": 0.38
+      },
+      "error": {
+        "time_absolute": 653345.91,
+        "time_formatted": "7d 13h",
+        "mag_absolute": 1.0227018547058107
+      }
+    },
+    {
+      "sequence_number": 3,
+      "region": "0.0",
+      "input_events_summary": {
+        "start_idx": 2,
+        "end_idx": 6,
+        "last_event": {
+          "magnitude": 0.71,
+          "depth_km": 2.03999996185303
+        }
+      },
+      "prediction": {
+        "time_to_next_seconds": 560324.0,
+        "time_to_next_formatted": "6d 11h",
+        "next_magnitude": 1.9052009582519531
+      },
+      "ground_truth": {
+        "time_to_next_seconds": 4085.01,
+        "time_to_next_formatted": "1h 8m",
+        "next_magnitude": 0.24
+      },
+      "error": {
+        "time_absolute": 556238.99,
+        "time_formatted": "6d 10h",
+        "mag_absolute": 1.6652009582519531
+      }
+    },
+    {
+      "sequence_number": 4,
+      "region": "0.0",
+      "input_events_summary": {
+        "start_idx": 3,
+        "end_idx": 7,
+        "last_event": {
+          "magnitude": 0.38,
+          "depth_km": 2.56
+        }
+      },
+      "prediction": {
+        "time_to_next_seconds": 436605.5625,
+        "time_to_next_formatted": "5d 1h",
+        "next_magnitude": 1.3734662532806396
+      },
+      "ground_truth": {
+        "time_to_next_seconds": 4758.96,
+        "time_to_next_formatted": "1h 19m",
+        "next_magnitude": 1.08
+      },
+      "error": {
+        "time_absolute": 431846.6025,
+        "time_formatted": "4d 23h",
+        "mag_absolute": 0.2934662532806396
+      }
+    },
+    {
+      "sequence_number": 5,
+      "region": "0.0",
+      "input_events_summary": {
+        "start_idx": 4,
+        "end_idx": 8,
+        "last_event": {
+          "magnitude": 0.24,
+          "depth_km": 1.76
+        }
+      },
+      "prediction": {
+        "time_to_next_seconds": 488252.96875,
+        "time_to_next_formatted": "5d 15h",
+        "next_magnitude": 1.308749794960022
+      },
+      "ground_truth": {
+        "time_to_next_seconds": 76.99,
+        "time_to_next_formatted": "1m 16s",
+        "next_magnitude": 0.51
+      },
+      "error": {
+        "time_absolute": 488175.97875,
+        "time_formatted": "5d 15h",
+        "mag_absolute": 0.798749794960022
+      }
+    },
+    {
+      "sequence_number": 6,
+      "region": "0.0",
+      "input_events_summary": {
+        "start_idx": 5,
+        "end_idx": 9,
+        "last_event": {
+          "magnitude": 1.08,
+          "depth_km": 0.430000007152557
+        }
+      },
+      "prediction": {
+        "time_to_next_seconds": 697912.3125,
+        "time_to_next_formatted": "8d 1h",
+        "next_magnitude": 1.449905514717102
+      },
+      "ground_truth": {
+        "time_to_next_seconds": 7558.72,
+        "time_to_next_formatted": "2h 5m",
+        "next_magnitude": 0.85
+      },
+      "error": {
+        "time_absolute": 690353.5925,
+        "time_formatted": "7d 23h",
+        "mag_absolute": 0.5999055147171021
+      }
+    },
+    {
+      "sequence_number": 7,
+      "region": "0.0",
+      "input_events_summary": {
+        "start_idx": 6,
+        "end_idx": 10,
+        "last_event": {
+          "magnitude": 0.51,
+          "depth_km": 0.63
+        }
+      },
+      "prediction": {
+        "time_to_next_seconds": 600433.625,
+        "time_to_next_formatted": "6d 22h",
+        "next_magnitude": 2.0457913875579834
+      },
+      "ground_truth": {
+        "time_to_next_seconds": 4746.64,
+        "time_to_next_formatted": "1h 19m",
+        "next_magnitude": 1.29
+      },
+      "error": {
+        "time_absolute": 595686.985,
+        "time_formatted": "6d 21h",
+        "mag_absolute": 0.7557913875579834
+      }
+    },
+    {
+      "sequence_number": 8,
+      "region": "0.0",
+      "input_events_summary": {
+        "start_idx": 7,
+        "end_idx": 11,
+        "last_event": {
+          "magnitude": 0.85,
+          "depth_km": 1.60000002384186
+        }
+      },
+      "prediction": {
+        "time_to_next_seconds": 661237.75,
+        "time_to_next_formatted": "7d 15h",
+        "next_magnitude": 1.3179254531860352
+      },
+      "ground_truth": {
+        "time_to_next_seconds": 862.82,
+        "time_to_next_formatted": "14m 22s",
+        "next_magnitude": 1.26
+      },
+      "error": {
+        "time_absolute": 660374.93,
+        "time_formatted": "7d 15h",
+        "mag_absolute": 0.05792545318603515
+      }
+    },
+    {
+      "sequence_number": 9,
+      "region": "0.0",
+      "input_events_summary": {
+        "start_idx": 8,
+        "end_idx": 12,
+        "last_event": {
+          "magnitude": 1.29,
+          "depth_km": 1.77999997138977
+        }
+      },
+      "prediction": {
+        "time_to_next_seconds": 642770.9375,
+        "time_to_next_formatted": "7d 10h",
+        "next_magnitude": 1.1474405527114868
+      },
+      "ground_truth": {
+        "time_to_next_seconds": 914.65,
+        "time_to_next_formatted": "15m 14s",
+        "next_magnitude": 0.78
+      },
+      "error": {
+        "time_absolute": 641856.2875,
+        "time_formatted": "7d 10h",
+        "mag_absolute": 0.3674405527114868
+      }
+    },
+    {
+      "sequence_number": 10,
+      "region": "0.0",
+      "input_events_summary": {
+        "start_idx": 9,
+        "end_idx": 13,
+        "last_event": {
+          "magnitude": 1.26,
+          "depth_km": 1.91999995708466
+        }
+      },
+      "prediction": {
+        "time_to_next_seconds": 804700.25,
+        "time_to_next_formatted": "9d 7h",
+        "next_magnitude": 1.2216527462005615
+      },
+      "ground_truth": {
+        "time_to_next_seconds": 770.0,
+        "time_to_next_formatted": "12m 50s",
+        "next_magnitude": 0.09
+      },
+      "error": {
+        "time_absolute": 803930.25,
+        "time_formatted": "9d 7h",
+        "mag_absolute": 1.1316527462005614
+      }
+    },
+    {
+      "sequence_number": 11,
+      "region": "0.0",
+      "input_events_summary": {
+        "start_idx": 10,
+        "end_idx": 14,
+        "last_event": {
+          "magnitude": 0.78,
+          "depth_km": 2.9300000667572
+        }
+      },
+      "prediction": {
+        "time_to_next_seconds": 546375.25,
+        "time_to_next_formatted": "6d 7h",
+        "next_magnitude": 1.1701366901397705
+      },
+      "ground_truth": {
+        "time_to_next_seconds": 327.12,
+        "time_to_next_formatted": "5m 27s",
+        "next_magnitude": 0.72
+      },
+      "error": {
+        "time_absolute": 546048.13,
+        "time_formatted": "6d 7h",
+        "mag_absolute": 0.45013669013977053
+      }
+    },
+    {
+      "sequence_number": 12,
+      "region": "0.0",
+      "input_events_summary": {
+        "start_idx": 11,
+        "end_idx": 15,
+        "last_event": {
+          "magnitude": 0.09,
+          "depth_km": 3.24
+        }
+      },
+      "prediction": {
+        "time_to_next_seconds": 510187.4375,
+        "time_to_next_formatted": "5d 21h",
+        "next_magnitude": 1.0941177606582642
+      },
+      "ground_truth": {
+        "time_to_next_seconds": 1327.52,
+        "time_to_next_formatted": "22m 7s",
+        "next_magnitude": 0.35
+      },
+      "error": {
+        "time_absolute": 508859.9175,
+        "time_formatted": "5d 21h",
+        "mag_absolute": 0.7441177606582642
+      }
+    },
+    {
+      "sequence_number": 13,
+      "region": "0.0",
+      "input_events_summary": {
+        "start_idx": 12,
+        "end_idx": 16,
+        "last_event": {
+          "magnitude": 0.72,
+          "depth_km": 1.38999998569489
+        }
+      },
+      "prediction": {
+        "time_to_next_seconds": 589553.5,
+        "time_to_next_formatted": "6d 19h",
+        "next_magnitude": 1.4529134035110474
+      },
+      "ground_truth": {
+        "time_to_next_seconds": 3045.89,
+        "time_to_next_formatted": "50m 45s",
+        "next_magnitude": 2.1
+      },
+      "error": {
+        "time_absolute": 586507.61,
+        "time_formatted": "6d 18h",
+        "mag_absolute": 0.6470865964889527
+      }
+    },
+    {
+      "sequence_number": 14,
+      "region": "0.0",
+      "input_events_summary": {
+        "start_idx": 13,
+        "end_idx": 17,
+        "last_event": {
+          "magnitude": 0.35,
+          "depth_km": 1.67
+        }
+      },
+      "prediction": {
+        "time_to_next_seconds": 632420.6875,
+        "time_to_next_formatted": "7d 7h",
+        "next_magnitude": 1.6150894165039062
+      },
+      "ground_truth": {
+        "time_to_next_seconds": 610.19,
+        "time_to_next_formatted": "10m 10s",
+        "next_magnitude": 1.14
+      },
+      "error": {
+        "time_absolute": 631810.4975,
+        "time_formatted": "7d 7h",
+        "mag_absolute": 0.47508941650390635
+      }
+    },
+    {
+      "sequence_number": 15,
+      "region": "0.0",
+      "input_events_summary": {
+        "start_idx": 14,
+        "end_idx": 18,
+        "last_event": {
+          "magnitude": 2.1,
+          "depth_km": 1.64999997615814
+        }
+      },
+      "prediction": {
+        "time_to_next_seconds": 553793.1875,
+        "time_to_next_formatted": "6d 9h",
+        "next_magnitude": 1.4284108877182007
+      },
+      "ground_truth": {
+        "time_to_next_seconds": 819243901.79,
+        "time_to_next_formatted": "9481d 23h",
+        "next_magnitude": 1.44
+      },
+      "error": {
+        "time_absolute": 818690108.6025,
+        "time_formatted": "9475d 13h",
+        "mag_absolute": 0.011589112281799263
+      }
+    }
+  ]
+}

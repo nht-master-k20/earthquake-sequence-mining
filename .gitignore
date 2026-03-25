@@ -12,6 +12,10 @@ dist/
 build/
 .idea/
 .venv
+dongdat.csv
+data_with_region_code.csv
+haind/features_lstm.csv
+haind/checkpoints
 
 # outputs
 hoigreen/backup/*/outputs

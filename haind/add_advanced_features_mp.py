@@ -2,719 +2,955 @@
 Add Advanced Features for Earthquake Forecasting - LSTM OPTIMIZED VERSION
 Task: Predict time-to-next and magnitude-of-next earthquake using LSTM
 
-Features (27 total):
-- ORIGINAL (5): time, latitude, longitude, depth, mag
+Features (29 total):
+- ORIGINAL (10): time, latitude, longitude, depth, mag, sig, mmi, cdi, felt, region_code
 - CORE (5): Aftershock, Density, Coulomb Stress, B-value
-- LSTM CRITICAL (14): Temporal intervals, Rolling stats
+- SEQUENCE (6): Spatio-temporal clustering features
+- LSTM CRITICAL (5): Temporal intervals only
 - TARGETS (3): time_to_next, next_mag, next_mag_binary
+
+Data Sorting:
+- PRIMARY: region_code (grid-based, ~50km)
+- SECONDARY: time (chronological within each region)
+
+Region Code Calculation:
+- Format: R{lat_int}_{lon_int}
+- Grid size: 0.5° ≈ 55km
+- Purpose: Regional earthquake pattern analysis
 
 Optimizations:
 - Vectorized operations with NumPy
+- Numba JIT compilation for loops
 - Efficient spatial queries with KD-tree
-- Removed redundant features (11 features removed for speed)
-- Removed checkpoint system (simpler code, faster I/O)
+- Binary search for time-based queries
+- Checkpoint system enabled (resume from failures)
+- CSV version system (7 versions)
 
 Author: haind
 Project: Earthquake Sequence Mining
-Updated: 2025-03-23 (LSTM-optimized, no checkpoint)
+Updated: 2025-03-25
+Version: 4.0 (Optimized with Numba + vectorization)
 """
 
 import pandas as pd
 import numpy as np
-from scipy import stats
 from scipy.spatial import cKDTree
 from scipy.interpolate import interp1d
-from scipy.spatial.distance import pdist
 from tqdm import tqdm
+import time
 import warnings
 import os
+import pickle
+import json
 from pathlib import Path
-from multiprocessing import cpu_count
+from datetime import datetime
+from numba import jit, prange
+import bisect
+
 warnings.filterwarnings('ignore')
 
 # ============================================================================
 # CONFIGURATION
 # ============================================================================
-import os
-
-# Tự động phát hiện base directory từ vị trí script
 BASE_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
+CHECKPOINT_DIR = BASE_DIR / 'checkpoints'
+CHECKPOINT_DIR.mkdir(exist_ok=True)
 
-# Số CPU cores sử dụng
-N_CORES = min(8, max(1, cpu_count() - 1))
-
-print(f"Using {N_CORES} CPU cores for multiprocessing")
-print(f"Base directory: {BASE_DIR}")
+CHECKPOINT_META_FILE = CHECKPOINT_DIR / 'checkpoint_meta.json'
+CHECKPOINT_DATA_FILE = CHECKPOINT_DIR / 'checkpoint_data.pkl'
 
 # ============================================================================
-# MULTIPROCESSING HELPER FUNCTIONS
+# TEST MODE CONFIGURATION
 # ============================================================================
+# Set TEST_MODE = False to process full data (2000-2025)
+# Set TEST_MODE = True to process subset for testing (e.g., 2000-2005)
+TEST_MODE = True
+START_YEAR = 2000
+END_YEAR = 2006  # Exclusive (will process 2000-2005)
 
-def process_aftershock_chunk(args):
-    """Process một chunk cho aftershock detection"""
-    chunk_start, chunk_end, times, mags, time_numeric, cartesian_coords = args
+# ============================================================================
+# CHECKPOINT HELPER FUNCTIONS
+# ============================================================================
+def save_checkpoint(df, completed_steps, current_step_name):
+    checkpoint_data = {
+        'df': df,
+        'completed_steps': completed_steps,
+        'last_step': current_step_name,
+        'timestamp': datetime.now().isoformat()
+    }
 
-    is_aftershock_local = []
-    mainshock_mag_local = []
+    with open(CHECKPOINT_DATA_FILE, 'wb') as f:
+        pickle.dump(checkpoint_data, f)
 
-    for i in range(chunk_start, chunk_end):
-        mag_i = mags[i]
-        time_i = time_numeric[i]
+    meta_data = {
+        'completed_steps': completed_steps,
+        'last_step': current_step_name,
+        'timestamp': datetime.now().isoformat(),
+        'n_rows': len(df),
+        'n_cols': len(df.columns)
+    }
 
-        # Calculate windows
-        time_window_sec = 10 ** (0.5 * mag_i - 1.0)
-        dist_window_km = 10 ** (0.123 * mag_i + 0.033)
+    with open(CHECKPOINT_META_FILE, 'w') as f:
+        json.dump(meta_data, f, indent=2)
 
-        # Find events in time window
-        time_mask = (time_numeric >= time_i) & (time_numeric <= time_i + time_window_sec)
-        candidate_indices = np.where(time_mask)[0]
+    print(f"  ✓ Checkpoint: {current_step_name} ({len(df):,} rows, {len(df.columns)} cols)")
 
-        if len(candidate_indices) <= 1:
-            is_aftershock_local.append(False)
-            mainshock_mag_local.append(mag_i)
-            continue
-
-        # Filter by distance
-        candidate_coords = cartesian_coords[candidate_indices]
-        current_coord = cartesian_coords[i]
-        distances = np.linalg.norm(candidate_coords - current_coord, axis=1)
-        dist_mask = distances <= (dist_window_km * 1000)
-        nearby_indices = candidate_indices[dist_mask]
-
-        if len(nearby_indices) <= 1:
-            is_aftershock_local.append(False)
-            mainshock_mag_local.append(mag_i)
-            continue
-
-        # Check for larger mainshock
-        nearby_mags = mags[nearby_indices]
-        larger_mainshock = nearby_mags > mag_i
-
-        if np.any(larger_mainshock):
-            larger_indices = nearby_indices[larger_mainshock]
-            larger_distances = distances[dist_mask][larger_mainshock]
-            closest_larger_idx = larger_indices[np.argmin(larger_distances)]
-            mainshock_mag_local.append(mags[closest_larger_idx])
-
-            # Mark as aftershock if within window
-            time_diff_sec = time_numeric[closest_larger_idx] - time_i
-            is_aftershock_local.append(time_diff_sec <= time_window_sec)
-        else:
-            is_aftershock_local.append(False)
-            mainshock_mag_local.append(mag_i)
-
-    return chunk_start, chunk_end, is_aftershock_local, mainshock_mag_local
-
-def process_density_chunk(args):
-    """Process một chunk cho seismicity density"""
-    chunk_start, chunk_end, coords, kdtree_cartesian, radius_m = args
-
-    results = []
-    for i in range(chunk_start, chunk_end):
-        nearby_count = len(kdtree_cartesian.query_ball_point(coords[i], radius_m))
-        results.append(nearby_count)
-
-    return chunk_start, results
-
-def process_coulomb_stress_chunk(args):
-    """Process một chunk cho Coulomb stress"""
-    chunk_start, chunk_end, mags, cartesian_coords, kdtree_cartesian, radius_m, lookback_events = args
-
-    coulomb_stress_local = []
-
-    for i in range(chunk_start, chunk_end):
-        # Find nearby events
-        nearby_indices = kdtree_cartesian.query_ball_point(cartesian_coords[i], radius_m)
-
-        # Filter to only previous events
-        nearby_indices = [idx for idx in nearby_indices if idx < i]
-
-        if len(nearby_indices) == 0:
-            coulomb_stress_local.append(0)
-            continue
-
-        # Get last 'lookback_events' events
-        nearby_indices = nearby_indices[-lookback_events:]
-        nearby_mags = mags[nearby_indices]
-
-        # Stress is proportional to seismic moment
-        stress_contributions = 10**(1.5 * nearby_mags)
-        coulomb_stress_local.append(np.sum(stress_contributions))
-
-    return chunk_start, coulomb_stress_local
-
-def process_b_value_chunk(args):
-    """Process một chunk cho b-value calculation - OPTIMIZED VERSION"""
-    indices, time_numeric, cartesian_coords, kdtree_cartesian, mags = args
-
-    results = []
-    time_window_sec = 365 * 24 * 3600  # 1 year in seconds
-    radius_km = 100
-    radius_m = radius_km * 1000
-
-    for idx in indices:
-        current_time = time_numeric[idx]
-        current_coord = cartesian_coords[idx]
-
-        # Spatial window
-        nearby_indices = kdtree_cartesian.query_ball_point(current_coord, radius_m)
-
-        # Time window + boolean indexing - FAST
-        nearby_indices = np.array(nearby_indices)
-        time_mask = (time_numeric[nearby_indices] >= current_time - time_window_sec) & \
-                    (time_numeric[nearby_indices] <= current_time)
-        nearby_indices = nearby_indices[time_mask]
-
-        if len(nearby_indices) < 20:
-            results.append(1.0)
-            continue
-
-        # Compute b-value using maximum likelihood
-        nearby_mags = mags[nearby_indices]
-        nearby_mags = nearby_mags[nearby_mags >= 3.0]
-
-        if len(nearby_mags) < 10:
-            results.append(1.0)
-            continue
-
+def load_checkpoint():
+    if CHECKPOINT_META_FILE.exists() and CHECKPOINT_DATA_FILE.exists():
         try:
-            b_value = (nearby_mags.mean() - np.min(nearby_mags))**-1 * np.log10(np.e)
-            results.append(b_value)
+            with open(CHECKPOINT_META_FILE, 'r') as f:
+                meta_data = json.load(f)
+
+            print(f"  Resuming from: {meta_data['last_step']} ({meta_data['timestamp']})")
+
+            with open(CHECKPOINT_DATA_FILE, 'rb') as f:
+                checkpoint_data = pickle.load(f)
+
+            return checkpoint_data
+        except Exception as e:
+            print(f"  Warning: Could not load checkpoint: {e}")
+            return None
+    return None
+
+# ============================================================================
+# CSV VERSION SYSTEM
+# ============================================================================
+VERSION_DIR = BASE_DIR / 'csv_versions'
+VERSION_DIR.mkdir(exist_ok=True)
+
+def save_version_csv(df, version, step_name, description=""):
+    """
+    Save DataFrame as a versioned CSV file.
+    Format: v{version:02d}_{step_name}.csv
+
+    Args:
+        df: DataFrame to save
+        version: Version number (integer)
+        step_name: Name of the step
+        description: Optional description for the version
+
+    Returns:
+        filepath: Path to saved file
+    """
+    filename = f"v{version:02d}_{step_name}.csv"
+    filepath = VERSION_DIR / filename
+
+    # Save full dataframe (including intermediate columns)
+    df.to_csv(filepath, index=False)
+
+    # Save version metadata
+    meta_file = VERSION_DIR / f"v{version:02d}_meta.json"
+    metadata = {
+        'version': version,
+        'step_name': step_name,
+        'description': description,
+        'timestamp': datetime.now().isoformat(),
+        'n_rows': len(df),
+        'n_cols': len(df.columns),
+        'columns': list(df.columns)
+    }
+    with open(meta_file, 'w') as f:
+        json.dump(metadata, f, indent=2)
+
+    print(f"  ✓ CSV v{version:02d}: {filename} ({len(df):,} rows, {len(df.columns)} cols)")
+    return filepath
+
+def get_latest_version():
+    """Get the latest version number from csv_versions directory."""
+    version_files = list(VERSION_DIR.glob('v*_meta.json'))
+    if not version_files:
+        return 0
+    versions = []
+    for f in version_files:
+        try:
+            v = int(f.stem.split('_')[0][1:])
+            versions.append(v)
         except:
-            results.append(1.0)
+            pass
+    return max(versions) if versions else 0
 
-    return results
+def save_intermediate_file(df, step_name):
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    filename = f"features_{step_name}_{timestamp}.csv"
+    filepath = BASE_DIR / filename
+    df.to_csv(filepath, index=False)
+    print(f"  → Saved: {filename}")
+    return filepath
 
-def process_seismic_gap_chunk(args):
-    """Process một chunk cho seismic gap calculation"""
-    chunk_start, chunk_end, df_work, cartesian_coords, m5_coords, m5_times, kdtree_m5 = args
+# ============================================================================
+# PROGRESS TRACKER
+# ============================================================================
+class ProgressTracker:
+    """Track overall progress of feature engineering pipeline."""
 
-    results = []
-    for i in range(chunk_start, chunk_end):
-        dists, idxs = kdtree_m5.query(cartesian_coords[i:i+1], k=10)
-        dists = dists[0] / 1000
-        idxs = idxs[0]
+    def __init__(self, total_steps=7):
+        self.total_steps = total_steps
+        self.completed_steps = 0
+        self.step_names = [
+            'Load Data',
+            'Build Spatial Index',
+            'Spatio-temporal Clustering',
+            'Core Features',
+            'LSTM Temporal Features',
+            'Target Variables',
+            'Final Summary'
+        ]
+        self.start_time = time.time()
+        self.step_times = []
 
-        current_time = df_work.loc[i, 'time']
-        valid_mask = (dists <= 200) & (m5_times[idxs] < current_time)
+    def start_step(self, step_num):
+        """Mark the start of a step."""
+        self.current_step_start = time.time()
+        percentage = (step_num / self.total_steps) * 100
+        elapsed = time.time() - self.start_time
 
-        if np.any(valid_mask):
-            valid_times = m5_times[idxs[valid_mask]]
-            time_delta = current_time - valid_times.max()
-            gap_days = time_delta.total_seconds() / 86400
-            results.append(gap_days)
+        print("\n" + "="*70)
+        print(f" STEP {step_num}/{self.total_steps}: {self.step_names[step_num-1]} ")
+        print("="*70)
+        print(f" Overall Progress: {percentage:.1f}% | Elapsed: {self._format_time(elapsed)}")
+
+        if self.completed_steps > 0:
+            avg_time = elapsed / self.completed_steps
+            remaining = avg_time * (self.total_steps - self.completed_steps)
+            print(f" Estimated Time Remaining: {self._format_time(remaining)}")
+
+    def complete_step(self):
+        """Mark the completion of a step."""
+        step_time = time.time() - self.current_step_start
+        self.step_times.append(step_time)
+        self.completed_steps += 1
+
+        print(f"\n  ✓ Step completed in {self._format_time(step_time)}")
+
+        if self.completed_steps < self.total_steps:
+            avg_time = sum(self.step_times) / len(self.step_times)
+            remaining = avg_time * (self.total_steps - self.completed_steps)
+            print(f"  → Average time per step: {self._format_time(avg_time)}")
+            print(f"  → Estimated remaining: {self._format_time(remaining)}")
+
+    def _format_time(self, seconds):
+        """Format seconds to readable time."""
+        if seconds < 60:
+            return f"{seconds:.1f}s"
+        elif seconds < 3600:
+            return f"{seconds/60:.1f}m"
         else:
-            results.append(365 * 10)
+            return f"{seconds/3600:.1f}h"
 
-    return chunk_start, results
+    def finish(self):
+        """Mark the completion of all steps."""
+        total_time = time.time() - self.start_time
+        print("\n" + "="*70)
+        print(" PIPELINE COMPLETE! ")
+        print("="*70)
+        print(f" Total Time: {self._format_time(total_time)}")
+        print(f" Average per Step: {self._format_time(total_time/self.total_steps)}")
+        print("="*70)
 
-def process_regional_max_mag_chunk(args):
-    """Process một chunk cho regional max magnitude"""
-    chunk_start, chunk_end, time_numeric, cartesian_coords, mags, kdtree_cartesian, radius_m = args
+# ============================================================================
+# NUMBA OPTIMIZED FUNCTIONS WITH PROGRESS SUPPORT
+# ============================================================================
 
-    results = []
-    time_window_sec = 365 * 5 * 24 * 3600  # 5 years in seconds
+def compute_clustering_with_progress(times_numeric, mags, cartesian_coords,
+                                      distance_threshold, time_window_sec,
+                                      desc="Clustering"):
+    """
+    Wrapper for clustering with tqdm progress bar.
+    Processes in chunks to show progress.
+    """
+    n_events = len(times_numeric)
+    chunk_size = max(5000, n_events // 50)  # Show at least 50 progress updates
 
-    for i in range(chunk_start, chunk_end):
-        current_time = time_numeric[i]
-        nearby_indices = kdtree_cartesian.query_ball_point(cartesian_coords[i], radius_m)
+    sequence_ids = np.zeros(n_events, dtype=np.int64)
+    seq_positions = np.zeros(n_events, dtype=np.int64)
+    is_seq_mainshock = np.zeros(n_events, dtype=np.int64)
 
-        # Fast numpy boolean indexing
-        nearby_indices = np.array(nearby_indices)
-        time_mask = (time_numeric[nearby_indices] >= current_time - time_window_sec) & \
-                    (time_numeric[nearby_indices] <= current_time)
-        nearby_indices = nearby_indices[time_mask]
+    for chunk_start in tqdm(range(0, n_events, chunk_size), desc=desc, unit="chunks"):
+        chunk_end = min(chunk_start + chunk_size, n_events)
 
-        if len(nearby_indices) > 0:
-            results.append(mags[nearby_indices].max())
-        else:
-            results.append(mags[i])
+        # Process this chunk using the Numba function
+        seq_ids_chunk, seq_pos_chunk, is_main_chunk = compute_clustering_vectorized(
+            times_numeric[chunk_start:chunk_end],
+            mags[chunk_start:chunk_end],
+            cartesian_coords[chunk_start:chunk_end],
+            distance_threshold, time_window_sec, chunk_end - chunk_start
+        )
 
-    return chunk_start, results
+        sequence_ids[chunk_start:chunk_end] = seq_ids_chunk
+        seq_positions[chunk_start:chunk_end] = seq_pos_chunk
+        is_seq_mainshock[chunk_start:chunk_end] = is_main_chunk
 
-def process_regional_max_mag_sample_chunk(args):
-    """Process một chunk cho regional max magnitude - SAMPLING VERSION"""
-    indices, time_numeric, cartesian_coords, mags, kdtree_cartesian, radius_m = args
+    # Remap sequence IDs to be consecutive across chunks
+    unique_ids = np.unique(sequence_ids)
+    unique_ids = unique_ids[unique_ids > 0]  # Exclude 0
+    id_mapping = {old_id: new_id for new_id, old_id in enumerate(unique_ids, 1)}
+    id_mapping[0] = 0
 
-    results = []
-    time_window_sec = 365 * 5 * 24 * 3600  # 5 years in seconds
+    vectorized_map = np.vectorize(lambda x: id_mapping.get(x, 0))
+    sequence_ids = vectorized_map(sequence_ids)
 
-    for i in indices:
-        current_time = time_numeric[i]
-        nearby_indices = kdtree_cartesian.query_ball_point(cartesian_coords[i], radius_m)
+    return sequence_ids, seq_positions, is_seq_mainshock
 
-        # Fast numpy boolean indexing
-        nearby_indices = np.array(nearby_indices)
-        time_mask = (time_numeric[nearby_indices] >= current_time - time_window_sec) & \
-                    (time_numeric[nearby_indices] <= current_time)
-        nearby_indices = nearby_indices[time_mask]
 
-        if len(nearby_indices) > 0:
-            results.append(mags[nearby_indices].max())
-        else:
-            results.append(mags[i])
+def compute_aftershock_with_progress(times_numeric, mags, desc="Aftershock"):
+    """
+    Wrapper for aftershock detection with tqdm progress bar.
+    """
+    n_events = len(times_numeric)
+    chunk_size = max(10000, n_events // 20)
 
-    return indices, results
+    is_aftershock = np.zeros(n_events, dtype=np.int64)
+    mainshock_mag = mags.copy()
 
-def process_stress_tensor_chunk(args):
-    """Process một chunk cho stress tensor calculation"""
-    chunk_start, chunk_end, mags, times, lookback_events = args
+    for chunk_start in tqdm(range(0, n_events, chunk_size), desc=desc, unit="chunks"):
+        chunk_end = min(chunk_start + chunk_size, n_events)
 
-    n = chunk_end - chunk_start
-    sigma_1_local = np.zeros(n)
-    sigma_3_local = np.zeros(n)
-    tau_max_local = np.zeros(n)
+        aft_chunk, mag_chunk = compute_aftershock_vectorized(
+            times_numeric[chunk_start:chunk_end],
+            mags[chunk_start:chunk_end],
+            chunk_end - chunk_start
+        )
 
-    for idx in range(n):
-        i = chunk_start + idx
+        is_aftershock[chunk_start:chunk_end] = aft_chunk
+        mainshock_mag[chunk_start:chunk_end] = mag_chunk
 
-        start_idx = max(0, i - lookback_events)
-        prev_indices = np.arange(start_idx, i)
+    return is_aftershock, mainshock_mag
 
-        if len(prev_indices) < 5:
-            sigma_1_local[idx] = 50e6
-            sigma_3_local[idx] = 20e6
-            tau_max_local[idx] = (sigma_1_local[idx] - sigma_3_local[idx]) / 2
-            continue
 
-        prev_mags = mags[prev_indices]
-        stress_drops = 3e6 * 10**(1.5 * prev_mags)
-        mean_stress_drop = np.mean(stress_drops)
+def compute_coulomb_stress_with_progress(mags, desc="Coulomb stress", window_size=20):
+    """
+    Wrapper for Coulomb stress with tqdm progress bar.
+    """
+    n_events = len(mags)
+    chunk_size = max(5000, n_events // 20)
 
-        sigma_1_local[idx] = 100e6 + mean_stress_drop * 0.5
-        sigma_3_local[idx] = 30e6 + mean_stress_drop * 0.2
-        tau_max_local[idx] = (sigma_1_local[idx] - sigma_3_local[idx]) / 2
+    coulomb_stress = np.zeros(n_events, dtype=np.float64)
 
-    return chunk_start, sigma_1_local, sigma_3_local, tau_max_local
+    for chunk_start in tqdm(range(0, n_events, chunk_size), desc=desc, unit="chunks"):
+        chunk_end = min(chunk_start + chunk_size, n_events)
 
-def process_stress_rate_chunk(args):
-    """Process một chunk cho stress rate calculation"""
-    chunk_start, chunk_end, mags, times, time_window_events = args
+        # Process this chunk
+        stress_chunk = compute_coulomb_stress_optimized(
+            mags[chunk_start:chunk_end],
+            chunk_end - chunk_start,
+            window_size
+        )
 
-    n = chunk_end - chunk_start
-    stress_rate_local = np.zeros(n)
+        coulomb_stress[chunk_start:chunk_end] = stress_chunk
 
-    for idx in range(n):
-        i = chunk_start + idx
+    return coulomb_stress
 
-        if i < time_window_events:
-            stress_rate_local[idx] = 0
-            continue
 
-        prev_indices = np.arange(i - time_window_events, i)
-        prev_mags = mags[prev_indices]
-        total_stress = np.sum(3e6 * 10**(1.5 * prev_mags))
+def compute_b_value_with_progress(mags, sample_indices, n_events, desc="B-value", window_size=10000):
+    """
+    Wrapper for b-value with tqdm progress bar.
+    """
+    n_samples = len(sample_indices)
 
-        time_delta = times[i] - times[prev_indices[0]]
-        time_diff = time_delta.astype('timedelta64[s]').astype(float) / (365 * 24 * 3600)
+    b_values = []
+    for idx_pos in tqdm(range(n_samples), desc=desc, unit="samples"):
+        idx = sample_indices[idx_pos]
+        b_val = compute_b_value_optimized(mags, np.array([idx]), n_events, window_size)[0]
+        b_values.append(b_val)
 
-        if time_diff > 0:
-            stress_rate_local[idx] = (total_stress / 1e6) / time_diff
-
-    return chunk_start, stress_rate_local
-
-def process_fault_geometry_chunk(args):
-    """Process một chunk cho fault geometry calculation - OPTIMIZED VERSION"""
-    chunk_start, chunk_end, df_work, coords, kdtree, depths, radius_m = args
-
-    n = chunk_end - chunk_start
-    local_strike = np.zeros(n)
-    local_dip = np.zeros(n)
-    fault_length = np.zeros(n)
-
-    for idx in range(n):
-        i = chunk_start + idx
-
-        # Find nearby events
-        nearby_indices = kdtree.query_ball_point(coords[i], radius_m)
-
-        if len(nearby_indices) < 10:
-            local_strike[idx] = 0
-            local_dip[idx] = 90
-            fault_length[idx] = 10
-            continue
-
-        nearby_coords = coords[nearby_indices]
-
-        # PCA để tìm hướng chính
-        centered = nearby_coords - nearby_coords.mean(axis=0)
-        cov = np.cov(centered.T)
-        eigenvalues, eigenvectors = np.linalg.eig(cov)
-
-        idx_sort = eigenvalues.argsort()[::-1]
-        eigenvectors = eigenvectors[:, idx_sort]
-        strike_vector = eigenvectors[:, 0]
-
-        x, y, z = strike_vector
-        strike_rad = np.arctan2(y, x)
-        strike_deg = np.degrees(strike_rad)
-
-        if strike_deg < 0:
-            strike_deg += 360
-
-        local_strike[idx] = strike_deg
-
-        nearby_depths = depths[nearby_indices]
-        if len(nearby_depths) > 0:
-            depth_std = np.std(nearby_depths)
-            local_dip[idx] = 90 - np.clip(depth_std, 0, 60)
-        else:
-            local_dip[idx] = 90
-
-        # Fault length - OPTIMIZED but CORRECT: dùng pdist (C implementation, O(n) memory)
-        if len(nearby_coords) >= 2:
-            # pdist computes all pairwise distances efficiently in C
-            # Still O(n²) but much faster due to C implementation
-            if len(nearby_coords) > 500:  # Limit for very large sets
-                # Use bounding box for very large sets as approximation
-                min_coords = nearby_coords.min(axis=0)
-                max_coords = nearby_coords.max(axis=0)
-                max_dist = np.linalg.norm(max_coords - min_coords)
-            else:
-                max_dist = np.max(pdist(nearby_coords))
-            fault_length[idx] = max_dist / 1000
-        else:
-            fault_length[idx] = 10
-
-    return chunk_start, local_strike, local_dip, fault_length
+    return np.array(b_values)
 
 
 # ============================================================================
-# MAIN EXECUTION - LSTM OPTIMIZED
+# CORE NUMBA JIT FUNCTIONS (called by wrappers above)
 # ============================================================================
+@jit(nopython=True, parallel=False)
+def compute_clustering_vectorized(times_numeric, mags, cartesian_coords,
+                                   distance_threshold, time_window_sec, n_events):
+    """
+    Optimized clustering algorithm using vectorized operations.
+    Returns sequence_ids, seq_positions, is_seq_mainshock
+    """
+    sequence_ids = np.zeros(n_events, dtype=np.int64)
+    seq_positions = np.zeros(n_events, dtype=np.int64)
+    is_seq_mainshock = np.zeros(n_events, dtype=np.int64)
 
+    current_seq_id = 0
+
+    for i in range(n_events):
+        if sequence_ids[i] > 0:
+            continue
+
+        current_time = times_numeric[i]
+        current_mag = mags[i]
+        current_cartesian = cartesian_coords[i]
+
+        time_window_start = current_time - time_window_sec
+
+        # Find candidate indices within time window
+        candidate_indices = np.zeros(n_events, dtype=np.int64)
+        n_candidates = 0
+
+        for j in range(n_events):
+            if times_numeric[j] < current_time and times_numeric[j] >= time_window_start:
+                candidate_indices[n_candidates] = j
+                n_candidates += 1
+
+        found_sequence = False
+
+        if n_candidates > 0:
+            # Check spatial distance
+            for k in range(n_candidates):
+                idx = candidate_indices[k]
+                dx = current_cartesian[0] - cartesian_coords[idx][0]
+                dy = current_cartesian[1] - cartesian_coords[idx][1]
+                dz = current_cartesian[2] - cartesian_coords[idx][2]
+                dist = np.sqrt(dx*dx + dy*dy + dz*dz)
+
+                if dist <= distance_threshold and mags[idx] > current_mag:
+                    # Find most recent larger event
+                    most_recent_idx = idx
+                    for k2 in range(k + 1, n_candidates):
+                        idx2 = candidate_indices[k2]
+                        dx2 = current_cartesian[0] - cartesian_coords[idx2][0]
+                        dy2 = current_cartesian[1] - cartesian_coords[idx2][1]
+                        dz2 = current_cartesian[2] - cartesian_coords[idx2][2]
+                        if np.sqrt(dx2*dx2 + dy2*dy2 + dz2*dz2) <= distance_threshold and mags[idx2] > current_mag:
+                            most_recent_idx = idx2
+
+                    if sequence_ids[most_recent_idx] > 0:
+                        sequence_ids[i] = sequence_ids[most_recent_idx]
+                        # Count position
+                        pos = 0
+                        for j in range(i):
+                            if sequence_ids[j] == sequence_ids[most_recent_idx]:
+                                pos += 1
+                        seq_positions[i] = pos + 1
+                        found_sequence = True
+                    break
+
+        if not found_sequence:
+            current_seq_id += 1
+            sequence_ids[i] = current_seq_id
+            seq_positions[i] = 1
+            is_seq_mainshock[i] = 1
+
+    return sequence_ids, seq_positions, is_seq_mainshock
+
+
+@jit(nopython=True)
+def compute_aftershock_vectorized(times_numeric, mags, n_events):
+    """
+    Optimized aftershock detection using vectorized operations.
+    """
+    is_aftershock = np.zeros(n_events, dtype=np.int64)
+    mainshock_mag = mags.copy()
+
+    for i in range(n_events):
+        mag_i = mags[i]
+        time_i = times_numeric[i]
+        time_window_sec = 10 ** (0.5 * mag_i - 1.0)
+
+        max_candidate_mag = mag_i
+        found_larger = False
+
+        for j in range(n_events):
+            if times_numeric[j] >= time_i and times_numeric[j] <= time_i + time_window_sec:
+                if mags[j] > mag_i:
+                    found_larger = True
+                    if mags[j] > max_candidate_mag:
+                        max_candidate_mag = mags[j]
+
+        if found_larger:
+            is_aftershock[i] = 1
+            mainshock_mag[i] = max_candidate_mag
+
+    return is_aftershock, mainshock_mag
+
+
+@jit(nopython=True)
+def compute_coulomb_stress_optimized(mags, n_events, window_size=20):
+    """
+    Optimized Coulomb stress computation.
+    """
+    coulomb_stress = np.zeros(n_events, dtype=np.float64)
+
+    for i in range(n_events):
+        start_idx = max(0, i - window_size)
+        stress_sum = 0.0
+
+        for j in range(start_idx, i):
+            stress_sum += 10**(1.5 * mags[j])
+
+        coulomb_stress[i] = stress_sum
+
+    return coulomb_stress
+
+
+@jit(nopython=True)
+def compute_b_value_optimized(mags, sample_indices, n_events, window_size=10000):
+    """
+    Optimized b-value computation.
+    """
+    b_values = np.zeros(len(sample_indices), dtype=np.float64)
+
+    for idx_pos in range(len(sample_indices)):
+        idx = sample_indices[idx_pos]
+        start_idx = max(0, idx - window_size)
+
+        # Count valid magnitudes
+        count_total = 0
+        count_valid = 0
+        mag_sum = 0.0
+        mag_min = 10.0
+
+        for j in range(start_idx, idx + 1):
+            if j < n_events:
+                count_total += 1
+                if mags[j] >= 3.0:
+                    count_valid += 1
+                    mag_sum += mags[j]
+                    if mags[j] < mag_min:
+                        mag_min = mags[j]
+
+        if count_total >= 50 and count_valid >= 20 and mag_min < 10.0:
+            mag_mean = mag_sum / count_valid
+            b_values[idx_pos] = (mag_mean - mag_min)**(-1) * np.log10(np.e)
+        else:
+            b_values[idx_pos] = 1.0
+
+    return b_values
+
+
+# ============================================================================
+# MAIN EXECUTION
+# ============================================================================
 print("="*70)
-print(" ADVANCED FEATURES - LSTM OPTIMIZED VERSION ")
+print(" ADVANCED FEATURES - LSTM OPTIMIZED + CHECKPOINT (V4.0) ")
 print("="*70)
+
+ALL_STEPS = [
+    'step1_load_data',
+    'step2_build_index',
+    'step3_clustering',
+    'step4_core_features',
+    'step5_lstm_temporal',
+    'step6_targets'
+]
+
+# Initialize progress tracker
+progress = ProgressTracker(total_steps=7)
+
+# Show test mode status
+if TEST_MODE:
+    print(f"\n{'='*70}")
+    print(f" TEST MODE ENABLED: Processing {START_YEAR}-{END_YEAR-1} only ")
+    print(f"{'='*70}")
+
+# ============================================================================
+# CHECKPOINT SYSTEM
+# ============================================================================
+print("\n[Checkpoint System]")
+checkpoint = load_checkpoint()
+
+if checkpoint:
+    df_work = checkpoint['df']
+    completed_steps = checkpoint['completed_steps']
+    current_version = get_latest_version()
+    progress.completed_steps = len(completed_steps)
+    print(f"  Skipping: {completed_steps}")
+    print(f"  Latest CSV version: v{current_version:02d}")
+    print(f"  Resuming from step {progress.completed_steps + 1}/7")
+else:
+    completed_steps = []
+    current_version = 0
+    print("  No checkpoint found - starting fresh")
+    print(f"  CSV versions will be saved to: {VERSION_DIR}")
 
 # ============================================================================
 # STEP 1: LOAD DATA
 # ============================================================================
-print("\n[1/6] Loading data...")
-df = pd.read_csv(BASE_DIR.parent / 'dongdat.csv')
-df['time'] = pd.to_datetime(df['time'])
-df = df.sort_values('time').reset_index(drop=True)
-df_work = df.copy().reset_index(drop=True)
-print(f"  Working with {len(df_work):,} events")
-print(f"  Magnitude range: {df_work['mag'].min():.1f} - {df_work['mag'].max():.1f}")
+if 'step1_load_data' not in completed_steps:
+    progress.start_step(1)
+    df = pd.read_csv(BASE_DIR.parent / 'dongdat.csv')
+    df['time'] = pd.to_datetime(df['time'])
+
+    # Filter by year range if TEST_MODE is enabled
+    if TEST_MODE:
+        print(f"\n  [TEST MODE] Filtering data: {START_YEAR}-{END_YEAR-1}")
+        original_count = len(df)
+        df = df[(df['time'].dt.year >= START_YEAR) & (df['time'].dt.year < END_YEAR)]
+        filtered_count = len(df)
+        removed_count = original_count - filtered_count
+        print(f"  Original: {original_count:,} rows")
+        print(f"  Filtered: {filtered_count:,} rows ({filtered_count/original_count*100:.1f}%)")
+        print(f"  Removed: {removed_count:,} rows")
+
+    # Calculate region_code based on geographic grid (~50km)
+    # Grid size: 0.5 degrees ≈ 55km
+    GRID_SIZE_DEG = 0.5  # ~55km
+
+    def calculate_region_code(lat, lon, grid_size=GRID_SIZE_DEG):
+        """
+        Calculate region code based on lat/lon grid.
+        Format: R{lat_int:03d}_{lon_int:03d}
+        """
+        # Offset to handle negative coordinates
+        lat_offset = 90  # to make all latitudes positive (0-180)
+        lon_offset = 180  # to make all longitudes positive (0-360)
+
+        lat_int = int((lat + lat_offset) / grid_size)
+        lon_int = int((lon + lon_offset) / grid_size)
+
+        return f"R{lat_int:03d}_{lon_int:03d}"
+
+    df['region_code'] = df.apply(
+        lambda row: calculate_region_code(row['latitude'], row['longitude']),
+        axis=1
+    )
+
+    # Sort by REGION first, then by TIME within each region
+    # This allows LSTM to learn regional earthquake patterns
+    df = df.sort_values(['region_code', 'time']).reset_index(drop=True)
+    df_work = df.copy().reset_index(drop=True)
+
+    # Handle NaN values for sparse features (mmi, cdi, felt)
+    # These features have low availability (<2%) but are valuable when present
+    sparse_features = ['mmi', 'cdi', 'felt']
+    for feat in sparse_features:
+        if feat in df_work.columns:
+            nan_count = df_work[feat].isna().sum()
+            if nan_count > 0:
+                df_work[feat] = df_work[feat].fillna(0)
+                print(f"  {feat}: filled {nan_count:,} NaN values with 0")
+
+    # Show region statistics
+    n_regions = df_work['region_code'].nunique()
+    print(f"  Events: {len(df_work):,} | Regions: {n_regions:,}")
+    print(f"  Mag: {df_work['mag'].min():.1f} - {df_work['mag'].max():.1f}")
+    print(f"  Grid size: {GRID_SIZE_DEG}° (~{GRID_SIZE_DEG * 111:.0f}km)")
+    print(f"  Sorting: region_code → time")
+
+    current_version += 1
+    save_version_csv(df_work, current_version, 'step1_load_data',
+                     description=f"Data sorted by region_code then time (grid: {GRID_SIZE_DEG}°), NaN filled for sparse features")
+    save_checkpoint(df_work, ['step1_load_data'], 'step1_load_data')
+    completed_steps = ['step1_load_data']
+    progress.complete_step()
+else:
+    print("\n[1/7] ✓ SKIPPED")
+    progress.completed_steps += 1
 
 # ============================================================================
 # STEP 2: BUILD SPATIAL INDEX
 # ============================================================================
-print("\n[2/6] Building spatial index (KD-tree)...")
+if 'step2_build_index' not in completed_steps:
+    progress.start_step(2)
 
-coords = df_work[['latitude', 'longitude']].values
-lat_rad = np.radians(coords[:, 0])
-lon_rad = np.radians(coords[:, 1])
-R = 6371.0
+    coords = df_work[['latitude', 'longitude']].values
+    lat_rad = np.radians(coords[:, 0])
+    lon_rad = np.radians(coords[:, 1])
+    R = 6371.0
 
-x = R * np.cos(lat_rad) * np.cos(lon_rad)
-y = R * np.cos(lat_rad) * np.sin(lon_rad)
-z = R * np.sin(lat_rad)
-cartesian_coords = np.column_stack([x, y, z])
-kdtree_cartesian = cKDTree(cartesian_coords)
+    x = R * np.cos(lat_rad) * np.cos(lon_rad)
+    y = R * np.cos(lat_rad) * np.sin(lon_rad)
+    z = R * np.sin(lat_rad)
+    cartesian_coords = np.column_stack([x, y, z])
+    kdtree_cartesian = cKDTree(cartesian_coords)
 
-print(f"  KD-tree built with {len(cartesian_coords):,} points")
+    df_work['_cartesian_x'] = x
+    df_work['_cartesian_y'] = y
+    df_work['_cartesian_z'] = z
+
+    current_version += 1
+    save_version_csv(df_work, current_version, 'step2_spatial_index',
+                     description="Data with cartesian coordinates for KD-tree spatial queries")
+    save_checkpoint(df_work, completed_steps + ['step2_build_index'], 'step2_build_index')
+    completed_steps.append('step2_build_index')
+    progress.complete_step()
+else:
+    print("\n[2/7] ✓ SKIPPED")
+    progress.completed_steps += 1
+    x = df_work['_cartesian_x'].values
+    y = df_work['_cartesian_y'].values
+    z = df_work['_cartesian_z'].values
+    cartesian_coords = np.column_stack([x, y, z])
+    kdtree_cartesian = cKDTree(cartesian_coords)
 
 # ============================================================================
-# STEP 3: CORE FEATURES (5 essential features)
+# STEP 3: SPATIO-TEMPORAL CLUSTERING (OPTIMIZED)
 # ============================================================================
-print("\n[3/6] Computing core features...")
+# Define earthquake sequences based on spatial and temporal proximity
+# - Distance threshold: 50km
+# - Time window: 72 hours
+# ============================================================================
+if 'step3_clustering' not in completed_steps:
+    progress.start_step(3)
 
-# 3.1 Aftershock detection (simplified - time-only for speed)
-print("  Computing aftershock detection...")
-times_numeric = df_work['time'].values.astype(np.int64) / 1e9
-mags = df_work['mag'].values
+    # Clustering parameters
+    DISTANCE_THRESHOLD_KM = 50.0  # km
+    TIME_WINDOW_HOURS = 72.0  # hours
+    TIME_WINDOW_SEC = TIME_WINDOW_HOURS * 3600
 
-n_events = len(df_work)
-is_aftershock = np.zeros(n_events, dtype=bool)
-mainshock_mag = mags.copy()
+    times_numeric = df_work['time'].values.astype(np.int64) / 1e9
+    mags = df_work['mag'].values
+    n_events = len(df_work)
 
-# Simplified: Check if there's a larger event within time window
-for i in tqdm(range(min(n_events, 100000)), desc="  Aftershock (sampled)"):  # Sample for speed
-    mag_i = mags[i]
-    time_i = times_numeric[i]
-    time_window_sec = 10 ** (0.5 * mag_i - 1.0)
+    print(f"  Parameters: distance < {DISTANCE_THRESHOLD_KM}km, time < {TIME_WINDOW_HOURS}h")
 
-    # Find events in time window AFTER this event
-    time_mask = (times_numeric >= time_i) & (times_numeric <= time_i + time_window_sec)
-    candidate_indices = np.where(time_mask)[0]
+    # Use optimized clustering function with progress bar
+    print(f"  Running clustering on {n_events:,} events...")
 
-    if len(candidate_indices) > 1:
-        candidate_mags = mags[candidate_indices]
-        larger_mainshock = candidate_mags > mag_i
+    sequence_ids, seq_positions, is_seq_mainshock = compute_clustering_with_progress(
+        times_numeric, mags, cartesian_coords,
+        DISTANCE_THRESHOLD_KM, TIME_WINDOW_SEC,
+        desc="  Clustering progress"
+    )
+    print(f"  ✓ Clustering completed!")
 
-        if np.any(larger_mainshock):
-            is_aftershock[i] = True
-            mainshock_mag[i] = candidate_mags[larger_mainshock].max()
+    df_work['sequence_id'] = sequence_ids
+    df_work['seq_position'] = seq_positions
+    df_work['is_seq_mainshock'] = is_seq_mainshock
 
-# Interpolate for rest (for speed with large dataset)
-if n_events > 100000:
-    from scipy.interpolate import interp1d
-    sample_indices = np.arange(0, n_events, n_events // 10000)
-    f_aftershock = interp1d(sample_indices, is_aftershock[sample_indices].astype(float),
-                            kind='linear', bounds_error=False, fill_value=0)
-    is_aftershock = f_aftershock(np.arange(n_events)) > 0.5
+    # Compute additional sequence-level features - OPTIMIZED
+    print("  Computing sequence-level features...")
 
-    f_mainshock = interp1d(sample_indices, mainshock_mag[sample_indices],
-                          kind='linear', bounds_error=False, fill_value=mags.mean())
-    mainshock_mag = f_mainshock(np.arange(n_events))
+    # Use groupby for efficiency
+    seq_info = df_work[df_work['sequence_id'] > 0].groupby('sequence_id').agg({
+        'mag': 'first',  # Mainshock mag is first in sequence
+        'sequence_id': 'count'  # Sequence length
+    }).rename(columns={'mag': 'mainshock_mag', 'sequence_id': 'seq_len'})
 
-df_work['is_aftershock'] = is_aftershock.astype(int)
-df_work['mainshock_mag'] = mainshock_mag
-print(f"  Aftershocks: {is_aftershock.sum():,} ({is_aftershock.sum()/len(df_work)*100:.1f}%)")
+    # Map to dataframe
+    seq_mainshock_mag_map = seq_info['mainshock_mag'].to_dict()
+    seq_length_map = seq_info['seq_len'].to_dict()
 
-# 3.2 Seismicity density (simplified - spatial bins)
-print("  Computing seismicity density...")
-lat_bins = np.linspace(df_work['latitude'].min(), df_work['latitude'].max(), 100)
-lon_bins = np.linspace(df_work['longitude'].min(), df_work['longitude'].max(), 100)
+    df_work['seq_mainshock_mag'] = df_work['sequence_id'].map(seq_mainshock_mag_map).fillna(0)
+    df_work['seq_length'] = df_work['sequence_id'].map(seq_length_map).fillna(0).astype(int)
 
-df_work['lat_bin'] = pd.cut(df_work['latitude'], bins=lat_bins, labels=False)
-df_work['lon_bin'] = pd.cut(df_work['longitude'], bins=lon_bins, labels=False)
-df_work['spatial_bin'] = df_work['lat_bin'] * 100 + df_work['lon_bin']
+    # Time since sequence start - OPTIMIZED
+    mainshock_times = df_work[df_work['is_seq_mainshock'] == 1].set_index('sequence_id')['time'].to_dict()
 
-density_map = df_work['spatial_bin'].value_counts()
-df_work['seismicity_density'] = df_work['spatial_bin'].map(density_map).fillna(1)
-df_work['seismicity_density_100km'] = df_work['seismicity_density'] / 100
-print(f"  Mean density: {df_work['seismicity_density_100km'].mean():.2f}")
+    def get_mainshock_time(seq_id):
+        return mainshock_times.get(seq_id, df_work['time'].iloc[0])
 
-# 3.3 Coulomb stress proxy (simplified)
-print("  Computing Coulomb stress proxy...")
-coulomb_stress = np.zeros(n_events)
+    mainshock_time_series = df_work['sequence_id'].apply(get_mainshock_time)
+    df_work['time_since_seq_start_sec'] = (df_work['time'] - mainshock_time_series).dt.total_seconds().fillna(0)
 
-for i in tqdm(range(min(10000, n_events)), desc="  Coulomb stress (sample)"):
-    start_idx = max(0, i - 20)
-    prev_mags = mags[start_idx:i]
-    if len(prev_mags) > 0:
-        stress_contributions = 10**(1.5 * prev_mags)
-        coulomb_stress[i] = np.sum(stress_contributions)
+    # Print statistics
+    n_sequences = df_work['sequence_id'].nunique() - 1  # Exclude 0
+    n_mainshocks = df_work['is_seq_mainshock'].sum()
+    avg_seq_length = df_work[df_work['sequence_id'] > 0].groupby('sequence_id').size().mean()
 
-# Interpolate
-if n_events > 10000:
-    f_coulomb = interp1d(np.arange(0, n_events, n_events//1000), coulomb_stress[::n_events//1000],
-                          kind='linear', bounds_error=False,
-                          fill_value=(coulomb_stress[:1000].mean(), coulomb_stress[-1000:].mean()))
-    coulomb_stress = f_coulomb(np.arange(n_events))
+    print(f"  ✓ Found {n_sequences:,} sequences")
+    print(f"  ✓ Mainshocks: {n_mainshocks:,}")
+    print(f"  ✓ Avg sequence length: {avg_seq_length:.1f} events")
 
-df_work['coulomb_stress_proxy'] = coulomb_stress
-print(f"  Mean stress: {coulomb_stress.mean():.2e}")
+    current_version += 1
+    save_version_csv(df_work, current_version, 'step3_spatial_temporal_clustering',
+                     description=f"Spatio-temporal clustering: {n_sequences} sequences, {DISTANCE_THRESHOLD_KM}km/{TIME_WINDOW_HOURS}h")
+    save_checkpoint(df_work, completed_steps + ['step3_clustering'], 'step3_clustering')
+    completed_steps.append('step3_clustering')
+    progress.complete_step()
+else:
+    print("\n[3/7] ✓ SKIPPED")
+    progress.completed_steps += 1
 
-# 3.4 Regional b-value (simplified)
-print("  Computing regional b-value...")
-sample_size = min(1000, n_events)
-sample_indices = np.linspace(0, n_events-1, sample_size, dtype=int)
+# ============================================================================
+# STEP 4: CORE FEATURES (OPTIMIZED)
+# ============================================================================
+if 'step4_core_features' not in completed_steps:
+    progress.start_step(4)
 
-b_values = []
-for idx in tqdm(sample_indices, desc="  B-value"):
-    start_idx = max(0, idx - 10000)
-    recent_mags = mags[start_idx:idx+1]
+    times_numeric = df_work['time'].values.astype(np.int64) / 1e9
+    mags = df_work['mag'].values
+    n_events = len(df_work)
 
-    if len(recent_mags) >= 50:
-        recent_mags = recent_mags[recent_mags >= 3.0]
-        if len(recent_mags) >= 20:
-            try:
-                b_value = (recent_mags.mean() - recent_mags.min())**-1 * np.log10(np.e)
-                b_values.append(b_value)
-            except:
-                b_values.append(1.0)
-        else:
-            b_values.append(1.0)
+    # 4.1 Aftershock detection - OPTIMIZED with Numba + tqdm
+    print("  [1/4] Computing aftershock features...")
+    is_aftershock, mainshock_mag = compute_aftershock_with_progress(
+        times_numeric, mags,
+        desc="     Aftershock detection"
+    )
+    df_work['is_aftershock'] = is_aftershock
+    df_work['mainshock_mag'] = mainshock_mag
+    print("       ✓ Done!")
+
+    # 4.2 Seismicity density - OPTIMIZED
+    print("  [2/4] Computing seismicity density...")
+    start_t = time.time()
+    lat_bins = np.linspace(df_work['latitude'].min(), df_work['latitude'].max(), 100)
+    lon_bins = np.linspace(df_work['longitude'].min(), df_work['longitude'].max(), 100)
+
+    df_work['lat_bin'] = pd.cut(df_work['latitude'], bins=lat_bins, labels=False)
+    df_work['lon_bin'] = pd.cut(df_work['longitude'], bins=lon_bins, labels=False)
+    df_work['spatial_bin'] = df_work['lat_bin'] * 100 + df_work['lon_bin']
+
+    density_map = df_work['spatial_bin'].value_counts()
+    df_work['seismicity_density'] = df_work['spatial_bin'].map(density_map).fillna(1)
+    df_work['seismicity_density_100km'] = df_work['seismicity_density'] / 100
+    print(f"       → Done in {time.time() - start_t:.1f}s")
+
+    # 4.3 Coulomb stress proxy - OPTIMIZED with Numba + tqdm
+    print("  [3/4] Computing Coulomb stress...")
+    coulomb_stress = compute_coulomb_stress_with_progress(
+        mags,
+        desc="     Coulomb stress",
+        window_size=20
+    )
+    df_work['coulomb_stress_proxy'] = coulomb_stress
+    print("       ✓ Done!")
+
+    # 4.4 Regional b-value - OPTIMIZED with Numba + tqdm
+    print("  [4/4] Computing b-value...")
+    sample_size = min(1000, n_events)
+    sample_indices = np.linspace(0, n_events-1, sample_size, dtype=int)
+
+    b_values = compute_b_value_with_progress(
+        mags, sample_indices, n_events,
+        desc="     B-value",
+        window_size=10000
+    )
+
+    f_b = interp1d(sample_indices, b_values, kind='linear',
+                    bounds_error=False, fill_value=(np.mean(b_values), np.mean(b_values)))
+    df_work['regional_b_value'] = f_b(np.arange(n_events))
+    print("       ✓ Done!")
+
+    current_version += 1
+    save_version_csv(df_work, current_version, 'step4_core_features',
+                     description="Core features: is_aftershock, mainshock_mag, seismicity_density, coulomb_stress, regional_b_value")
+    save_checkpoint(df_work, completed_steps + ['step4_core_features'], 'step4_core_features')
+    completed_steps.append('step4_core_features')
+    progress.complete_step()
+else:
+    print("\n[4/7] ✓ SKIPPED")
+    progress.completed_steps += 1
+
+# ============================================================================
+# STEP 5: LSTM TEMPORAL FEATURES (OPTIMIZED)
+# ============================================================================
+if 'step5_lstm_temporal' not in completed_steps:
+    progress.start_step(5)
+
+    n_events = len(df_work)  # Define n_events for this step
+
+    # 5.1 Time since last event - ALREADY OPTIMIZED (vectorized)
+    print("  [1/3] Computing time since last event...")
+    start_t = time.time()
+    df_work['time_since_last_event'] = df_work['time'].diff().dt.total_seconds().fillna(0)
+    print(f"       → Done in {time.time() - start_t:.1f}s")
+
+    # 5.2 Time since last M5+ - OPTIMIZED with binary search
+    print("  [2/3] Computing time since M5+...")
+    start_t = time.time()
+    m5_indices = df_work[df_work['mag'] >= 5.0].index.tolist()
+    print(f"       Found {len(m5_indices)} M5+ events")
+
+    if len(m5_indices) > 0:
+        m5_times = df_work.loc[m5_indices, 'time'].values
+
+        # Use binary search for efficient time lookup with progress
+        last_m5_time = []
+        current_times = df_work['time'].values
+
+        for i in tqdm(range(len(df_work)), desc="       Processing", leave=False):
+            current_time = current_times[i]
+            # Find the most recent M5+ event using binary search
+            idx = bisect.bisect_left(m5_times, current_time) - 1
+            if idx >= 0:
+                # Convert numpy timedelta64 to seconds
+                time_diff = current_time - m5_times[idx]
+                last_m5_time.append(time_diff.astype('timedelta64[s]').astype(int))
+            else:
+                last_m5_time.append(365 * 24 * 3600)  # Default: 1 year
+
+        df_work['time_since_last_M5'] = last_m5_time
     else:
-        b_values.append(1.0)
+        df_work['time_since_last_M5'] = 365 * 24 * 3600  # Default: 1 year
+    print(f"       → Done in {time.time() - start_t:.1f}s")
 
-f_b = interp1d(sample_indices, b_values, kind='linear',
-                bounds_error=False, fill_value=(np.mean(b_values), np.mean(b_values)))
-df_work['regional_b_value'] = f_b(np.arange(n_events))
-print(f"  Mean b-value: {np.mean(b_values):.2f}")
+    # 5.3 Interval sequence (last 5 intervals) - OPTIMIZED
+    print("  [3/3] Computing interval lags...")
+    start_t = time.time()
+    time_diffs = df_work['time'].diff().dt.total_seconds().fillna(0).values
 
-print(f"  ✓ Core features added: 4 features")
+    # Vectorized computation for interval lags using np.roll
+    # interval_lag1 = most recent interval, interval_lag2 = second most recent, etc.
+    for lag in range(1, 6):
+        # Shift time_diffs by 'lag' positions and fill beginning with 0
+        lag_values = np.roll(time_diffs, shift=lag)
+        lag_values[:lag] = 0  # Fill first 'lag' positions with 0
+        df_work[f'interval_lag{lag}'] = lag_values
+    print(f"       → Done in {time.time() - start_t:.1f}s")
 
-# ============================================================================
-# STEP 4: LSTM CRITICAL FEATURES - Temporal Intervals
-# ============================================================================
-print("\n[4/6] Computing LSTM temporal features...")
-
-# 4.1 Time since last event
-df_work['time_since_last_event'] = df_work['time'].diff().dt.total_seconds()
-df_work['time_since_last_event'] = df_work['time_since_last_event'].fillna(0)
-print("  ✓ time_since_last_event")
-
-# 4.2 Time since last M5+ event
-print("  Computing time since last M5+...")
-m5_times = df_work[df_work['mag'] >= 5.0]['time']
-last_m5_time = pd.Series(index=df_work.index, dtype=float)
-
-for i in tqdm(range(len(df_work)), desc="  Time since M5"):
-    current_time = df_work.loc[i, 'time']
-    past_m5 = m5_times[m5_times < current_time]
-    if len(past_m5) > 0:
-        last_m5_time[i] = (current_time - past_m5.max()).total_seconds()
-    else:
-        last_m5_time[i] = 365 * 24 * 3600
-
-df_work['time_since_last_M5'] = last_m5_time
-print("  ✓ time_since_last_M5")
-
-# 4.3 Interval sequence (last 5 intervals)
-print("  Computing interval sequences...")
-intervals_seq = []
-for i in tqdm(range(len(df_work)), desc="  Interval seq"):
-    if i < 5:
-        intervals_seq.append([0] * 5)
-    else:
-        recent_times = df_work.loc[i-5:i, 'time'].values
-        diffs = np.diff(recent_times).astype('timedelta64[s]').astype(float)
-        diffs_padded = np.pad(diffs, (5-len(diffs), 0), mode='constant')
-        intervals_seq.append(diffs_padded)
-
-for lag in range(5):
-    df_work[f'interval_lag{lag+1}'] = [seq[lag] for seq in intervals_seq]
-print("  ✓ interval_lag1 to interval_lag5")
-
-# ============================================================================
-# STEP 5: LSTM ROLLING STATISTICS
-# ============================================================================
-print("\n[5/6] Computing rolling statistics...")
-
-df_work['time_numeric'] = df_work['time'].astype(np.int64) / 1e9
-
-windows = {'1h': 3600, '24h': 24*3600, '7d': 7*24*3600}
-
-for window_name, window_sec in windows.items():
-    print(f"  Computing rolling {window_name}...")
-
-    count_list = []
-    mean_mag_list = []
-    max_mag_list = []
-
-    for i in tqdm(range(len(df_work)), desc=f"   {window_name}"):
-        current_time = df_work.loc[i, 'time_numeric']
-        min_time = current_time - window_sec
-
-        time_mask = (df_work['time_numeric'] >= min_time) & (df_work['time_numeric'] <= current_time)
-        events_in_window = df_work[time_mask]
-
-        count_list.append(len(events_in_window))
-
-        if len(events_in_window) > 0:
-            mean_mag_list.append(events_in_window['mag'].mean())
-            max_mag_list.append(events_in_window['mag'].max())
-        else:
-            mean_mag_list.append(0)
-            max_mag_list.append(0)
-
-    df_work[f'rolling_count_{window_name}'] = count_list
-    df_work[f'rolling_mean_mag_{window_name}'] = mean_mag_list
-    df_work[f'rolling_max_mag_{window_name}'] = max_mag_list
-
-print("  ✓ Rolling statistics computed")
+    current_version += 1
+    save_version_csv(df_work, current_version, 'step5_lstm_temporal',
+                   description="LSTM temporal features: time intervals, intervals lag features")
+    save_checkpoint(df_work, completed_steps + ['step5_lstm_temporal'], 'step5_lstm_temporal')
+    completed_steps.append('step5_lstm_temporal')
+    progress.complete_step()
+else:
+    print("\n[5/7] ✓ SKIPPED")
+    progress.completed_steps += 1
 
 # ============================================================================
 # STEP 6: TARGET VARIABLES
 # ============================================================================
-print("\n[6/6] Creating target variables...")
+if 'step6_targets' not in completed_steps:
+    progress.start_step(6)
 
-df_work['target_time_to_next'] = df_work['time'].diff(-1).dt.total_seconds().abs()
-df_work['target_time_to_next'] = df_work['target_time_to_next'].fillna(0)
-print("  ✓ target_time_to_next")
+    df_work['target_time_to_next'] = df_work['time'].diff(-1).dt.total_seconds().abs().fillna(0)
+    df_work['target_next_mag'] = df_work['mag'].shift(-1).fillna(df_work['mag'].iloc[-1])
+    df_work['target_next_mag_binary'] = (df_work['target_next_mag'] >= 5.0).astype(int)
 
-df_work['target_next_mag'] = df_work['mag'].shift(-1)
-df_work['target_next_mag'] = df_work['target_next_mag'].fillna(df_work['mag'].iloc[-1])
-print("  ✓ target_next_mag")
-
-df_work['target_next_mag_binary'] = (df_work['target_next_mag'] >= 5.0).astype(int)
-print("  ✓ target_next_mag_binary")
+    current_version += 1
+    save_version_csv(df_work, current_version, 'step6_targets',
+                   description="Final dataset with all features and targets: time_to_next, next_mag, next_mag_binary")
+    save_checkpoint(df_work, completed_steps + ['step6_targets'], 'step6_targets')
+    completed_steps.append('step6_targets')
+    progress.complete_step()
+else:
+    print("\n[6/7] ✓ SKIPPED")
+    progress.completed_steps += 1
 
 # ============================================================================
 # SELECT FINAL FEATURES AND SAVE
 # ============================================================================
+progress.start_step(7)
 print("\n" + "="*70)
-print(" SUMMARY AND SAVE ")
+print(" SUMMARY ")
 print("="*70)
 
-# Original features (5)
-original_features = ['time', 'latitude', 'longitude', 'depth', 'mag']
+original_features = ['time', 'latitude', 'longitude', 'depth', 'mag',
+                     'sig', 'mmi', 'cdi', 'felt', 'region_code']
+core_features = ['is_aftershock', 'mainshock_mag', 'seismicity_density_100km',
+                 'coulomb_stress_proxy', 'regional_b_value']
+sequence_features = ['sequence_id', 'seq_position', 'is_seq_mainshock',
+                     'seq_mainshock_mag', 'seq_length', 'time_since_seq_start_sec']
+lstm_features = ['time_since_last_event', 'time_since_last_M5',
+                 'interval_lag1', 'interval_lag2', 'interval_lag3', 'interval_lag4', 'interval_lag5']
+target_features = ['target_time_to_next', 'target_next_mag', 'target_next_mag_binary']
 
-# Core features (5)
-core_features = [
-    'is_aftershock',
-    'mainshock_mag',
-    'seismicity_density_100km',
-    'coulomb_stress_proxy',
-    'regional_b_value'
-]
-
-# LSTM critical features (14)
-lstm_features = [
-    'time_since_last_event',
-    'time_since_last_M5',
-    'interval_lag1', 'interval_lag2', 'interval_lag3', 'interval_lag4', 'interval_lag5',
-    'rolling_count_1h', 'rolling_count_24h', 'rolling_count_7d',
-    'rolling_mean_mag_1h', 'rolling_mean_mag_24h', 'rolling_mean_mag_7d',
-    'rolling_max_mag_1h', 'rolling_max_mag_24h', 'rolling_max_mag_7d'
-]
-
-# Targets (3)
-target_features = [
-    'target_time_to_next',
-    'target_next_mag',
-    'target_next_mag_binary'
-]
-
-# Combine all
-final_features = original_features + core_features + lstm_features + target_features
-
-# Create final dataframe
+final_features = original_features + core_features + sequence_features + lstm_features + target_features
 df_final = df_work[final_features].copy()
 
-print(f"\nFinal features: {len(final_features)}")
-print("  - Original: 5")
-print("  - Core: 5")
-print("  - LSTM-specific: 14")
-print("  - Targets: 3")
+print(f"\nFeatures: {len(final_features)} total")
+print(f"  Original: 10 | Core: 5 | Sequence: 6 | LSTM: 5 | Targets: 3")
 
 # Save to CSV
 output_file = BASE_DIR / 'features_lstm.csv'
 df_final.to_csv(output_file, index=False)
 
+# Save as version CSV
+current_version += 1
+save_version_csv(df_final, current_version, 'final_features',
+               description=f"Final features: {len(final_features)} total (10 original + 5 core + 6 sequence + 5 LSTM + 3 targets)")
+
 print(f"\n✓ SAVED: {output_file}")
-print(f"  Rows: {len(df_final):,}")
-print(f"  Columns: {len(df_final.columns)}")
+print(f"  Rows: {len(df_final):,} | Columns: {len(df_final.columns)}")
 print(f"  Size: {os.path.getsize(output_file) / 1024 / 1024:.1f} MB")
 
-# Print feature list
-print(f"\nFEATURE LIST:")
-print("\n1. ORIGINAL FEATURES (5):")
-for feat in original_features:
-    print(f"   - {feat}")
+progress.complete_step()
+progress.finish()
 
-print("\n2. CORE FEATURES (5):")
-for feat in core_features:
-    print(f"   - {feat}")
-
-print("\n3. LSTM CRITICAL FEATURES (14):")
-print("   Temporal Intervals:")
-for feat in ['time_since_last_event', 'time_since_last_M5'] + [f'interval_lag{i}' for i in range(1, 6)]:
-    print(f"   - {feat}")
-print("   Rolling Statistics (1h, 24h, 7d):")
-for feat in ['rolling_count', 'rolling_mean_mag', 'rolling_max_mag']:
-    for w in ['1h', '24h', '7d']:
-        print(f"   - {feat}_{w}")
-
-print("\n4. TARGET VARIABLES (3):")
-for feat in target_features:
-    print(f"   - {feat}")
-
-print("\n" + "="*70)
-print(" COMPLETE! ")
-print("="*70)
-print("\n✓ Features ready for LSTM training!")
-print("\nNext steps:")
-print("  1. Use sequences of 50-100 events as LSTM input")
-print("  2. Predict: target_time_to_next, target_next_mag")
-print("  3. Consider splitting by time (train on early data, test on recent)")
-print("\nFile: haind/features_lstm.csv")
-print("="*70)
-print(f"\n  Total features: {len(final_features)} (removed 11 redundant features)")
-print(f"  Estimated runtime: ~10-15 minutes for 3M records")
-print("="*70)
+print(f"\nFeatures ready for LSTM training!")
+print(f"Main file: {output_file}")
+print(f"Version files saved in: {VERSION_DIR}")
+print(f"Total versions created: {current_version}")
+print(f"Total: {len(final_features)} features")

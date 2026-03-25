@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Features Guide - Earthquake LSTM Model</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background: var(--bg);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 50px 40px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.2);
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.2em;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        header .subtitle {
+            font-size: 1.05em;
+            opacity: 0.95;
+            margin-bottom: 10px;
+        }
+
+        header .meta {
+            font-size: 0.9em;
+            opacity: 0.85;
+            background: rgba(255,255,255,0.15);
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 50px;
+            margin-top: 15px;
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+        }
+
+        .stat-card .number {
+            font-size: 2em;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-card.original .number { color: var(--primary); }
+        .stat-card.core .number { color: #8b5cf6; }
+        .stat-card.sequence .number { color: #ec4899; }
+        .stat-card.lstm .number { color: #3b82f6; }
+        .stat-card.target .number { color: var(--success); }
+        .stat-card.total .number { color: var(--danger); }
+
+        .stat-card .label {
+            font-size: 0.8em;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Filter Buttons */
+        .filter-section {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+        }
+
+        .filter-title {
+            font-size: 0.9em;
+            color: var(--text-light);
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 10px 20px;
+            border: 2px solid var(--border);
+            background: white;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 500;
+            transition: all 0.2s;
+            color: var(--text);
+        }
+
+        .filter-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .filter-btn.time.active { background: #3b82f6; border-color: #3b82f6; }
+        .filter-btn.mag.active { background: #f59e0b; border-color: #f59e0b; }
+        .filter-btn.both.active { background: #8b5cf6; border-color: #8b5cf6; }
+
+        /* Table */
+        .table-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+            margin-bottom: 25px;
+        }
+
+        .table-header {
+            padding: 20px 25px;
+            border-bottom: 2px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-title {
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+        }
+
+        thead {
+            background: #f8fafc;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th {
+            padding: 15px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-light);
+            text-transform: uppercase;
+            font-size: 0.75em;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--border);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+
+        tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        tbody tr.hidden {
+            display: none;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.75em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .badge-time {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .badge-mag {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .badge-both {
+            background: #f3e8ff;
+            color: #7c3aed;
+        }
+
+        .badge-target {
+            background: #dcfce7;
+            color: #059669;
+        }
+
+        /* Importance */
+        .importance {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .importance-critical {
+            color: var(--danger);
+            font-weight: 600;
+        }
+
+        .importance-high {
+            color: #f97316;
+            font-weight: 600;
+        }
+
+        .importance-medium {
+            color: var(--warning);
+        }
+
+        .importance-low {
+            color: var(--success);
+        }
+
+        .stars {
+            color: #fbbf24;
+            font-size: 0.85em;
+        }
+
+        /* Code */
+        code {
+            font-family: 'Fira Code', 'Consolas', monospace;
+            background: #f1f5f9;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 0.85em;
+            color: var(--primary-dark);
+        }
+
+        /* Category Section */
+        .category-section {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 16px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .category-title {
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+
+        .category-badge {
+            background: var(--primary);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85em;
+        }
+
+        .category-badge.original { background: var(--primary); }
+        .category-badge.core { background: #8b5cf6; }
+        .category-badge.sequence { background: #ec4899; }
+        .category-badge.lstm { background: #3b82f6; }
+        .category-badge.target { background: var(--success); }
+
+        /* Footer */
+        footer {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+            margin-top: 30px;
+        }
+
+        footer p {
+            color: var(--text-light);
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header h1 { font-size: 1.8em; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            th, td { padding: 8px 6px; font-size: 0.8em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Features Guide - Earthquake LSTM Model</h1>
+            <p class="subtitle">29 Features (26 Input + 3 Targets) cho dự báo THỜI GIAN & ĐỘ LỚN động đất tiếp theo</p>
+            <div class="meta">File: haind/add_advanced_features_mp.py | Output: features_lstm.csv | Model: LSTM | Sort: Region → Time</div>
+        </header>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card original">
+                <div class="number">10</div>
+                <div class="label">Original</div>
+            </div>
+            <div class="stat-card core">
+                <div class="number">5</div>
+                <div class="label">Core</div>
+            </div>
+            <div class="stat-card sequence">
+                <div class="number">6</div>
+                <div class="label">Sequence</div>
+            </div>
+            <div class="stat-card lstm">
+                <div class="number">5</div>
+                <div class="label">LSTM Temporal</div>
+            </div>
+            <div class="stat-card target">
+                <div class="number">3</div>
+                <div class="label">Targets</div>
+            </div>
+            <div class="stat-card total">
+                <div class="number">29</div>
+                <div class="label">Total</div>
+            </div>
+        </div>
+
+        <!-- Filter -->
+        <div class="filter-section">
+            <div class="filter-title">🔍 Lọc theo mục đích dự báo:</div>
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">Tất cả (29)</button>
+                <button class="filter-btn time" data-filter="time">⏰ Thời gian (20)</button>
+                <button class="filter-btn mag" data-filter="mag">📏 Độ lớn (18)</button>
+                <button class="filter-btn both" data-filter="both">🔄 Cả hai (15)</button>
+            </div>
+        </div>
+
+        <!-- ORIGINAL FEATURES -->
+        <div class="category-section">
+            <div class="category-header">
+                <h2 class="category-title">1️⃣ Original Features (10)</h2>
+                <span class="category-badge original">Dữ liệu thô</span>
+            </div>
+            <p style="color: var(--text-light); font-size: 0.9em; margin-bottom: 15px;">
+                <strong>Sắp xếp:</strong> region_code → time ASC (mỗi vùng có chuỗi thời gian riêng)
+            </p>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nhóm</th>
+                            <th>Feature</th>
+                            <th>Ý nghĩa</th>
+                            <th>Cách tính</th>
+                            <th>Độ quan trọng</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr data-purpose="time,mag">
+                            <td><span class="badge badge-both">Cả hai</span></td>
+                            <td><code>time</code></td>
+                            <td>Thời điểm xảy ra động đất (datetime)</td>
+                            <td>Lấy trực tiếp từ USGS data</td>
+                            <td><span class="importance importance-critical"><span class="stars">⭐⭐⭐⭐⭐</span> CRITICAL</span></td>
+                        </tr>
+                        <tr data-purpose="time,mag">
+                            <td><span class="badge badge-both">Cả hai</span></td>
+                            <td><code>mag</code></td>
+                            <td>Độ lớn động đất (thang Richter)</td>
+                            <td>Lấy trực tiếp từ USGS data</td>
+                            <td><span class="importance importance-critical"><span class="stars">⭐⭐⭐⭐⭐</span> CRITICAL</span></td>
+                        </tr>
+                        <tr data-purpose="time,mag">
+                            <td><span class="badge badge-both">Cả hai</span></td>
+                            <td><code>depth</code></td>
+                            <td>Độ sâu tiêu điểm (km)</td>
+                            <td>Tính từ Δt giữa sóng P và S</td>
+                            <td><span class="importance importance-high"><span class="stars">⭐⭐⭐⭐</span> HIGH</span></td>
+                        </tr>
+                        <tr data-purpose="time,mag">
+                            <td><span class="badge badge-both">Cả hai</span></td>
+                            <td><code>latitude</code></td>
+                            <td>Vĩ độ (-90° đến +90°)</td>
+                            <td>Đo bằng mạng lưới trạm địa chấn</td>
+                            <td><span class="importance importance-medium"><span class="stars">⭐⭐⭐</span> MEDIUM</span></td>
+                        </tr>
+                        <tr data-purpose="time,mag">
+                            <td><span class="badge badge-both">Cả hai</span></td>
+                            <td><code>longitude</code></td>
+                            <td>Kinh độ (-180° đến +180°)</td>
+                            <td>Đo bằng mạng lưới trạm địa chấn</td>
+                            <td><span class="importance importance-medium"><span class="stars">⭐⭐⭐</span> MEDIUM</span></td>
+                        </tr>
+                        <tr data-purpose="time,mag">
+                            <td><span class="badge badge-both">Cả hai</span></td>
+                            <td><code>sig</code></td>
+                            <td>Significance = tổng hợp impact</td>
+                            <td>USGS computed: mag × depth × felt + intensity</td>
+                            <td><span class="importance importance-critical"><span class="stars">⭐⭐⭐⭐⭐</span> CRITICAL</span></td>
+                        </tr>
+                        <tr data-purpose="mag">
+                            <td><span class="badge badge-mag">Độ lớn</span></td>
+                            <td><code>mmi</code></td>
+                            <td>Mercalli Intensity (I-X, scale 1-10)</td>
+                            <td>USGS computed (0.9% available, NaN→0)</td>
+                            <td><span class="importance importance-high"><span class="stars">⭐⭐⭐⭐</span> HIGH</span></td>
+                        </tr>
+                        <tr data-purpose="mag">
+                            <td><span class="badge badge-mag">Độ lớn</span></td>
+                            <td><code>cdi</code></td>
+                            <td>Community Decimal Intensity</td>
+                            <td>User-reported intensity (1.7% available, NaN→0)</td>
+                            <td><span class="importance importance-medium"><span class="stars">⭐⭐⭐</span> MEDIUM</span></td>
+                        </tr>
+                        <tr data-purpose="mag">
+                            <td><span class="badge badge-mag">Độ lớn</span></td>
+                            <td><code>felt</code></td>
+                            <td>Số người cảm nhận động đất</td>
+                            <td>User reports count (1.7% available, NaN→0)</td>
+                            <td><span class="importance importance-medium"><span class="stars">⭐⭐⭐</span> MEDIUM</span></td>
+                        </tr>
+                        <tr data-purpose="time,mag">
+                            <td><span class="badge badge-both">Cả hai</span></td>
+                            <td><code>region_code</code></td>
+                            <td>Mã vùng grid-based: R{lat}_{lon}</td>
+                            <td>Grid 0.5° ≈ 55km: floor((lat+90)/0.5)_floor((lon+180)/0.5)</td>
+                            <td><span class="importance importance-high"><span class="stars">⭐⭐⭐⭐</span> HIGH</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- CORE FEATURES -->
+        <div class="category-section">
+            <div class="category-header">
+                <h2 class="category-title">2️⃣ Core Features (5)</h2>
+                <span class="category-badge core">Tính toán</span>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nhóm</th>
+                            <th>Feature</th>
+                            <th>Ý nghĩa</th>
+                            <th>Cách tính</th>
+                            <th>Độ quan trọng</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr data-purpose="time,mag">
+                            <td><span class="badge badge-both">Cả hai</span></td>
+                            <td><code>is_aftershock</code></td>
+                            <td>Có phải dư chấn? (0/1)</td>
+                            <td>Kiểm tra event lớn hơn trong time window: 10^(0.5×mag-1)</td>
+                            <td><span class="importance importance-critical"><span class="stars">⭐⭐⭐⭐⭐</span> CRITICAL</span></td>
+                        </tr>
+                        <tr data-purpose="time,mag">
+                            <td><span class="badge badge-both">Cả hai</span></td>
+                            <td><code>mainshock_mag</code></td>
+                            <td>Độ lớn chủ chấn liên quan</td>
+                            <td>max(mag) trong time_window, hoặc chính nó</td>
+                            <td><span class="importance importance-critical"><span class="stars">⭐⭐⭐⭐⭐</span> CRITICAL</span></td>
+                        </tr>
+                        <tr data-purpose="time,mag">
+                            <td><span class="badge badge-both">Cả hai</span></td>
+                            <td><code>seismicity_density_100km</code></td>
+                            <td>Mật độ động đất trong bán kính 100km</td>
+                            <td>count(events trong 100km) / (π × 100²)</td>
+                            <td><span class="importance importance-high"><span class="stars">⭐⭐⭐⭐</span> HIGH</span></td>
+                        </tr>
+                        <tr data-purpose="time,mag">
+                            <td><span class="badge badge-both">Cả hai</span></td>
+                            <td><code>coulomb_stress_proxy</code></td>
+                            <td>Ứng suất tích tụ: Σ10^1.5M</td>
+                            <td>Σ(10^(1.5 × mag_i)) cho 20 events gần nhất</td>
+                            <td><span class="importance importance-critical"><span class="stars">⭐⭐⭐⭐⭐</span> CRITICAL</span></td>
+                        </tr>
+                        <tr data-purpose="mag">
+                            <td><span class="badge badge-mag">Độ lớn</span></td>
+                            <td><code>regional_b_value</code></td>
+                            <td>Tham số b (Gutenberg-Richter)</td>
+                            <td>0.4343 / (mean(mag) - min(mag)) cho M≥3.0</td>
+                            <td><span class="importance importance-medium"><span class="stars">⭐⭐⭐</span> MEDIUM</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- SEQUENCE FEATURES -->
+        <div class="category-section">
+            <div class="category-header">
+                <h2 class="category-title">3️⃣ Sequence Features (6)</h2>
+                <span class="category-badge sequence">Chuỗi sự kiện</span>
+            </div>
+            <p style="color: var(--text-light); font-size: 0.9em; margin-bottom: 15px;">
+                <strong>Clustering:</strong> Distance &lt; 50km + Time &lt; 72h
+            </p>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nhóm</th>
+                            <th>Feature</th>
+                            <th>Ý nghĩa</th>
+                            <th>Cách tính</th>
+                            <th>Độ quan trọng</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr data-purpose="time">
+                            <td><span class="badge badge-time">Thời gian</span></td>
+                            <td><code>sequence_id</code></td>
+                            <td>ID của chuỗi sự kiện (1, 2, 3...)</td>
+                            <td>Spatio-temporal clustering</td>
+                            <td><span class="importance importance-low"><span class="stars">⭐⭐</span> LOW</span></td>
+                        </tr>
+                        <tr data-purpose="time,mag">
+                            <td><span class="badge badge-both">Cả hai</span></td>
+                            <td><code>seq_position</code></td>
+                            <td>Vị trí trong chuỗi (1=mainshock)</td>
+                            <td>Thứ tự trong sequence</td>
+                            <td><span class="importance importance-critical"><span class="stars">⭐⭐⭐⭐⭐</span> CRITICAL</span></td>
+                        </tr>
+                        <tr data-purpose="time,mag">
+                            <td><span class="badge badge-both">Cả hai</span></td>
+                            <td><code>is_seq_mainshock</code></td>
+                            <td>Có phải mainshock? (0/1)</td>
+                            <td>1 nếu seq_position = 1</td>
+                            <td><span class="importance importance-critical"><span class="stars">⭐⭐⭐⭐⭐</span> CRITICAL</span></td>
+                        </tr>
+                        <tr data-purpose="time,mag">
+                            <td><span class="badge badge-both">Cả hai</span></td>
+                            <td><code>seq_mainshock_mag</code></td>
+                            <td>Độ lớn mainshock của chuỗi</td>
+                            <td>mag của event có seq_position = 1</td>
+                            <td><span class="importance importance-critical"><span class="stars">⭐⭐⭐⭐⭐</span> CRITICAL</span></td>
+                        </tr>
+                        <tr data-purpose="time,mag">
+                            <td><span class="badge badge-both">Cả hai</span></td>
+                            <td><code>seq_length</code></td>
+                            <td>Tổng số events trong sequence</td>
+                            <td>count(events trong cùng sequence_id)</td>
+                            <td><span class="importance importance-high"><span class="stars">⭐⭐⭐⭐</span> HIGH</span></td>
+                        </tr>
+                        <tr data-purpose="time,mag">
+                            <td><span class="badge badge-both">Cả hai</span></td>
+                            <td><code>time_since_seq_start_sec</code></td>
+                            <td>Thời gian từ mainshock (giây)</td>
+                            <td>time[i] - time[mainshock]</td>
+                            <td><span class="importance importance-critical"><span class="stars">⭐⭐⭐⭐⭐</span> CRITICAL</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- LSTM TEMPORAL FEATURES -->
+        <div class="category-section">
+            <div class="category-header">
+                <h2 class="category-title">4️⃣ LSTM Temporal Features (5)</h2>
+                <span class="category-badge lstm">INPUT CHÍNH</span>
+            </div>
+            <p style="color: var(--text-light); font-size: 0.9em; margin-bottom: 15px;">
+                <strong>LSTM Input:</strong> interval_lag1-5 là chuỗi input chính cho LSTM
+            </p>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nhóm</th>
+                            <th>Feature</th>
+                            <th>Ý nghĩa</th>
+                            <th>Cách tính</th>
+                            <th>Độ quan trọng</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr data-purpose="time,mag">
+                            <td><span class="badge badge-both">Cả hai</span></td>
+                            <td><code>time_since_last_event</code></td>
+                            <td>Khoảng cách đến trận trước (giây)</td>
+                            <td>time[i] - time[i-1]</td>
+                            <td><span class="importance importance-critical"><span class="stars">⭐⭐⭐⭐⭐</span> CRITICAL</span></td>
+                        </tr>
+                        <tr data-purpose="time,mag">
+                            <td><span class="badge badge-both">Cả hai</span></td>
+                            <td><code>time_since_last_M5</code></td>
+                            <td>Thời gian từ trận ≥M5 (giây)</td>
+                            <td>time[i] - max(time[mag ≥ 5.0 & < time[i]])</td>
+                            <td><span class="importance importance-high"><span class="stars">⭐⭐⭐⭐</span> HIGH</span></td>
+                        </tr>
+                        <tr data-purpose="time,mag">
+                            <td><span class="badge badge-both">Cả hai</span></td>
+                            <td><code>interval_lag1</code></td>
+                            <td>Khoảng cách 1 bước trước</td>
+                            <td>time[i-1] - time[i-2]</td>
+                            <td><span class="importance importance-critical"><span class="stars">⭐⭐⭐⭐⭐</span> CRITICAL</span></td>
+                        </tr>
+                        <tr data-purpose="time,mag">
+                            <td><span class="badge badge-both">Cả hai</span></td>
+                            <td><code>interval_lag2</code></td>
+                            <td>Khoảng cách 2 bước trước</td>
+                            <td>time[i-2] - time[i-3]</td>
+                            <td><span class="importance importance-high"><span class="stars">⭐⭐⭐⭐</span> HIGH</span></td>
+                        </tr>
+                        <tr data-purpose="time,mag">
+                            <td><span class="badge badge-both">Cả hai</span></td>
+                            <td><code>interval_lag3, lag4, lag5</code></td>
+                            <td>Khoảng cách 3-5 bước trước</td>
+                            <td>time[i-n] - time[i-n-1]</td>
+                            <td><span class="importance importance-medium"><span class="stars">⭐⭐⭐</span> MEDIUM</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TARGET VARIABLES -->
+        <div class="category-section">
+            <div class="category-header">
+                <h2 class="category-title">5️⃣ Target Variables (3)</h2>
+                <span class="category-badge target">OUTPUT</span>
+            </div>
+            <p style="color: var(--text-light); font-size: 0.9em; margin-bottom: 15px;">
+                <strong>Targets:</strong> Đây là OUTPUT mà LSTM cần dự báo - KHÔNG dùng làm input
+            </p>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Target</th>
+                            <th>Feature</th>
+                            <th>Ý nghĩa</th>
+                            <th>Cách tính</th>
+                            <th>Loại output</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr data-purpose="time">
+                            <td><span class="badge badge-target">Target 1</span></td>
+                            <td><code>target_time_to_next</code></td>
+                            <td>Thời gian đến trận tiếp theo (giây)</td>
+                            <td>time[i+1] - time[i]</td>
+                            <td>Regression</td>
+                        </tr>
+                        <tr data-purpose="mag">
+                            <td><span class="badge badge-target">Target 2</span></td>
+                            <td><code>target_next_mag</code></td>
+                            <td>Độ lớn trận tiếp theo</td>
+                            <td>mag[i+1]</td>
+                            <td>Regression</td>
+                        </tr>
+                        <tr data-purpose="mag">
+                            <td><span class="badge badge-target">Target 3</span></td>
+                            <td><code>target_next_mag_binary</code></td>
+                            <td>≥M5.0? (0/1)</td>
+                            <td>1 if mag[i+1] >= 5.0 else 0</td>
+                            <td>Classification</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- LSTM ARCHITECTURE -->
+        <div class="category-section">
+            <div class="category-header">
+                <h2 class="category-title">🧠 LSTM Architecture</h2>
+            </div>
+            <div style="padding: 20px; background: #f8fafc; border-radius: 10px;">
+                <h4 style="margin-bottom: 15px;">Input Sequence cho LSTM:</h4>
+                <pre style="background: #1e293b; color: #e2e8f0; padding: 20px; border-radius: 8px; overflow-x: auto;">
+<span style="color: #6366f1;"># LSTM Input (timesteps=5, features=26)</span>
+<span style="color: #6366f1;"># Data Sorting: region_code → time (regional analysis)</span>
+X = [
+    [interval_lag5, interval_lag4, interval_lag3, interval_lag2, interval_lag1],  <span style="color: #64748b;"># Temporal sequence</span>
+    [mag, depth, sig, mmi, cdi, felt,                                              <span style="color: #64748b;"># Original features</span>
+     latitude, longitude, region_code,                                               <span style="color: #64748b;"># Spatial + Region</span>
+     is_aftershock, mainshock_mag, density, stress, b_value,                        <span style="color: #64748b;"># Core</span>
+     seq_id, seq_pos, is_main, seq_mag, seq_len, time_since,                       <span style="color: #64748b;"># Sequence</span>
+     time_since_last, time_since_M5]                                                <span style="color: #64748b;"># Temporal context</span>
+]
+
+<span style="color: #6366f1;"># LSTM Output</span>
+y = [
+    target_time_to_next,     <span style="color: #64748b;"># Regression: seconds</span>
+    target_next_mag,          <span style="color: #64748b;"># Regression: magnitude</span>
+    target_next_mag_binary    <span style="color: #64748b;"># Classification: 0/1</span>
+]
+                </pre>
+                <p style="margin-top: 15px; font-size: 0.9em; color: var(--text-light);">
+                    <strong>Note:</strong> Data được sắp xếp theo region_code → time, cho phép LSTM học pattern riêng cho từng vùng địa lý.
+                </p>
+            </div>
+        </div>
+
+        <footer>
+            <p><strong>File:</strong> haind/add_advanced_features_mp.py</p>
+            <p><strong>Output:</strong> haind/features_lstm.csv (29 columns)</p>
+            <p><strong>Source:</strong> dongdat.csv</p>
+            <p><strong>Region Code:</strong> R{lat:03d}_{lon:03d} (0.5° grid ≈ 55km)</p>
+            <p><strong>Sorting:</strong> region_code → time ASC (regional analysis)</p>
+            <p><strong>Updated:</strong> 2025-03-25 | Version: 3.2 (Custom region_code)</p>
+        </footer>
+    </div>
+
+    <script>
+        // Filter functionality
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const tableRows = document.querySelectorAll('tbody tr[data-purpose]');
+
+        filterButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove active from all buttons
+                filterButtons.forEach(b => b.classList.remove('active'));
+                // Add active to clicked button
+                btn.classList.add('active');
+
+                const filter = btn.dataset.filter;
+
+                tableRows.forEach(row => {
+                    const purpose = row.dataset-purpose;
+                    if (filter === 'all') {
+                        row.classList.remove('hidden');
+                    } else if (purpose && purpose.includes(filter)) {
+                        row.classList.remove('hidden');
+                    } else {
+                        row.classList.add('hidden');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

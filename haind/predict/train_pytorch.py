@@ -56,8 +56,8 @@ def parse_args():
     # Optional parameters
     parser.add_argument('--region', type=str, default=None,
                        help='Train on specific region only (default: all regions)')
-    parser.add_argument('--min-events', type=int, default=100,
-                       help='Minimum events per region to include (default: 100)')
+    parser.add_argument('--min-events', type=int, default=500,
+                       help='Minimum events per region to include (default: 500)')
     parser.add_argument('--device', type=str, default='auto',
                        choices=['auto', 'cpu', 'cuda'],
                        help='Device to use (default: auto - detects GPU automatically)')

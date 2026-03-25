@@ -108,6 +108,55 @@
             letter-spacing: 0.5px;
         }
 
+        /* Alert Boxes */
+        .alert {
+            padding: 20px 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 5px solid;
+            display: flex;
+            align-items: start;
+            gap: 15px;
+        }
+
+        .alert-warning {
+            background: #fef3c7;
+            border-color: #f59e0b;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            border-color: #3b82f6;
+        }
+
+        .alert-success {
+            background: #dcfce7;
+            border-color: #10b981;
+        }
+
+        .alert-icon {
+            font-size: 1.5em;
+            flex-shrink: 0;
+        }
+
+        .alert-content h4 {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .alert-content p {
+            color: var(--text-light);
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .alert-content ul {
+            margin-left: 20px;
+            color: var(--text-light);
+            font-size: 0.9em;
+        }
+
         /* Filter Buttons */
         .filter-section {
             background: var(--card-bg);
@@ -155,10 +204,6 @@
             color: white;
         }
 
-        .filter-btn.time.active { background: #3b82f6; border-color: #3b82f6; }
-        .filter-btn.mag.active { background: #f59e0b; border-color: #f59e0b; }
-        .filter-btn.both.active { background: #8b5cf6; border-color: #8b5cf6; }
-
         /* Table */
         .table-section {
             background: var(--card-bg);
@@ -172,18 +217,11 @@
         .table-header {
             padding: 20px 25px;
             border-bottom: 2px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
 
         .table-title {
             font-size: 1.3em;
             font-weight: 600;
-        }
-
-        .table-wrapper {
-            overflow-x: auto;
         }
 
         table {
@@ -219,10 +257,6 @@
 
         tbody tr:hover {
             background: #f8fafc;
-        }
-
-        tbody tr.hidden {
-            display: none;
         }
 
         /* Badges */
@@ -286,7 +320,6 @@
             font-size: 0.85em;
         }
 
-        /* Code */
         code {
             font-family: 'Fira Code', 'Consolas', monospace;
             background: #f1f5f9;
@@ -334,6 +367,69 @@
         .category-badge.lstm { background: #3b82f6; }
         .category-badge.target { background: var(--success); }
 
+        /* Workflow Steps */
+        .workflow {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 16px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+        }
+
+        .workflow-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .steps {
+            display: grid;
+            gap: 15px;
+        }
+
+        .step {
+            display: flex;
+            gap: 15px;
+            align-items: start;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .step-number {
+            background: var(--primary);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .step-content h4 {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .step-content p {
+            color: var(--text-light);
+            font-size: 0.9em;
+        }
+
+        .step-content code {
+            display: block;
+            margin-top: 8px;
+            padding: 10px;
+            background: #1e293b;
+            color: #e2e8f0;
+            border-radius: 5px;
+        }
+
         /* Footer */
         footer {
             background: var(--card-bg);
@@ -363,9 +459,23 @@
     <div class="container">
         <header>
             <h1>📊 Features Guide - Earthquake LSTM Model</h1>
-            <p class="subtitle">29 Features (26 Input + 3 Targets) cho dự báo THỜI GIAN & ĐỘ LỚN động đất tiếp theo</p>
+            <p class="subtitle">31 Features (28 Input + 3 Targets) cho dự báo THỜI GIAN & ĐỘ LỚN động đất tiếp theo</p>
             <div class="meta">File: haind/add_advanced_features_mp.py | Output: features_lstm.csv | Model: LSTM | Sort: Region → Time</div>
         </header>
+
+        <!-- GPU Compatibility Warning -->
+        <div class="alert alert-warning">
+            <div class="alert-icon">⚠️</div>
+            <div class="alert-content">
+                <h4>GPU Compatibility Warning - RTX 5090</h4>
+                <p><strong>RTX 5090 (Blackwell)</strong> chưa được PyTorch/TensorFlow hỗ trợ chính thức (compute capability sm_120).</p>
+                <ul>
+                    <li><strong>PyTorch 2.6.0</strong>: Crash - không có kernel binary cho sm_120</li>
+                    <li><strong>TensorFlow 2.18</strong>: JIT compile từ PTX (30-60 phút lần đầu)</li>
+                    <li><strong>Giải pháp</strong>: Dùng Google Colab (T4/L4/A100) hoặc build từ source</li>
+                </ul>
+            </div>
+        </div>
 
         <!-- Stats -->
         <div class="stats-grid">
@@ -391,7 +501,60 @@
             </div>
             <div class="stat-card total">
                 <div class="number">29</div>
-                <div class="label">Total</div>
+                <div class="label">Input + 3 Targets</div>
+            </div>
+        </div>
+
+        <!-- Training Workflow -->
+        <div class="workflow">
+            <h2 class="workflow-title">🚀 Training Workflow (Google Colab)</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>Tạo Features</h4>
+                        <p>Chạy script để tạo features từ data thô</p>
+                        <code>cd haind && python add_advanced_features_mp.py</code>
+                        <p style="margin-top: 5px; font-size: 0.85em;">⏱️ 30-60 phút với 3.1M events | Output: features_lstm.csv (709MB)</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>Upload lên Google Drive</h4>
+                        <p>Upload features_lstm.csv lên Google Drive</p>
+                        <code>drive.google.com → Upload → features_lstm.csv</code>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>Mở Colab Notebook</h4>
+                        <p>Upload và chạy notebook training</p>
+                        <code>earthquake_training_colab.ipynb</code>
+                        <p style="margin-top: 5px; font-size: 0.85em;">📊 T4: 2-4 giờ | L4: 1-1.5 giờ | A100: 30-40 phút</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h4>Download Model</h4>
+                        <p>Model được lưu tự động vào Google Drive</p>
+                        <code>/content/drive/MyDrive/earthquake_models/</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Configuration Info -->
+        <div class="alert alert-info">
+            <div class="alert-icon">ℹ️</div>
+            <div class="alert-content">
+                <h4>Data Configuration</h4>
+                <p><strong>TEST_MODE = False</strong>: Process full data (2000-2025, 3.1M events)</p>
+                <p><strong>END_YEAR = 2026</strong>: Full year range (đã fix từ 2006)</p>
+                <p><strong>Sequence Length = 5</strong>: Cần ít nhất 5 events để predict event thứ 6</p>
+                <p><strong>min_events filter</strong>: Chỉ giữ regions có ≥100 events (default: 500 cho quality)</p>
             </div>
         </div>
 
@@ -400,9 +563,9 @@
             <div class="filter-title">🔍 Lọc theo mục đích dự báo:</div>
             <div class="filter-buttons">
                 <button class="filter-btn active" data-filter="all">Tất cả (29)</button>
-                <button class="filter-btn time" data-filter="time">⏰ Thời gian (20)</button>
-                <button class="filter-btn mag" data-filter="mag">📏 Độ lớn (18)</button>
-                <button class="filter-btn both" data-filter="both">🔄 Cả hai (15)</button>
+                <button class="filter-btn" data-filter="time">⏰ Thời gian (20)</button>
+                <button class="filter-btn" data-filter="mag">📏 Độ lớn (18)</button>
+                <button class="filter-btn" data-filter="both">🔄 Cả hai (15)</button>
             </div>
         </div>
 
@@ -473,21 +636,21 @@
                             <td><span class="badge badge-mag">Độ lớn</span></td>
                             <td><code>mmi</code></td>
                             <td>Mercalli Intensity (I-X, scale 1-10)</td>
-                            <td>USGS computed (0.9% available, NaN→0)</td>
+                            <td>USGS computed (sparse, NaN→0)</td>
                             <td><span class="importance importance-high"><span class="stars">⭐⭐⭐⭐</span> HIGH</span></td>
                         </tr>
                         <tr data-purpose="mag">
                             <td><span class="badge badge-mag">Độ lớn</span></td>
                             <td><code>cdi</code></td>
                             <td>Community Decimal Intensity</td>
-                            <td>User-reported intensity (1.7% available, NaN→0)</td>
+                            <td>User-reported intensity (sparse, NaN→0)</td>
                             <td><span class="importance importance-medium"><span class="stars">⭐⭐⭐</span> MEDIUM</span></td>
                         </tr>
                         <tr data-purpose="mag">
                             <td><span class="badge badge-mag">Độ lớn</span></td>
                             <td><code>felt</code></td>
                             <td>Số người cảm nhận động đất</td>
-                            <td>User reports count (1.7% available, NaN→0)</td>
+                            <td>User reports count (sparse, NaN→0)</td>
                             <td><span class="importance importance-medium"><span class="stars">⭐⭐⭐</span> MEDIUM</span></td>
                         </tr>
                         <tr data-purpose="time,mag">
@@ -744,7 +907,7 @@
             <div style="padding: 20px; background: #f8fafc; border-radius: 10px;">
                 <h4 style="margin-bottom: 15px;">Input Sequence cho LSTM:</h4>
                 <pre style="background: #1e293b; color: #e2e8f0; padding: 20px; border-radius: 8px; overflow-x: auto;">
-<span style="color: #6366f1;"># LSTM Input (timesteps=5, features=26)</span>
+<span style="color: #6366f1;"># LSTM Input (timesteps=5, features=27)</span>
 <span style="color: #6366f1;"># Data Sorting: region_code → time (regional analysis)</span>
 X = [
     [interval_lag5, interval_lag4, interval_lag3, interval_lag2, interval_lag1],  <span style="color: #64748b;"># Temporal sequence</span>
@@ -768,13 +931,47 @@ y = [
             </div>
         </div>
 
+        <!-- Training Parameters -->
+        <div class="category-section">
+            <div class="category-header">
+                <h2 class="category-title">⚙️ Training Parameters Reference</h2>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                <div style="padding: 15px; background: #f8fafc; border-radius: 10px;">
+                    <h4 style="margin-bottom: 10px;">min_events (Region Filter)</h4>
+                    <ul style="margin-left: 20px; font-size: 0.9em; color: var(--text-light);">
+                        <li><strong>100</strong>: ~1,000 regions, ~880K events (default)</li>
+                        <li><strong>500</strong>: ~400 regions, ~750K events (recommended)</li>
+                        <li><strong>1000</strong>: ~200 regions, ~650K events (best quality)</li>
+                    </ul>
+                </div>
+                <div style="padding: 15px; background: #f8fafc; border-radius: 10px;">
+                    <h4 style="margin-bottom: 10px;">batch_size (GPU Memory)</h4>
+                    <ul style="margin-left: 20px; font-size: 0.9em; color: var(--text-light);">
+                        <li><strong>T4 (Free)</strong>: 64</li>
+                        <li><strong>L4 (Pro)</strong>: 128</li>
+                        <li><strong>A100 (Pro)</strong>: 256</li>
+                    </ul>
+                </div>
+                <div style="padding: 15px; background: #f8fafc; border-radius: 10px;">
+                    <h4 style="margin-bottom: 10px;">hidden_units (Model Size)</h4>
+                    <ul style="margin-left: 20px; font-size: 0.9em; color: var(--text-light);">
+                        <li><strong>[64, 32]</strong>: Fast training, ~67K params</li>
+                        <li><strong>[128, 64]</strong>: Balanced, ~135K params (default)</li>
+                        <li><strong>[256, 128]</strong>: Best quality, ~531K params</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
         <footer>
             <p><strong>File:</strong> haind/add_advanced_features_mp.py</p>
-            <p><strong>Output:</strong> haind/features_lstm.csv (29 columns)</p>
-            <p><strong>Source:</strong> dongdat.csv</p>
+            <p><strong>Output:</strong> haind/features_lstm.csv (31 columns)</p>
+            <p><strong>Source:</strong> dongdat.csv (3.1M events)</p>
             <p><strong>Region Code:</strong> R{lat:03d}_{lon:03d} (0.5° grid ≈ 55km)</p>
             <p><strong>Sorting:</strong> region_code → time ASC (regional analysis)</p>
-            <p><strong>Updated:</strong> 2025-03-25 | Version: 3.2 (Custom region_code)</p>
+            <p><strong>Data Range:</strong> 2000-2025 (Full data with END_YEAR=2026)</p>
+            <p><strong>Updated:</strong> 2025-03-25 | Version: 4.0 (Full data + Colab training)</p>
         </footer>
     </div>
 
@@ -793,7 +990,7 @@ y = [
                 const filter = btn.dataset.filter;
 
                 tableRows.forEach(row => {
-                    const purpose = row.dataset-purpose;
+                    const purpose = row.dataset.purpose;
                     if (filter === 'all') {
                         row.classList.remove('hidden');
                     } else if (purpose && purpose.includes(filter)) {

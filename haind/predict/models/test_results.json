@@ -1,0 +1,162 @@
+[
+  {
+    "sequence_id": 11554,
+    "region": "R257_114",
+    "prediction": {
+      "time_to_next_seconds": 3271.163818359375,
+      "time_to_next_hours": 0.9086565971374512,
+      "next_magnitude": 1.3433881998062134,
+      "prob_M5_plus": 0.0005633662221953273
+    },
+    "ground_truth": {
+      "time_to_next_seconds": 121500.76,
+      "time_to_next_hours": 33.750211111111106,
+      "next_magnitude": 1.55,
+      "is_M5_plus": 0
+    }
+  },
+  {
+    "sequence_id": 11555,
+    "region": "R257_114",
+    "prediction": {
+      "time_to_next_seconds": 3162.407958984375,
+      "time_to_next_hours": 0.878446638584137,
+      "next_magnitude": 1.3444958925247192,
+      "prob_M5_plus": 0.0006503238691948354
+    },
+    "ground_truth": {
+      "time_to_next_seconds": 26732.4,
+      "time_to_next_hours": 7.425666666666667,
+      "next_magnitude": 1.84,
+      "is_M5_plus": 0
+    }
+  },
+  {
+    "sequence_id": 11556,
+    "region": "R257_114",
+    "prediction": {
+      "time_to_next_seconds": 3153.63916015625,
+      "time_to_next_hours": 0.8760108947753906,
+      "next_magnitude": 1.344595193862915,
+      "prob_M5_plus": 0.0006561827030964196
+    },
+    "ground_truth": {
+      "time_to_next_seconds": 45345.69,
+      "time_to_next_hours": 12.596025000000001,
+      "next_magnitude": 2.07,
+      "is_M5_plus": 0
+    }
+  },
+  {
+    "sequence_id": 11557,
+    "region": "R257_114",
+    "prediction": {
+      "time_to_next_seconds": 3153.342529296875,
+      "time_to_next_hours": 0.8759284615516663,
+      "next_magnitude": 1.3446025848388672,
+      "prob_M5_plus": 0.0006557013257406652
+    },
+    "ground_truth": {
+      "time_to_next_seconds": 43423.04,
+      "time_to_next_hours": 12.061955555555556,
+      "next_magnitude": 1.4,
+      "is_M5_plus": 0
+    }
+  },
+  {
+    "sequence_id": 11558,
+    "region": "R257_114",
+    "prediction": {
+      "time_to_next_seconds": 3139.01318359375,
+      "time_to_next_hours": 0.8719481229782104,
+      "next_magnitude": 1.3447343111038208,
+      "prob_M5_plus": 0.0006708413711749017
+    },
+    "ground_truth": {
+      "time_to_next_seconds": 4704.76,
+      "time_to_next_hours": 1.3068777777777778,
+      "next_magnitude": 1.18,
+      "is_M5_plus": 0
+    }
+  },
+  {
+    "sequence_id": 11559,
+    "region": "R257_114",
+    "prediction": {
+      "time_to_next_seconds": 3158.683837890625,
+      "time_to_next_hours": 0.8774121999740601,
+      "next_magnitude": 1.3445338010787964,
+      "prob_M5_plus": 0.0006537370500154793
+    },
+    "ground_truth": {
+      "time_to_next_seconds": 21039.47,
+      "time_to_next_hours": 5.844297222222223,
+      "next_magnitude": 1.13,
+      "is_M5_plus": 0
+    }
+  },
+  {
+    "sequence_id": 11560,
+    "region": "R257_114",
+    "prediction": {
+      "time_to_next_seconds": 3303.510009765625,
+      "time_to_next_hours": 0.9176416397094727,
+      "next_magnitude": 1.3430421352386475,
+      "prob_M5_plus": 0.0005425545969046652
+    },
+    "ground_truth": {
+      "time_to_next_seconds": 439.59,
+      "time_to_next_hours": 0.12210833333333333,
+      "next_magnitude": 1.63,
+      "is_M5_plus": 0
+    }
+  },
+  {
+    "sequence_id": 11561,
+    "region": "R257_114",
+    "prediction": {
+      "time_to_next_seconds": 3165.204833984375,
+      "time_to_next_hours": 0.8792235851287842,
+      "next_magnitude": 1.3444730043411255,
+      "prob_M5_plus": 0.0006471533561125398
+    },
+    "ground_truth": {
+      "time_to_next_seconds": 1925.44,
+      "time_to_next_hours": 0.5348444444444445,
+      "next_magnitude": 1.11,
+      "is_M5_plus": 0
+    }
+  },
+  {
+    "sequence_id": 11562,
+    "region": "R257_114",
+    "prediction": {
+      "time_to_next_seconds": 3322.58447265625,
+      "time_to_next_hours": 0.9229401350021362,
+      "next_magnitude": 1.3428431749343872,
+      "prob_M5_plus": 0.000529652344994247
+    },
+    "ground_truth": {
+      "time_to_next_seconds": 31011.38,
+      "time_to_next_hours": 8.614272222222223,
+      "next_magnitude": 2.6,
+      "is_M5_plus": 0
+    }
+  },
+  {
+    "sequence_id": 11563,
+    "region": "R257_114",
+    "prediction": {
+      "time_to_next_seconds": 3214.223876953125,
+      "time_to_next_hours": 0.8928399682044983,
+      "next_magnitude": 1.3439710140228271,
+      "prob_M5_plus": 0.0006071340176276863
+    },
+    "ground_truth": {
+      "time_to_next_seconds": 190.82,
+      "time_to_next_hours": 0.053005555555555556,
+      "next_magnitude": 2.0,
+      "is_M5_plus": 0
+    }
+  }
+]

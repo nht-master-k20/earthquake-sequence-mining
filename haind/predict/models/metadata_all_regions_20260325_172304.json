@@ -1,0 +1,27 @@
+{
+  "timestamp": "20260325_172304",
+  "region": "all_regions",
+  "min_events": 500,
+  "epochs_trained": 20,
+  "best_val_loss": 8171186391124.934,
+  "test_metrics": {
+    "loss": 3559157472586.673,
+    "time_mae": 86016.80591520578,
+    "mag_mae": 0.5526624011443226,
+    "binary_acc": 0.9987811814414561
+  },
+  "model_path": "/home/haind/Desktop/earthquake-sequence-mining/haind/predict/models/model_all_regions_20260325_172304.pt",
+  "scaler_path": "/home/haind/Desktop/earthquake-sequence-mining/haind/predict/models/scaler_all_regions_20260325_172304.pkl",
+  "history_path": "/home/haind/Desktop/earthquake-sequence-mining/haind/predict/models/history_all_regions_20260325_172304.json",
+  "n_features": 27,
+  "sequence_length": 5,
+  "hyperparameters": {
+    "hidden_units": [
+      128,
+      64
+    ],
+    "dropout": 0.3,
+    "learning_rate": 0.001,
+    "batch_size": 64
+  }
+}

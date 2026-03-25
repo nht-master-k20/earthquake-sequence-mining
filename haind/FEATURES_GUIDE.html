@@ -505,47 +505,6 @@
             </div>
         </div>
 
-        <!-- Training Workflow -->
-        <div class="workflow">
-            <h2 class="workflow-title">🚀 Training Workflow (Google Colab)</h2>
-            <div class="steps">
-                <div class="step">
-                    <div class="step-number">1</div>
-                    <div class="step-content">
-                        <h4>Tạo Features</h4>
-                        <p>Chạy script để tạo features từ data thô</p>
-                        <code>cd haind && python add_advanced_features_mp.py</code>
-                        <p style="margin-top: 5px; font-size: 0.85em;">⏱️ 30-60 phút với 3.1M events | Output: features_lstm.csv (709MB)</p>
-                    </div>
-                </div>
-                <div class="step">
-                    <div class="step-number">2</div>
-                    <div class="step-content">
-                        <h4>Upload lên Google Drive</h4>
-                        <p>Upload features_lstm.csv lên Google Drive</p>
-                        <code>drive.google.com → Upload → features_lstm.csv</code>
-                    </div>
-                </div>
-                <div class="step">
-                    <div class="step-number">3</div>
-                    <div class="step-content">
-                        <h4>Mở Colab Notebook</h4>
-                        <p>Upload và chạy notebook training</p>
-                        <code>earthquake_training_colab.ipynb</code>
-                        <p style="margin-top: 5px; font-size: 0.85em;">📊 T4: 2-4 giờ | L4: 1-1.5 giờ | A100: 30-40 phút</p>
-                    </div>
-                </div>
-                <div class="step">
-                    <div class="step-number">4</div>
-                    <div class="step-content">
-                        <h4>Download Model</h4>
-                        <p>Model được lưu tự động vào Google Drive</p>
-                        <code>/content/drive/MyDrive/earthquake_models/</code>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- Data Configuration Info -->
         <div class="alert alert-info">
             <div class="alert-icon">ℹ️</div>
@@ -554,7 +513,7 @@
                 <p><strong>TEST_MODE = False</strong>: Process full data (2000-2025, 3.1M events)</p>
                 <p><strong>END_YEAR = 2026</strong>: Full year range (đã fix từ 2006)</p>
                 <p><strong>Sequence Length = 5</strong>: Cần ít nhất 5 events để predict event thứ 6</p>
-                <p><strong>min_events filter</strong>: Chỉ giữ regions có ≥100 events (default: 500 cho quality)</p>
+                <p><strong>min_events filter</strong>: Chỉ giữ regions có ≥500 events (default: 500)</p>
             </div>
         </div>
 

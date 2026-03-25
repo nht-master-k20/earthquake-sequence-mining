@@ -15,6 +15,7 @@ import os
 from pathlib import Path
 from datetime import datetime
 import json
+from tqdm import tqdm
 
 from config import MODEL_DIR, LOG_DIR, SEQUENCE_LENGTH, BATCH_SIZE
 
@@ -183,7 +184,7 @@ class EarthquakeTrainer:
         self.best_model_state = None
 
     def train_epoch(self, train_loader):
-        """Train for one epoch"""
+        """Train for one epoch with progress bar"""
         self.model.train()
 
         total_loss = 0
@@ -192,7 +193,11 @@ class EarthquakeTrainer:
         total_binary_correct = 0
         total_samples = 0
 
-        for X_batch, y_batch in train_loader:
+        # Progress bar for batches
+        pbar = tqdm(train_loader, desc="  Training", leave=False,
+                   unit="batch")
+
+        for X_batch, y_batch in pbar:
             X_batch = X_batch.to(self.device)
             y_batch = y_batch.to(self.device)
 
@@ -218,6 +223,14 @@ class EarthquakeTrainer:
             total_mag_mae += torch.abs(mag_pred - y_batch[:, 1]).sum().item()
             total_binary_correct += ((binary_pred > 0.5) == (y_batch[:, 2] > 0.5)).sum().item()
             total_samples += X_batch.size(0)
+
+            # Update progress bar with running loss
+            pbar.set_postfix({
+                'loss': f'{total_loss/total_samples:.2f}',
+                'time_mae': f'{total_time_mae/total_samples:.1f}s'
+            })
+
+        pbar.close()
 
         return {
             'loss': total_loss / total_samples,
@@ -267,7 +280,7 @@ class EarthquakeTrainer:
 
     def train(self, train_loader, val_loader, epochs, early_stopping_patience=15):
         """
-        Full training loop
+        Full training loop with progress bars
 
         Args:
             train_loader: Training data loader
@@ -287,7 +300,12 @@ class EarthquakeTrainer:
 
         patience_counter = 0
 
-        for epoch in range(epochs):
+        # Progress bar for epochs
+        from tqdm import tqdm
+
+        pbar = tqdm(range(epochs), desc="Training", unit="epoch")
+
+        for epoch in pbar:
             # Train
             train_metrics = self.train_epoch(train_loader)
 
@@ -304,13 +322,14 @@ class EarthquakeTrainer:
             self.history['train_binary_acc'].append(train_metrics['binary_acc'])
             self.history['val_binary_acc'].append(val_metrics['binary_acc'])
 
-            # Print progress
-            print(f"Epoch [{epoch+1}/{epochs}] "
-                  f"Train Loss: {train_metrics['loss']:.4f} | "
-                  f"Val Loss: {val_metrics['loss']:.4f} | "
-                  f"Val Time MAE: {val_metrics['time_mae']:.1f}s | "
-                  f"Val Mag MAE: {val_metrics['mag_mae']:.3f} | "
-                  f"Val Binary Acc: {val_metrics['binary_acc']:.3f}")
+            # Update progress bar description with current metrics
+            pbar.set_description(
+                f"Epoch {epoch+1}/{epochs} - "
+                f"Val Loss: {val_metrics['loss']:.4f} - "
+                f"Val Time MAE: {val_metrics['time_mae']:.0f}s - "
+                f"Val Mag MAE: {val_metrics['mag_mae']:.2f} - "
+                f"Val Acc: {val_metrics['binary_acc']:.2%}"
+            )
 
             # Learning rate scheduling
             self.scheduler.step(val_metrics['loss'])
@@ -320,17 +339,22 @@ class EarthquakeTrainer:
                 self.best_val_loss = val_metrics['loss']
                 self.best_model_state = self.model.state_dict().copy()
                 patience_counter = 0
+                pbar.write(f"  ✓ New best model! (val_loss: {val_metrics['loss']:.4f})")
             else:
                 patience_counter += 1
 
             if patience_counter >= early_stopping_patience:
-                print(f"\nEarly stopping at epoch {epoch+1}")
+                pbar.write(f"\nEarly stopping at epoch {epoch+1}")
+                pbar.close()
                 break
+
+        # Close progress bar
+        pbar.close()
 
         # Load best model
         if self.best_model_state is not None:
             self.model.load_state_dict(self.best_model_state)
-            print(f"\nBest model loaded with val_loss: {self.best_val_loss:.4f}")
+            print(f"\n✓ Best model loaded with val_loss: {self.best_val_loss:.4f}")
 
         return self.history
 

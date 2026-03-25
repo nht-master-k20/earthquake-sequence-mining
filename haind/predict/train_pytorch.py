@@ -1,8 +1,9 @@
 """
 PyTorch Training Script
-Train LSTM model on earthquake data using PyTorch
+Train LSTM model on ALL earthquake data
 
 Usage:
+    python train_pytorch.py --epochs 50 --batch-size 64
     python train_pytorch.py --region R257_114 --epochs 50
 
 Author: haind
@@ -19,13 +20,11 @@ warnings.filterwarnings('ignore')
 
 import numpy as np
 import pandas as pd
-
-# PyTorch imports
 import torch
 from torch.utils.data import DataLoader
 
 # Local imports
-from config import *
+from config import MODEL_DIR, LOG_DIR, SEQUENCE_LENGTH
 from data_preparer import DataPreparer
 from model_pytorch import (
     EarthquakeLSTM, EarthquakeTrainer, EarthquakeDataset,
@@ -35,24 +34,35 @@ from model_pytorch import (
 
 def parse_args():
     """Parse command line arguments"""
-    parser = argparse.ArgumentParser(description='Train earthquake LSTM model with PyTorch')
-    parser.add_argument('--region', type=str, default=None,
-                       help='Region code (e.g., R257_114). If not specified, train on all regions.')
-    parser.add_argument('--min-events', type=int, default=1000,
-                       help='Minimum events per region (default: 1000)')
+    parser = argparse.ArgumentParser(
+        description='Train earthquake LSTM model with PyTorch',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+
+    # Model hyperparameters (what users care about)
     parser.add_argument('--epochs', type=int, default=50,
-                       help=f'Number of epochs (default: 50)')
+                       help='Number of epochs')
     parser.add_argument('--batch-size', type=int, default=64,
-                       help=f'Batch size (default: 64)')
+                       help='Batch size')
     parser.add_argument('--lr', type=float, default=0.001,
-                       help='Learning rate (default: 0.001)')
+                       help='Learning rate')
+    parser.add_argument('--hidden', type=int, nargs='+', default=[128, 64],
+                       help='LSTM hidden units (e.g., --hidden 128 64 32)')
+    parser.add_argument('--dropout', type=float, default=0.3,
+                       help='Dropout rate')
     parser.add_argument('--patience', type=int, default=15,
-                       help='Early stopping patience (default: 15)')
+                       help='Early stopping patience')
+
+    # Optional parameters
+    parser.add_argument('--region', type=str, default=None,
+                       help='Train on specific region only (default: all regions)')
+    parser.add_argument('--min-events', type=int, default=100,
+                       help='Minimum events per region to include (default: 100)')
     parser.add_argument('--device', type=str, default='cpu',
                        choices=['cpu', 'cuda'],
-                       help='Device to use (default: cpu)')
+                       help='Device to use')
     parser.add_argument('--test', action='store_true',
-                       help='Run in test mode (fewer epochs)')
+                       help='Run in test mode (5 epochs)')
 
     return parser.parse_args()
 
@@ -64,13 +74,12 @@ def get_device(device_arg):
     return torch.device('cpu')
 
 
-def prepare_data(region_code=None, min_events=1000):
+def prepare_data(args):
     """
     Prepare data for training
 
     Args:
-        region_code: Region code to filter by (None for all regions)
-        min_events: Minimum events per region
+        args: Parsed arguments
 
     Returns:
         X_train, X_val, X_test, y_train, y_val, y_test, scaler
@@ -82,33 +91,47 @@ def prepare_data(region_code=None, min_events=1000):
     # Load data
     preparer = DataPreparer()
     preparer.load_data()
+
+    # Get regions
     regions = preparer.get_regions()
 
-    # Filter regions
-    if region_code:
-        print(f"Filtering by region: {region_code}")
-        region_data = preparer.filter_by_region(region_code, min_events=min_events)
+    # Filter and prepare data
+    if args.region:
+        print(f"Mode: SINGLE REGION - {args.region}")
+        region_data = preparer.filter_by_region(args.region, min_events=args.min_events)
         data_to_use = region_data
     else:
-        print(f"Using all regions with >= {min_events} events")
+        print(f"Mode: ALL REGIONS (min {args.min_events} events/region)")
         all_data = []
         valid_regions = []
+        total_events = 0
 
         for region in regions:
             region_data = preparer.data[preparer.data['region_code'] == region]
-            if len(region_data) >= min_events:
+            if len(region_data) >= args.min_events:
                 all_data.append(region_data)
                 valid_regions.append(region)
+                total_events += len(region_data)
 
-        print(f"Found {len(valid_regions)} valid regions")
+        print(f"  Found {len(valid_regions)} valid regions")
+        print(f"  Total events: {total_events:,}")
+
+        # Show top regions
+        region_counts = [(r, len(preparer.data[preparer.data['region_code'] == r]))
+                         for r in valid_regions]
+        region_counts.sort(key=lambda x: x[1], reverse=True)
+        print(f"  Top 5 regions:")
+        for r, c in region_counts[:5]:
+            print(f"    {r}: {c:,} events")
+
         data_to_use = pd.concat(all_data, ignore_index=True)
 
-    print(f"Total events: {len(data_to_use):,}")
+    print(f"  Final dataset: {len(data_to_use):,} events")
 
     # Prepare sequences
     X, y = preparer.prepare_sequences(data_to_use, for_training=True)
 
-    # Split data
+    # Split data (temporal split - no shuffle)
     (X_train, y_train), (X_val, y_val), (X_test, y_test) = preparer.split_data(X, y)
 
     # Scale features
@@ -137,10 +160,7 @@ def train_model(args):
     print(f"\nDevice: {device}")
 
     # Prepare data
-    X_train, X_val, X_test, y_train, y_val, y_test, scaler = prepare_data(
-        region_code=args.region,
-        min_events=args.min_events
-    )
+    X_train, X_val, X_test, y_train, y_val, y_test, scaler = prepare_data(args)
 
     # Create datasets and dataloaders
     train_dataset = EarthquakeDataset(X_train, y_train)
@@ -163,16 +183,21 @@ def train_model(args):
         shuffle=False
     )
 
-    # Build model
+    # Build model with custom hyperparameters
     n_features = X_train.shape[-1]
-    model = EarthquakeLSTM(n_features=n_features)
+    model = EarthquakeLSTM(
+        n_features=n_features,
+        lstm_hidden=args.hidden,
+        dropout=args.dropout
+    )
 
     print(f"\n{'='*70}")
     print(" MODEL ARCHITECTURE")
     print(f"{'='*70}")
     print(f"Input features: {n_features}")
     print(f"Sequence length: {SEQUENCE_LENGTH}")
-    print(f"LSTM hidden units: {model.lstm_hidden}")
+    print(f"LSTM hidden units: {args.hidden}")
+    print(f"Dropout: {args.dropout}")
     print(f"Total parameters: {sum(p.numel() for p in model.parameters()):,}")
 
     # Create trainer
@@ -230,7 +255,13 @@ def train_model(args):
         'scaler_path': str(scaler_path),
         'history_path': str(history_path),
         'n_features': n_features,
-        'sequence_length': SEQUENCE_LENGTH
+        'sequence_length': SEQUENCE_LENGTH,
+        'hyperparameters': {
+            'hidden_units': args.hidden,
+            'dropout': args.dropout,
+            'learning_rate': args.lr,
+            'batch_size': args.batch_size
+        }
     }
 
     metadata_path = MODEL_DIR / f'metadata{region_suffix}_{timestamp}.json'
@@ -255,12 +286,13 @@ def main():
     print(f"\n{'='*70}")
     print(" PYTORCH LSTM TRAINING")
     print(f"{'='*70}")
-    print(f"Region: {args.region or 'All regions'}")
+    print(f"Data: {args.region or 'ALL REGIONS'}")
     print(f"Min events: {args.min_events}")
     print(f"Epochs: {args.epochs}")
     print(f"Batch size: {args.batch_size}")
     print(f"Learning rate: {args.lr}")
-    print(f"Device: {args.device}")
+    print(f"Hidden units: {args.hidden}")
+    print(f"Dropout: {args.dropout}")
 
     # Create directories
     os.makedirs(MODEL_DIR, exist_ok=True)

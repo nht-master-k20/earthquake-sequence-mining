@@ -1,181 +1,114 @@
-# Earthquake Prediction System
+# Earthquake LSTM Prediction Pipeline
 
-Complete pipeline for training LSTM model and predicting next earthquake time & magnitude.
+PyTorch-based LSTM model for predicting time-to-next and magnitude of next earthquake.
 
-## 📁 Directory Structure
+## 📁 Files
 
-```
-haind/predict/
-├── config.py                 # Configuration
-├── data_preparer.py          # Data preparation
-├── model_builder.py          # LSTM model builder
-├── train.py                  # Training script
-├── predict.py                # Prediction script
-├── README.md                 # This file
-├── models/                   # Trained models (created automatically)
-└── logs/                     # Training logs (created automatically)
-```
+| File | Description |
+|------|-------------|
+| `config.py` | Configuration settings |
+| `data_preparer.py` | Data loading and preprocessing |
+| `model_pytorch.py` | PyTorch LSTM model definition |
+| `train_pytorch.py` | Training script |
+| `predict_pytorch.py` | Prediction script |
+| `quick_test.py` | Quick test script |
 
-## 🚀 Quick Start
+## 🚀 Usage
 
-### 1. Install Dependencies
-
+### 1. Quick Test (5 epochs)
 ```bash
-pip install tensorflow pandas numpy scikit-learn
+python quick_test.py
 ```
 
-### 2. Generate Features (if not already done)
+### 2. Train Model
 
+#### Train on ALL data (default)
 ```bash
-cd haind
-python add_advanced_features_mp.py
+# Train with default parameters
+python train_pytorch.py --epochs 50
+
+# Train with custom hyperparameters
+python train_pytorch.py --epochs 100 --batch-size 128 --lr 0.0001
+python train_pytorch.py --epochs 50 --hidden 256 128 64 --dropout 0.2
+
+# Test mode (5 epochs)
+python train_pytorch.py --test
 ```
 
-This will create `features_lstm.csv` with 29 columns.
-
-### 3. Train Model
-
-#### Option A: Train for specific region
+#### Train on SINGLE region
 ```bash
-cd predict
-python train.py --region R221_570 --epochs 50
+python train_pytorch.py --region R257_114 --epochs 50
 ```
 
-#### Option B: Train on all regions
+### 3. Make Predictions
 ```bash
-cd predict
-python train.py --epochs 50
+# Using latest model
+python predict_pytorch.py --region R257_114
+
+# Manual input
+python predict_pytorch.py --lat 15.5 --lon 108.5 --mag 5.2 --depth 10
 ```
 
-#### Options:
-- `--min-events`: Minimum events per region (default: 100)
-- `--batch-size`: Batch size (default: 32)
-- `--test`: Run in test mode with small dataset
+## 🎛️ Model Hyperparameters
 
-### 4. Make Prediction
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--epochs` | 50 | Number of epochs |
+| `--batch-size` | 64 | Batch size |
+| `--lr` | 0.001 | Learning rate |
+| `--hidden` | [128, 64] | LSTM hidden units |
+| `--dropout` | 0.3 | Dropout rate |
+| `--patience` | 15 | Early stopping patience |
 
-#### Option A: Predict from historical data
-```bash
-python predict.py --region R221_570
-```
+## Optional Parameters
 
-#### Option B: Predict from user input
-```bash
-python predict.py --input events.json
-```
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--region` | None | Train on specific region only |
+| `--min-events` | 100 | Min events/region to include |
+| `--device` | cpu | cpu or cuda |
+| `--test` | False | Test mode (5 epochs) |
 
-## 📝 Input Format
-
-### events.json format:
-```json
-[
-  {
-    "time": "2025-03-25 14:00:00",
-    "latitude": 20.5,
-    "longitude": 105.0,
-    "depth": 10.5,
-    "mag": 4.5,
-    "sig": 250,
-    "mmi": 4.2,
-    "cdi": 3.5,
-    "felt": 120
-  },
-  {
-    "time": "2025-03-25 14:30:00",
-    "latitude": 20.52,
-    "longitude": 105.01,
-    "depth": 11.2,
-    "mag": 4.2,
-    "sig": 180,
-    "mmi": 3.8,
-    "cdi": 3.0,
-    "felt": 80
-  },
-  {
-    "time": "2025-03-25 15:00:00",
-    "latitude": 20.51,
-    "longitude": 105.02,
-    "depth": 10.8,
-    "mag": 5.1,
-    "sig": 500,
-    "mmi": 5.5,
-    "cdi": 4.5,
-    "felt": 500
-  }
-]
-```
-
-## 📊 Output Format
-
-```python
-{
-    'region_code': 'R221_570',
-    'last_event_time': '2025-03-25 15:00:00',
-    'predicted_time': '2025-03-25 17:30:00',
-    'time_to_next_seconds': 9000.0,
-    'time_to_next_hours': 2.5,
-    'predicted_magnitude': 4.8,
-    'is_m5_plus': False,
-    'confidence': 0.85
-}
-```
-
-## 🏗️ Model Architecture
+## 📊 Model Architecture
 
 ```
-Input: (batch_size, 5, 26)
-  - 5 timesteps (interval_lag1-5)
-  - 26 features (total - time column - 3 targets)
-
-LSTM Layers:
-  - LSTM(128) → Dropout(0.3) → BatchNorm
-  - LSTM(64) → Dropout(0.3) → BatchNorm
-  - LSTM(32) → Dropout(0.3) → BatchNorm
-
-Dense: Dense(64) → Dropout(0.3)
-
-Outputs:
-  - time_to_next: Dense(1, activation='relu')
-  - next_mag: Dense(1, activation='linear', clip 0-10)
-  - next_mag_binary: Dense(1, activation='sigmoid')
+Input (batch_size, 5, 26)
+    ↓
+LSTM(128) → Dropout → BatchNorm
+    ↓
+LSTM(64) → Dropout → BatchNorm
+    ↓
+Dense(64) → ReLU → BatchNorm → Dropout
+    ↓
+    ├─→ Dense(1, ReLU) → time_to_next
+    ├─→ Dense(1) → next_mag
+    └─→ Dense(1, Sigmoid) → next_mag_binary (M5+)
 ```
 
-## 📈 Features (26 input)
+## 📈 Features
 
-**Original (9):**
-- time, latitude, longitude, depth, mag, sig, mmi, cdi, felt, region_code
+- **26 input features**: Original (9) + Core (5) + Sequence (6) + LSTM (5) - region (1)
+- **3 outputs**: time_to_next (seconds), next_mag (magnitude), next_mag_binary (probability)
+- **Sequence length**: 5 (last 5 events)
 
-**Core (5):**
-- is_aftershock, mainshock_mag, seismicity_density_100km
-- coulomb_stress_proxy, regional_b_value
+## 📂 Output
 
-**Sequence (6):**
-- sequence_id, seq_position, is_seq_mainshock
-- seq_mainshock_mag, seq_length, time_since_seq_start_sec
+Trained models saved to `models/`:
+- `model_<region>_<timestamp>.pt` - Model checkpoint
+- `scaler_<region>_<timestamp>.pkl` - Feature scaler
+- `history_<region>_<timestamp>.json` - Training history
+- `metadata_<region>_<timestamp>.json` - Model metadata
 
-**LSTM Temporal (5):**
-- time_since_last_event, time_since_last_M5
-- interval_lag1, interval_lag2, interval_lag3, interval_lag4, interval_lag5
+## 🔧 Requirements
 
-## 🔧 Troubleshooting
+```
+torch
+numpy
+pandas
+scikit-learn
+```
 
-### Error: "Not enough events for region"
-- Solution: Lower `--min-events` parameter
-- Or use `--train --region all` to train on all regions
+## 📝 Author
 
-### Error: "Model file not found"
-- Solution: Train model first using `python train.py`
-
-### Error: "Features file not found"
-- Solution: Run `add_advanced_features_mp.py` first
-
-## 📚 Documentation
-
-- [FEATURES_GUIDE.html](../FEATURES_GUIDE.html) - Complete features documentation
-- [add_advanced_features_mp.py](../add_advanced_features_mp.py) - Feature generation script
-
-## 📧 Contact
-
-Author: haind
-Project: Earthquake Sequence Mining
+haind - Earthquake Sequence Mining Project
 Date: 2025-03-25

@@ -1,0 +1,63 @@
+{
+  "timestamp": "20260326_024731",
+  "model_type": "MagLSTM",
+  "target": "target_next_mag",
+  "n_features": 26,
+  "features": [
+    "mag",
+    "depth",
+    "latitude",
+    "longitude",
+    "sig",
+    "mmi",
+    "cdi",
+    "felt",
+    "region_code",
+    "is_aftershock",
+    "mainshock_mag",
+    "seismicity_density_100km",
+    "coulomb_stress_proxy",
+    "regional_b_value",
+    "seq_position",
+    "is_seq_mainshock",
+    "seq_mainshock_mag",
+    "seq_length",
+    "time_since_seq_start_sec",
+    "time_since_last_event",
+    "time_since_last_M5",
+    "interval_lag1",
+    "interval_lag2",
+    "interval_lag3",
+    "interval_lag4",
+    "interval_lag5"
+  ],
+  "sequence_length": 5,
+  "subset_ratio": 1.0,
+  "epochs_trained": 18,
+  "best_val_loss": 0.25761784783403896,
+  "test_metrics": {
+    "loss": 0.34100232531755864,
+    "mae": 0.4610401690006256,
+    "rmse": 0.5839540352483419
+  },
+  "dashboard_dir": "predict2/dashboard",
+  "target_stats": {
+    "mean_mag": 1.3787144750687863,
+    "median_mag": 1.3,
+    "mae_mag": 0.4610401690006256
+  },
+  "model_path": "/home/haind/Desktop/earthquake-sequence-mining/haind/predict2/models/mag_model_20260326_024731.pt",
+  "scaler_path": "/home/haind/Desktop/earthquake-sequence-mining/haind/predict2/models/mag_scaler_20260326_024731.pkl",
+  "encoder_path": "/home/haind/Desktop/earthquake-sequence-mining/haind/predict2/models/mag_region_encoder_20260326_024731.pkl",
+  "history_path": "/home/haind/Desktop/earthquake-sequence-mining/haind/predict2/models/mag_history_20260326_024731.json",
+  "hyperparameters": {
+    "hidden_units": [
+      128,
+      64
+    ],
+    "dropout": 0.3,
+    "learning_rate": 0.001,
+    "batch_size": 128,
+    "early_stopping_patience": 15
+  }
+}

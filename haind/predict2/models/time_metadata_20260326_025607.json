@@ -1,0 +1,59 @@
+{
+  "timestamp": "20260326_025607",
+  "model_type": "TimeLSTM-Binary",
+  "target": "target_quake_in_7days",
+  "task": "binary_classification",
+  "n_features": 21,
+  "features": [
+    "mag",
+    "depth",
+    "sig",
+    "region_code",
+    "is_aftershock",
+    "mainshock_mag",
+    "seismicity_density_100km",
+    "coulomb_stress_proxy",
+    "sequence_id",
+    "seq_position",
+    "is_seq_mainshock",
+    "seq_mainshock_mag",
+    "seq_length",
+    "time_since_seq_start_sec",
+    "time_since_last_event",
+    "time_since_last_M5",
+    "interval_lag1",
+    "interval_lag2",
+    "interval_lag3",
+    "interval_lag4",
+    "interval_lag5"
+  ],
+  "sequence_length": 5,
+  "subset_ratio": 1.0,
+  "epochs_trained": 25,
+  "best_val_loss": 0.14890375734565628,
+  "test_metrics": {
+    "loss": 0.15222327583380196,
+    "accuracy": 0.8147419170775179,
+    "auc": 0.9016470063062614,
+    "f1": 0.8788016055767367
+  },
+  "class_distribution": {
+    "positive": 2012240,
+    "negative": 483386,
+    "pos_weight": 0.23224115054647324
+  },
+  "model_path": "/home/haind/Desktop/earthquake-sequence-mining/haind/predict2/models/time_model_20260326_025607.pt",
+  "scaler_path": "/home/haind/Desktop/earthquake-sequence-mining/haind/predict2/models/time_scaler_20260326_025607.pkl",
+  "encoder_path": "/home/haind/Desktop/earthquake-sequence-mining/haind/predict2/models/time_region_encoder_20260326_025607.pkl",
+  "history_path": "/home/haind/Desktop/earthquake-sequence-mining/haind/predict2/models/time_history_20260326_025607.json",
+  "hyperparameters": {
+    "hidden_units": [
+      128,
+      64
+    ],
+    "dropout": 0.3,
+    "learning_rate": 0.001,
+    "batch_size": 128,
+    "early_stopping_patience": 15
+  }
+}

@@ -121,10 +121,16 @@
         }
 
         /* Demo Button */
+        .demo-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
         .demo-btn {
             width: 100%;
             padding: 18px;
-            margin-top: 20px;
             font-size: 1.1em;
             font-weight: bold;
             color: white;
@@ -135,9 +141,19 @@
             transition: all 0.3s ease;
         }
 
+        .demo-btn.secondary {
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+            font-size: 0.95em;
+            padding: 14px;
+        }
+
         .demo-btn:hover:not(:disabled) {
             transform: scale(1.02);
             box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+        }
+
+        .demo-btn.secondary:hover:not(:disabled) {
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
         }
 
         .demo-btn:disabled {
@@ -272,6 +288,58 @@
         }
 
         .mag-value.actual {
+            color: #10b981;
+        }
+
+        .mag-time {
+            font-size: 0.75em;
+            color: #a0a0a0;
+            margin-top: 4px;
+        }
+
+        .gt-list {
+            font-size: 0.7em;
+            color: #a0a0a0;
+            margin-top: 8px;
+            max-height: 80px;
+            overflow-y: auto;
+        }
+
+        .gt-list {
+            font-size: 0.7em;
+            color: #a0a0a0;
+            margin-top: 8px;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .gt-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85em;
+        }
+
+        .gt-table th {
+            text-align: left;
+            padding: 4px 8px;
+            color: #a0a0a0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            position: sticky;
+            top: 0;
+            background: #1a1a2e;
+        }
+
+        .gt-table td {
+            padding: 4px 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .gt-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .gt-mag {
+            font-weight: bold;
             color: #10b981;
         }
 
@@ -452,9 +520,17 @@
                     {% endfor %}
                 </div>
 
-                <button class="demo-btn" id="demoBtn" disabled>
-                    ▶ Chạy
-                </button>
+                <div class="demo-buttons">
+                    <button class="demo-btn" id="demoBtn" disabled>
+                        ▶ Chạy
+                    </button>
+                    <button class="demo-btn secondary" id="pauseBtn" disabled>
+                        ⏸ Tạm dừng
+                    </button>
+                    <button class="demo-btn secondary" id="resumeBtn" disabled style="display: none;">
+                        ▶ Tiếp tục
+                    </button>
+                </div>
             </div>
 
             <!-- Right Column - Results -->
@@ -468,10 +544,6 @@
 
                 <!-- Zone Info with Chart -->
                 <div class="zone-info" id="zoneInfo">
-                    <div class="zone-info-header">
-                        <div class="zone-info-title" id="zoneInfoTitle">Japan</div>
-                        <div class="zone-info-location" id="zoneInfoLocation">Tohoku Region, Honshu</div>
-                    </div>
                     <div class="chart-container">
                         <canvas id="magnitudeChart"></canvas>
                     </div>
@@ -494,8 +566,10 @@
                                 <div class="mag-value predicted" id="magnitudeValue">-</div>
                             </div>
                             <div class="mag-item">
-                                <div class="mag-label">Thực tế</div>
+                                <div class="mag-label">Thực tế (M5+)</div>
                                 <div class="mag-value actual" id="gtMagnitudeValue">-</div>
+                                <div class="mag-time" id="gtTimeValue"></div>
+                                <div class="gt-list" id="gtListValue"></div>
                             </div>
                         </div>
                     </div>
@@ -509,6 +583,7 @@
         let selectedZone = null;
         let simInterval = null;
         let isSimulating = false;
+        let isPaused = false;
         let magnitudeChart = null;
 
         // Zone details
@@ -556,6 +631,11 @@
                 selectedZone = card.dataset.zoneId;
                 // Enable demo button
                 document.getElementById('demoBtn').disabled = false;
+                document.getElementById('pauseBtn').disabled = true;
+                document.getElementById('resumeBtn').disabled = true;
+                // Reset pause/resume button display
+                document.getElementById('pauseBtn').style.display = 'block';
+                document.getElementById('resumeBtn').style.display = 'none';
 
                 // Load events for selected zone
                 await loadEvents(selectedZone);
@@ -570,6 +650,20 @@
                 stopSimulation();
             } else {
                 await startSimulation();
+            }
+        });
+
+        // Pause button handler
+        document.getElementById('pauseBtn').addEventListener('click', () => {
+            if (isSimulating && !isPaused) {
+                pauseSimulation();
+            }
+        });
+
+        // Resume button handler
+        document.getElementById('resumeBtn').addEventListener('click', () => {
+            if (isSimulating && isPaused) {
+                resumeSimulation();
             }
         });
 
@@ -602,11 +696,6 @@
 
             // Hide placeholder
             placeholder.style.display = 'none';
-
-            // Update zone details
-            const details = zoneDetails[zoneId];
-            document.getElementById('zoneInfoTitle').textContent = details.name;
-            document.getElementById('zoneInfoLocation').textContent = details.location;
 
             // Show zone info
             zoneInfo.classList.add('show');
@@ -738,9 +827,14 @@
 
                 // Update UI for simulation mode
                 isSimulating = true;
+                isPaused = false;
                 const demoBtn = document.getElementById('demoBtn');
                 demoBtn.textContent = '⏹ Dừng Demo';
                 demoBtn.classList.add('running');
+
+                // Enable pause button
+                document.getElementById('pauseBtn').disabled = false;
+                document.getElementById('resumeBtn').disabled = true;
 
                 // Load initial events
                 await loadEvents(selectedZone);
@@ -758,6 +852,9 @@
 
         // Simulate next event
         async function simulateNext() {
+            // Skip if paused
+            if (isPaused) return;
+
             try {
                 const response = await fetch('/api/simulate/next', {
                     method: 'POST',
@@ -782,7 +879,7 @@
 
                 // Update prediction results
                 if (data.prediction) {
-                    showResults(data.prediction);
+                    showResults(data.prediction, data.ground_truth);
                 }
 
             } catch (error) {
@@ -800,21 +897,56 @@
             }
 
             isSimulating = false;
+            isPaused = false;
 
             // Update UI
             const demoBtn = document.getElementById('demoBtn');
             demoBtn.textContent = '▶ Chạy';
             demoBtn.classList.remove('running');
+
+            // Disable pause/resume buttons
+            document.getElementById('pauseBtn').disabled = true;
+            document.getElementById('resumeBtn').disabled = true;
+        }
+
+        // Pause simulation
+        function pauseSimulation() {
+            isPaused = true;
+
+            // Clear interval but keep simulating state
+            if (simInterval) {
+                clearInterval(simInterval);
+                simInterval = null;
+            }
+
+            // Update UI
+            document.getElementById('pauseBtn').style.display = 'none';
+            document.getElementById('resumeBtn').style.display = 'block';
+            document.getElementById('resumeBtn').disabled = false;
+        }
+
+        // Resume simulation
+        function resumeSimulation() {
+            isPaused = false;
+
+            // Restart interval
+            simInterval = setInterval(async () => {
+                await simulateNext();
+            }, 10000);
+
+            // Update UI
+            document.getElementById('pauseBtn').style.display = 'block';
+            document.getElementById('resumeBtn').style.display = 'none';
+            document.getElementById('pauseBtn').disabled = false;
         }
 
         // Show results
-        function showResults(data) {
+        function showResults(data, groundTruth) {
             const results = document.getElementById('results');
             const predictions = data.predictions;
 
             if (predictions && predictions.length > 0) {
                 const pred = predictions[0];
-                const details = zoneDetails[selectedZone];
 
                 // Update M5+ probability
                 const m5Prob = pred.prediction.m5_probability_7days * 100;
@@ -824,11 +956,48 @@
                 // Update magnitude (predicted)
                 document.getElementById('magnitudeValue').textContent = 'M' + pred.prediction.next_magnitude.toFixed(1);
 
-                // Update ground truth magnitude
-                if (pred.ground_truth_mag && pred.ground_truth_mag.next_magnitude) {
-                    document.getElementById('gtMagnitudeValue').textContent = 'M' + pred.ground_truth_mag.next_magnitude.toFixed(1);
+                // Update ground truth magnitude - show ALL M5+ within 7 days as table
+                if (groundTruth && groundTruth.length > 0) {
+                    // Show count and largest magnitude
+                    const maxMag = Math.max(...groundTruth.map(gt => gt.mag));
+                    document.getElementById('gtMagnitudeValue').textContent = `M${maxMag.toFixed(1)} (${groundTruth.length} trận)`;
+
+                    // Build table
+                    let gtTableHtml = '<table class="gt-table"><thead><tr><th>Mag</th><th>Sau</th><th>Thời gian</th></tr></thead><tbody>';
+
+                    groundTruth.forEach((gt) => {
+                        const gtTime = new Date(gt.time);
+                        const gtTimeStr = gtTime.toLocaleString('vi-VN', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+
+                        // Format time detail
+                        const parts = [];
+                        if (gt.days_after > 0) parts.push(`${gt.days_after}n`);
+                        if (gt.hours > 0) parts.push(`${gt.hours}h`);
+                        if (gt.minutes > 0) parts.push(`${gt.minutes}p`);
+                        const timeDetail = parts.length > 0 ? parts.join(' ') : '0p';
+
+                        gtTableHtml += `<tr>
+                            <td class="gt-mag">M${gt.mag.toFixed(1)}</td>
+                            <td>${timeDetail}</td>
+                            <td>${gtTimeStr}</td>
+                        </tr>`;
+                    });
+
+                    gtTableHtml += '</tbody></table>';
+
+                    document.getElementById('gtTimeValue').textContent = groundTruth.length === 1
+                        ? 'Có 1 trận M5+ trong 7 ngày:'
+                        : `Có ${groundTruth.length} trận M5+ trong 7 ngày:`;
+                    document.getElementById('gtListValue').innerHTML = gtTableHtml;
                 } else {
-                    document.getElementById('gtMagnitudeValue').textContent = 'N/A';
+                    document.getElementById('gtMagnitudeValue').textContent = 'Không có';
+                    document.getElementById('gtTimeValue').textContent = 'Không có trận M5+ nào';
+                    document.getElementById('gtListValue').innerHTML = '';
                 }
             }
 

@@ -1,30 +1,30 @@
 {
-  "timestamp": "2026-03-26 15:29:56",
+  "timestamp": "2026-03-26 16:37:25",
   "n_predictions": 1,
   "summary": {
-    "avg_m5_probability": 0.8786513209342957,
-    "avg_magnitude_prediction": 5.583878517150879,
+    "avg_m5_probability": 0.33992090821266174,
+    "avg_magnitude_prediction": 5.729218482971191,
     "n_predictions": 1
   },
   "predictions": [
     {
       "sequence_number": 1,
-      "region": "R256_645",
+      "region": "R255_644",
       "input_events_summary": {
-        "start_idx": 6,
-        "end_idx": 11,
+        "start_idx": 20,
+        "end_idx": 25,
         "n_events_used": 6,
         "last_event": {
-          "magnitude": 5.7,
-          "depth_km": 23.2
+          "magnitude": 6.3,
+          "depth_km": 50.7
         }
       },
       "prediction": {
-        "quake_probability_7days": 1.3687024116516113,
+        "quake_probability_7days": 0.5038599371910095,
         "predicted_class": 1,
-        "next_magnitude": 5.583878517150879,
-        "m5_probability_7days": 0.8786513209342957,
-        "m5_predicted_class": 1
+        "next_magnitude": 5.729218482971191,
+        "m5_probability_7days": 0.33992090821266174,
+        "m5_predicted_class": 0
       },
       "ground_truth_time": {
         "quake_in_7days": 1,
@@ -32,7 +32,7 @@
       },
       "ground_truth_mag": {
         "next_magnitude": 5.9,
-        "error": 0.31612148284912145
+        "error": 0.17078151702880895
       }
     }
   ]

@@ -210,8 +210,8 @@ def start_simulation():
     with open(input_file, 'r') as f:
         all_events = json.load(f)
 
-    # Use only first 10 events for simulation (will append one by one)
-    sim_events = all_events[:10] if len(all_events) >= 10 else all_events
+    # Use only first SEQUENCE_LENGTH events for simulation (will append one by one)
+    sim_events = all_events[:SEQUENCE_LENGTH] if len(all_events) >= SEQUENCE_LENGTH else all_events
 
     with open(sim_file, 'w') as f:
         json.dump(sim_events, f, indent=2)
@@ -274,6 +274,36 @@ def simulate_next_event():
     with open(target_file, 'w') as f:
         json.dump(sim_events, f, indent=2)
 
+    # Calculate Ground Truth: collect ALL M5+ within 7 days after appended event
+    from datetime import datetime, timedelta
+
+    ground_truth_list = []
+    appended_time = datetime.fromisoformat(next_event['time'].replace('Z', '+00:00'))
+    seven_days_later = appended_time + timedelta(days=7)
+
+    # Check all events in original data after the current index
+    for future_event in all_events[current_index + 1:]:
+        event_time = datetime.fromisoformat(future_event['time'].replace('Z', '+00:00'))
+        if event_time > seven_days_later:
+            break  # Beyond 7 days, stop checking
+        if future_event.get('mag', 0) >= 5.0:
+            # Calculate detailed time difference
+            time_diff = event_time - appended_time
+            total_seconds = int(time_diff.total_seconds())
+            days = total_seconds // 86400
+            hours = (total_seconds % 86400) // 3600
+            minutes = (total_seconds % 3600) // 60
+
+            ground_truth_list.append({
+                'mag': future_event['mag'],
+                'time': future_event['time'],
+                'days_after': days,
+                'hours': hours,
+                'minutes': minutes
+            })
+
+    ground_truth = ground_truth_list if ground_truth_list else None
+
     # Run prediction
     try:
         import io
@@ -298,6 +328,7 @@ def simulate_next_event():
                     'depth': next_event.get('depth', 0)
                 },
                 'total_events': len(sim_events),
+                'ground_truth': ground_truth,  # None if no M5+ within 7 days
                 'prediction': results
             })
         else:
@@ -310,6 +341,7 @@ def simulate_next_event():
                     'time': next_event.get('time', '')
                 },
                 'total_events': len(sim_events),
+                'ground_truth': ground_truth,
                 'error': 'Prediction failed'
             })
 

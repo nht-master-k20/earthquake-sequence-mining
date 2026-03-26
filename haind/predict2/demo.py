@@ -146,8 +146,8 @@ def get_events(zone_id):
     if not zone:
         return jsonify({'error': 'Zone not found'}), 404
 
-    # Check if simulation file exists
-    sim_file = os.path.join(INPUT_DIR, 'simulation_events.json')
+    # Check if simulation file exists (zone-specific)
+    sim_file = os.path.join(INPUT_DIR, f'simulation_{zone_id}.json')
     if os.path.exists(sim_file):
         events_file = sim_file
         is_simulation = True
@@ -201,7 +201,7 @@ def start_simulation():
 
     # Create simulation file from original input
     input_file = os.path.join(INPUT_DIR, zone['file'])
-    sim_file = os.path.join(INPUT_DIR, 'simulation_events.json')
+    sim_file = os.path.join(INPUT_DIR, f'simulation_{zone_id}.json')
 
     if not os.path.exists(input_file):
         return jsonify({'error': 'Input file not found'}), 404
@@ -239,7 +239,7 @@ def simulate_next_event():
 
     # Files
     input_file = os.path.join(INPUT_DIR, zone['file'])
-    sim_file = os.path.join(INPUT_DIR, 'simulation_events.json')
+    sim_file = os.path.join(INPUT_DIR, f'simulation_{zone_id}.json')
     target_file = os.path.join(INPUT_DIR, 'input_events.json')
 
     # Read all original events
@@ -355,7 +355,18 @@ def simulate_next_event():
 @app.route('/api/simulate/reset', methods=['POST'])
 def reset_simulation():
     """Reset simulation for a zone"""
-    sim_file = os.path.join(INPUT_DIR, 'simulation_events.json')
+    data = request.json
+    zone_id = data.get('zone_id')
+
+    if zone_id:
+        sim_file = os.path.join(INPUT_DIR, f'simulation_{zone_id}.json')
+    else:
+        # If no zone_id specified, remove all simulation files
+        import glob
+        sim_files = glob.glob(os.path.join(INPUT_DIR, 'simulation_*.json'))
+        for sim_file in sim_files:
+            os.remove(sim_file)
+        return jsonify({'success': True})
 
     if os.path.exists(sim_file):
         os.remove(sim_file)

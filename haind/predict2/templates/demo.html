@@ -261,26 +261,38 @@
 
         .magnitude-section {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: 1fr 2fr;
             gap: 15px;
         }
 
         .mag-item {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 10px;
-            padding: 15px;
+            padding: 10px;
             text-align: center;
+        }
+
+        .mag-item:first-child {
+            padding: 8px;
         }
 
         .mag-label {
             color: #a0a0a0;
-            font-size: 0.85em;
+            font-size: 0.75em;
             margin-bottom: 5px;
+        }
+
+        .mag-item:first-child .mag-label {
+            font-size: 0.7em;
         }
 
         .mag-value {
             font-size: 1.8em;
             font-weight: bold;
+        }
+
+        .mag-item:first-child .mag-value {
+            font-size: 1.2em;
         }
 
         .mag-value.predicted {
@@ -298,30 +310,22 @@
         }
 
         .gt-list {
-            font-size: 0.7em;
+            font-size: 0.85em;
             color: #a0a0a0;
             margin-top: 8px;
-            max-height: 80px;
-            overflow-y: auto;
-        }
-
-        .gt-list {
-            font-size: 0.7em;
-            color: #a0a0a0;
-            margin-top: 8px;
-            max-height: 120px;
+            max-height: 180px;
             overflow-y: auto;
         }
 
         .gt-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.85em;
+            font-size: 0.9em;
         }
 
         .gt-table th {
             text-align: left;
-            padding: 4px 8px;
+            padding: 6px 10px;
             color: #a0a0a0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             position: sticky;
@@ -330,7 +334,7 @@
         }
 
         .gt-table td {
-            padding: 4px 8px;
+            padding: 6px 10px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
@@ -341,6 +345,7 @@
         .gt-mag {
             font-weight: bold;
             color: #10b981;
+            font-size: 1.1em;
         }
 
         .results-footer {
@@ -795,7 +800,7 @@
                                     const y = bar.y - 5;
 
                                     chartCtx.fillStyle = '#ffffff';
-                                    chartCtx.fillText('M' + value.toFixed(1), x, y);
+                                    chartCtx.fillText(value.toFixed(1), x, y);
                                 });
                             });
                         }
@@ -809,8 +814,12 @@
             if (!selectedZone) return;
 
             try {
-                // Reset any existing simulation
-                await fetch('/api/simulate/reset', { method: 'POST' });
+                // Reset any existing simulation for this zone
+                await fetch('/api/simulate/reset', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ zone_id: selectedZone })
+                });
 
                 // Start new simulation
                 const response = await fetch('/api/simulate/start', {

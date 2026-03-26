@@ -948,8 +948,8 @@
             if (predictions && predictions.length > 0) {
                 const pred = predictions[0];
 
-                // Update M5+ probability
-                const m5Prob = pred.prediction.m5_probability_7days * 100;
+                // Update M5+ probability (cap at 100%)
+                const m5Prob = Math.min(pred.prediction.m5_probability_7days * 100, 100);
                 document.getElementById('m5ProbabilityFill').style.width = m5Prob + '%';
                 document.getElementById('m5ProbabilityText').textContent = m5Prob.toFixed(1) + '%';
 

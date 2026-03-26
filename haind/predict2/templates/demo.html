@@ -436,14 +436,13 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🌍 Dự báo Động đất Real-time</h1>
+            <h1>🌍 Dự báo Động đất sớm</h1>
             <p>Chọn vùng động đất và chạy mô phỏng để xem dự báo theo thời gian thực</p>
         </div>
 
         <div class="main-layout">
             <!-- Left Column - Zone Selection -->
             <div class="zones-column">
-                <div class="zones-title">📍 Chọn vùng động đất</div>
                 <div class="zones-list">
                     {% for zone in zones %}
                     <div class="zone-card" data-zone-id="{{ zone.id }}" style="--zone-color: {{ zone.color }}">
@@ -454,7 +453,7 @@
                 </div>
 
                 <button class="demo-btn" id="demoBtn" disabled>
-                    ▶ Chạy Demo Real-time
+                    ▶ Chạy
                 </button>
             </div>
 
@@ -804,7 +803,7 @@
 
             // Update UI
             const demoBtn = document.getElementById('demoBtn');
-            demoBtn.textContent = '▶ Chạy Demo Real-time';
+            demoBtn.textContent = '▶ Chạy';
             demoBtn.classList.remove('running');
         }
 

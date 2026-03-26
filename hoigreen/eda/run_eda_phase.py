@@ -86,17 +86,15 @@ def add_region_ids(df: pd.DataFrame, region_grid_size: float) -> pd.DataFrame:
 
 
 def build_dataset_overview(raw_df: pd.DataFrame, analysis_df: pd.DataFrame, grid_size: float) -> Dict[str, object]:
-    type_counts = raw_df["type"].fillna("unknown").value_counts().to_dict()
     overview = {
         "input_rows_after_basic_cleaning": int(len(raw_df)),
-        "analysis_rows_after_type_filter": int(len(analysis_df)),
+        "analysis_rows_for_eda": int(len(analysis_df)),
         "analysis_event_type": "earthquake",
         "analysis_share": float(len(analysis_df) / max(len(raw_df), 1)),
         "time_min": str(analysis_df["time"].min()),
         "time_max": str(analysis_df["time"].max()),
         "grid_size_degree": grid_size,
         "distinct_regions": int(analysis_df["region_code"].nunique()),
-        "type_counts": type_counts,
     }
     return overview
 
@@ -147,19 +145,6 @@ def build_region_summary(df: pd.DataFrame) -> pd.DataFrame:
     )
     region_summary["event_share"] = region_summary["event_count"] / region_summary["event_count"].sum()
     return region_summary
-
-
-def plot_type_distribution(raw_df: pd.DataFrame, output_path: Path) -> None:
-    type_counts = raw_df["type"].fillna("unknown").value_counts().head(10).reset_index()
-    type_counts.columns = ["type", "count"]
-    fig, ax = plt.subplots(figsize=(10, 5))
-    sns.barplot(data=type_counts, x="count", y="type", ax=ax, color="#1d7874")
-    ax.set_title("Raw Event Type Distribution")
-    ax.set_xlabel("Count")
-    ax.set_ylabel("")
-    fig.tight_layout()
-    fig.savefig(output_path, dpi=180)
-    plt.close(fig)
 
 
 def plot_missingness(df: pd.DataFrame, output_path: Path) -> None:
@@ -367,13 +352,12 @@ def build_report(
 
 - Input: `data/dongdat.csv`
 - Rows after basic cleaning: `{overview["input_rows_after_basic_cleaning"]:,}`
-- Rows used for EDA (`earthquake` only): `{overview["analysis_rows_after_type_filter"]:,}`
+- Rows used for EDA: `{overview["analysis_rows_for_eda"]:,}`
 - Time range: `{overview["time_min"]}` -> `{overview["time_max"]}`
 - Distinct analysis regions (`{overview["grid_size_degree"]}` degree grid): `{overview["distinct_regions"]:,}`
 
 ## 1. Distribution Analysis
 
-- Raw data contains non-earthquake event types, so the main EDA focuses on `earthquake` only.
 - Core variables are strongly skewed: many small magnitudes and shallow events, with a long tail of stronger and deeper events.
 - `mmi`, `cdi`, `felt` are highly incomplete and should stay descriptive rather than become core modeling features.
 
@@ -430,7 +414,6 @@ def main() -> None:
     monthly_summary = build_monthly_summary(analysis_df)
     region_summary = build_region_summary(analysis_df)
 
-    plot_type_distribution(raw_df, args.output_dir / "07_type_distribution.png")
     plot_missingness(analysis_df, args.output_dir / "08_missingness.png")
     plot_numeric_distributions(analysis_df, args.output_dir / "09_numeric_distributions.png")
     correlation_matrix = plot_correlation_heatmap(analysis_df, args.output_dir / "10_correlation_heatmap.png")

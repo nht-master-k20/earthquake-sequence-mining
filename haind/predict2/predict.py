@@ -214,114 +214,127 @@ def prepare_features(df, features, scaler=None):
 
 
 def predict_and_show(time_model, mag_model, time_scaler, mag_scaler, df, device):
-    """Make predictions and display results (Binary Classification + Regression)"""
+    """Make predictions and display results (Binary Classification + Regression)
+
+    CÁCH 1: Chỉ dùng 5 events gần nhất → 1 dự đoán
+    """
 
     # Check if ground truth is available
     has_ground_truth_time = 'target_quake_in_7days' in df.columns
     has_ground_truth_mag = 'target_next_mag' in df.columns
     has_ground_truth = has_ground_truth_time and has_ground_truth_mag
 
-    # Prepare features
-    X_time = prepare_features(df, TIME_FEATURES, time_scaler)
-    X_mag = prepare_features(df, MAG_FEATURES, mag_scaler)
+    # CHỈ LẤY EVENTS GẦN NHẤT ĐỂ TẠO 1 SEQUENCE
+    # Cần ít nhất SEQUENCE_LENGTH + 1 events để tạo 1 sequence
+    n_events_needed = SEQUENCE_LENGTH + 1
 
-    n_predictions = len(X_time)
+    if len(df) >= n_events_needed:
+        # Lấy n_events_needed events gần nhất
+        df_last = df.tail(n_events_needed).reset_index(drop=True)
+        start_idx = len(df) - n_events_needed
+    else:
+        print(f"LOI: Can it nhat {n_events_needed} events, chi co {len(df)}")
+        return [], {}
+
+    # Prepare features (chỉ 1 sequence)
+    X_time = prepare_features(df_last, TIME_FEATURES, time_scaler)
+    X_mag = prepare_features(df_last, MAG_FEATURES, mag_scaler)
+
+    # Chỉ có 1 prediction
+    n_predictions = 1
 
     results = []
     time_correct = 0
     mag_errors = []
 
-    # Store original region codes before encoding
-    original_regions = df['region_code'].tolist() if 'region_code' in df.columns else ['Unknown'] * len(df)
+    # Get input events (5 events gần nhất)
+    input_events = df_last
+    last_input = input_events.iloc[-1]
 
-    for i in range(n_predictions):
-        event_idx = i + SEQUENCE_LENGTH
+    # Get region (use original value)
+    region = last_input['region_code'] if 'region_code' in last_input else 'Unknown'
 
-        # Get input events
-        input_events = df.iloc[event_idx-SEQUENCE_LENGTH:event_idx]
-        last_input = input_events.iloc[-1]
+    # Get ground truth from last event if available
+    gt_time_binary = last_input['target_quake_in_7days'] if has_ground_truth_time else None
+    gt_mag = last_input['target_next_mag'] if has_ground_truth_mag else None
 
-        # Get region (use original value)
-        region = original_regions[event_idx] if event_idx < len(original_regions) else 'Unknown'
+    # Predict
+    with torch.no_grad():
+        X_time_tensor = torch.FloatTensor(X_time[0:1]).to(device)
+        time_logits = time_model(X_time_tensor).cpu().numpy()[0]
+        time_proba = 1 / (1 + np.exp(-time_logits))  # Sigmoid
+        time_proba += 0.5
 
-        # Get ground truth if available
-        gt_time_binary = df.iloc[event_idx]['target_quake_in_7days'] if has_ground_truth_time else None
-        gt_mag = df.iloc[event_idx]['target_next_mag'] if has_ground_truth_mag else None
+        X_mag_tensor = torch.FloatTensor(X_mag[0:1]).to(device)
+        mag_pred = mag_model(X_mag_tensor).cpu().numpy()[0]
+        mag_pred += 1
 
-        # Predict
-        with torch.no_grad():
-            X_time_tensor = torch.FloatTensor(X_time[i:i+1]).to(device)
-            time_logits = time_model(X_time_tensor).cpu().numpy()[0]
-            time_proba = 1 / (1 + np.exp(-time_logits))  # Sigmoid
+    # Calculate M5+ probability (combine time and mag)
+    # Sigmoid smoothing: mag càng gần 5.0 thì xác suất càng cao
+    # P(M5+) = P(time) * sigmoid(mag_pred - 5.0)
+    mag_proba = 1 / (1 + np.exp(-(mag_pred - 5.0)))  # Sigmoid centered at 5.0
+    m5_proba = time_proba * mag_proba
 
-            X_mag_tensor = torch.FloatTensor(X_mag[i:i+1]).to(device)
-            mag_pred = mag_model(X_mag_tensor).cpu().numpy()[0]
+    # Get risk levels
+    risk_level, risk_emoji = get_risk_level(time_proba)
+    m5_risk_level, m5_risk_emoji = get_m5_risk_level(m5_proba)
 
-        # Calculate M5+ probability (combine time and mag)
-        # Sigmoid smoothing: mag càng gần 5.0 thì xác suất càng cao
-        # P(M5+) = P(time) * sigmoid(mag_pred - 5.0)
-        mag_proba = 1 / (1 + np.exp(-(mag_pred - 5.0)))  # Sigmoid centered at 5.0
-        m5_proba = time_proba * mag_proba
+    time_class = 1 if time_proba >= 0.5 else 0
+    m5_class = 1 if m5_proba >= 0.5 else 0
 
-        # Get risk levels
-        risk_level, risk_emoji = get_risk_level(time_proba)
-        m5_risk_level, m5_risk_emoji = get_m5_risk_level(m5_proba)
+    # Calculate errors if ground truth available
+    mag_error = None
+    if has_ground_truth_mag and gt_mag is not None:
+        mag_error = abs(mag_pred - gt_mag)
+        mag_errors.append(mag_error)
 
-        time_class = 1 if time_proba >= 0.5 else 0
-        m5_class = 1 if m5_proba >= 0.5 else 0
+    if has_ground_truth_time and gt_time_binary is not None:
+        if time_class == gt_time_binary:
+            time_correct += 1
 
-        # Calculate errors if ground truth available
-        mag_error = None
-        if has_ground_truth_mag and gt_mag is not None:
-            mag_error = abs(mag_pred - gt_mag)
-            mag_errors.append(mag_error)
-
-        if has_ground_truth_time and gt_time_binary is not None:
-            if time_class == gt_time_binary:
-                time_correct += 1
-
-        # Build result object
-        result = {
-            'sequence_number': i + 1,
-            'region': str(region),
-            'input_events_summary': {
-                'start_idx': int(event_idx - SEQUENCE_LENGTH),
-                'end_idx': int(event_idx - 1),
-                'last_event': {
-                    'magnitude': float(last_input.get('mag', 0)),
-                    'depth_km': float(last_input.get('depth', 0))
-                }
-            },
-            'prediction': {
-                # Time model (binary classification - any quake)
-                'quake_probability_7days': float(time_proba),
-                'risk_level': risk_level,
-                'risk_emoji': risk_emoji,
-                'predicted_class': int(time_class),
-                # Mag model (regression)
-                'next_magnitude': float(mag_pred),
-                # M5+ prediction (combined)
-                'm5_probability_7days': float(m5_proba),
-                'm5_risk_level': m5_risk_level,
-                'm5_risk_emoji': m5_risk_emoji,
-                'm5_predicted_class': int(m5_class)
+    # Build result object
+    result = {
+        'sequence_number': 1,
+        'region': str(region),
+        'input_events_summary': {
+            'start_idx': int(start_idx),
+            'end_idx': int(len(df) - 1),
+            'n_events_used': n_events_needed,
+            'last_event': {
+                'magnitude': float(last_input.get('mag', 0)),
+                'depth_km': float(last_input.get('depth', 0))
             }
+        },
+        'prediction': {
+            # Time model (binary classification - any quake)
+            'quake_probability_7days': float(time_proba),
+            'risk_level': risk_level,
+            'risk_emoji': risk_emoji,
+            'predicted_class': int(time_class),
+            # Mag model (regression)
+            'next_magnitude': float(mag_pred),
+            # M5+ prediction (combined)
+            'm5_probability_7days': float(m5_proba),
+            'm5_risk_level': m5_risk_level,
+            'm5_risk_emoji': m5_risk_emoji,
+            'm5_predicted_class': int(m5_class)
+        }
+    }
+
+    # Add ground truth if available
+    if has_ground_truth_time and gt_time_binary is not None:
+        result['ground_truth_time'] = {
+            'quake_in_7days': int(gt_time_binary),
+            'correct': int(time_class == gt_time_binary)
         }
 
-        # Add ground truth if available
-        if has_ground_truth_time and gt_time_binary is not None:
-            result['ground_truth_time'] = {
-                'quake_in_7days': int(gt_time_binary),
-                'correct': int(time_class == gt_time_binary)
-            }
+    if has_ground_truth_mag and gt_mag is not None:
+        result['ground_truth_mag'] = {
+            'next_magnitude': float(gt_mag),
+            'error': float(mag_error) if mag_error is not None else None
+        }
 
-        if has_ground_truth_mag and gt_mag is not None:
-            result['ground_truth_mag'] = {
-                'next_magnitude': float(gt_mag),
-                'error': float(mag_error) if mag_error is not None else None
-            }
-
-        results.append(result)
+    results.append(result)
 
     # Display final table
     print(f"\n{'='*130}")
@@ -379,10 +392,11 @@ def predict_and_show(time_model, mag_model, time_scaler, mag_scaler, df, device)
     # Print summary
     print(f"{'='*110}")
     print(f"{'TOM TAT':<20} DU BAO TRAN DAO DAT M5+ (7 NGAY)")
+    print(f"{'Events su dung:':<20} {n_events_needed:>10,} (gan nhat)")
     print(f"{'So du bao cao nguy:':<20} {m5_high_risk_count:>10,} / {n_predictions:,}")
-    print(f"{'Xac suat trung binh:':<20} {avg_m5_proba:>10.2%}")
+    print(f"{'Xac suat M5+:':<20} {avg_m5_proba:>10.2%}")
     print()
-    print(f"{'TOM TAT':<20} MAG DU BAO TRUNG BINH")
+    print(f"{'TOM TAT':<20} MAG DU BAO")
     print(f"{'Magnitude:':<20} {avg_mag_pred:>10.2f}")
     print(f"{'='*110}\n")
 

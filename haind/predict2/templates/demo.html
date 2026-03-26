@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dự báo Động đất - Earthquake Prediction Demo</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px 0 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 8px;
+            background: linear-gradient(90deg, #ff6b6b, #feca57);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1em;
+            color: #a0a0a0;
+        }
+
+        /* Main Layout - 2 Columns */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 25px;
+            align-items: start;
+        }
+
+        /* Left Column - Zone Selection */
+        .zones-column {
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 20px;
+        }
+
+        .zones-title {
+            color: white;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .zones-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .zone-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .zone-card:hover {
+            transform: translateX(5px);
+            border-color: var(--zone-color);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .zone-card.selected {
+            border-color: var(--zone-color);
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.2);
+        }
+
+        .zone-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--zone-color);
+        }
+
+        .zone-name {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: white;
+        }
+
+        .zone-location {
+            font-size: 0.85em;
+            color: #a0a0a0;
+            margin-top: 4px;
+        }
+
+        /* Demo Button */
+        .demo-btn {
+            width: 100%;
+            padding: 18px;
+            margin-top: 20px;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(90deg, #10b981, #3b82f6);
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .demo-btn:hover:not(:disabled) {
+            transform: scale(1.02);
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+        }
+
+        .demo-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .demo-btn.running {
+            background: linear-gradient(90deg, #ef4444, #f59e0b);
+        }
+
+        /* Right Column - Results */
+        .results-column {
+            min-height: 400px;
+        }
+
+        .results-placeholder {
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 60px 40px;
+            text-align: center;
+            color: #a0a0a0;
+        }
+
+        .results-placeholder-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .results-placeholder h3 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            color: white;
+        }
+
+        .zone-info {
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .zone-info.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        .zone-info-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .zone-info-title {
+            font-size: 1.5em;
+            color: white;
+            font-weight: bold;
+        }
+
+        .zone-info-location {
+            color: #a0a0a0;
+            font-size: 0.95em;
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            height: 300px;
+        }
+
+        .results {
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        .results-compact {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+        }
+
+        .probability-section {
+            margin-bottom: 20px;
+        }
+
+        .prob-label {
+            color: white;
+            font-size: 1em;
+            margin-bottom: 10px;
+        }
+
+        .magnitude-section {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .mag-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .mag-label {
+            color: #a0a0a0;
+            font-size: 0.85em;
+            margin-bottom: 5px;
+        }
+
+        .mag-value {
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+
+        .mag-value.predicted {
+            color: #feca57;
+        }
+
+        .mag-value.actual {
+            color: #10b981;
+        }
+
+        .results-footer {
+            text-align: right;
+            color: #a0a0a0;
+            font-size: 0.85em;
+            margin-top: 15px;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .results-title {
+            font-size: 1.6em;
+            color: white;
+        }
+
+        .results-time {
+            color: #a0a0a0;
+            font-size: 0.9em;
+        }
+
+        .prediction-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .prediction-card h3 {
+            color: white;
+            margin-bottom: 18px;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .prediction-card h3::before {
+            content: '⚠';
+            font-size: 1.3em;
+        }
+
+        .probability-bar {
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .probability-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #f59e0b, #ef4444);
+            border-radius: 20px;
+            transition: width 0.6s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 15px;
+        }
+
+        .probability-text {
+            color: white;
+            font-weight: bold;
+            font-size: 1.1em;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .magnitude-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .magnitude-box {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .magnitude-box .label {
+            color: #a0a0a0;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+        }
+
+        .magnitude-box .value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .magnitude-box .predicted {
+            color: #feca57;
+        }
+
+        .magnitude-box .actual {
+            color: #10b981;
+        }
+
+        .info-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .info-item .label {
+            color: #a0a0a0;
+            font-size: 0.85em;
+            margin-bottom: 5px;
+        }
+
+        .info-item .value {
+            color: white;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌍 Dự báo Động đất Real-time</h1>
+            <p>Chọn vùng động đất và chạy mô phỏng để xem dự báo theo thời gian thực</p>
+        </div>
+
+        <div class="main-layout">
+            <!-- Left Column - Zone Selection -->
+            <div class="zones-column">
+                <div class="zones-title">📍 Chọn vùng động đất</div>
+                <div class="zones-list">
+                    {% for zone in zones %}
+                    <div class="zone-card" data-zone-id="{{ zone.id }}" style="--zone-color: {{ zone.color }}">
+                        <div class="zone-name">{{ zone.name }}</div>
+                        <div class="zone-location">{{ zone.location }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <button class="demo-btn" id="demoBtn" disabled>
+                    ▶ Chạy Demo Real-time
+                </button>
+            </div>
+
+            <!-- Right Column - Results -->
+            <div class="results-column">
+                <!-- Placeholder when no zone selected -->
+                <div class="results-placeholder" id="placeholder">
+                    <div class="results-placeholder-icon">🗺️</div>
+                    <h3>Chọn một vùng động đất</h3>
+                    <p>Nhấn vào một vùng ở bên trái, sau đó nhấn "Chạy Demo"</p>
+                </div>
+
+                <!-- Zone Info with Chart -->
+                <div class="zone-info" id="zoneInfo">
+                    <div class="zone-info-header">
+                        <div class="zone-info-title" id="zoneInfoTitle">Japan</div>
+                        <div class="zone-info-location" id="zoneInfoLocation">Tohoku Region, Honshu</div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="magnitudeChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Prediction Results -->
+                <div class="results" id="results">
+                    <div class="results-compact">
+                        <div class="probability-section">
+                            <div class="prob-label">Xác suất M5.0+ trong 7 ngày tới</div>
+                            <div class="probability-bar">
+                                <div class="probability-fill" id="m5ProbabilityFill" style="width: 0%">
+                                    <span class="probability-text" id="m5ProbabilityText">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="magnitude-section">
+                            <div class="mag-item">
+                                <div class="mag-label">Dự báo</div>
+                                <div class="mag-value predicted" id="magnitudeValue">-</div>
+                            </div>
+                            <div class="mag-item">
+                                <div class="mag-label">Thực tế</div>
+                                <div class="mag-value actual" id="gtMagnitudeValue">-</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="results-footer" id="resultsTime"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedZone = null;
+        let simInterval = null;
+        let isSimulating = false;
+        let magnitudeChart = null;
+
+        // Zone details
+        const zoneDetails = {
+            'japan': {
+                name: 'Japan',
+                location: 'Tohoku Region, Honshu - East Coast',
+                color: '#ef4444'
+            },
+            'philippines': {
+                name: 'Philippines',
+                location: 'Mindanao Region - Southern Philippines',
+                color: '#f59e0b'
+            },
+            'chile': {
+                name: 'Chile',
+                location: 'Central Chile - Near Santiago',
+                color: '#10b981'
+            },
+            'indonesia': {
+                name: 'Indonesia - Sumatra',
+                location: 'Northern Sumatra - Aceh Province',
+                color: '#3b82f6'
+            },
+            'california': {
+                name: 'USA - California',
+                location: 'Baja California - Mexicali Area',
+                color: '#8b5cf6'
+            }
+        };
+
+        // Zone card click handler
+        document.querySelectorAll('.zone-card').forEach(card => {
+            card.addEventListener('click', async () => {
+                // Stop simulation if running
+                if (isSimulating) {
+                    stopSimulation();
+                }
+
+                // Remove selection from all cards
+                document.querySelectorAll('.zone-card').forEach(c => c.classList.remove('selected'));
+                // Add selection to clicked card
+                card.classList.add('selected');
+                // Store selected zone
+                selectedZone = card.dataset.zoneId;
+                // Enable demo button
+                document.getElementById('demoBtn').disabled = false;
+
+                // Load events for selected zone
+                await loadEvents(selectedZone);
+            });
+        });
+
+        // Demo button handler
+        document.getElementById('demoBtn').addEventListener('click', async () => {
+            if (!selectedZone) return;
+
+            if (isSimulating) {
+                stopSimulation();
+            } else {
+                await startSimulation();
+            }
+        });
+
+        // Load events for selected zone
+        async function loadEvents(zoneId) {
+            try {
+                const response = await fetch(`/api/events/${zoneId}`);
+                const data = await response.json();
+
+                if (data.error) {
+                    console.error('Error loading events:', data.error);
+                    return;
+                }
+
+                // Update zone info
+                updateZoneInfo(zoneId, data);
+
+                // Update chart
+                updateMagnitudeChart(data.events);
+
+            } catch (error) {
+                console.error('Error loading events:', error);
+            }
+        }
+
+        // Update zone info
+        function updateZoneInfo(zoneId, data) {
+            const placeholder = document.getElementById('placeholder');
+            const zoneInfo = document.getElementById('zoneInfo');
+
+            // Hide placeholder
+            placeholder.style.display = 'none';
+
+            // Update zone details
+            const details = zoneDetails[zoneId];
+            document.getElementById('zoneInfoTitle').textContent = details.name;
+            document.getElementById('zoneInfoLocation').textContent = details.location;
+
+            // Show zone info
+            zoneInfo.classList.add('show');
+        }
+
+        // Update magnitude chart
+        function updateMagnitudeChart(events) {
+            const ctx = document.getElementById('magnitudeChart').getContext('2d');
+
+            // Destroy existing chart
+            if (magnitudeChart) {
+                magnitudeChart.destroy();
+            }
+
+            // Prepare data
+            const labels = events.map(e => `#${e.index}`);
+            const data = events.map(e => e.mag);
+            const colors = events.map(e => {
+                if (e.mag >= 6) return '#ef4444';
+                if (e.mag >= 5) return '#f59e0b';
+                if (e.mag >= 4) return '#10b981';
+                return '#6b7280';
+            });
+
+            // Create chart
+            magnitudeChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Magnitude',
+                        data: data,
+                        backgroundColor: colors,
+                        borderColor: colors.map(c => c),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: 'Các chấn động đã ghi nhận',
+                            color: '#ffffff',
+                            font: {
+                                size: 14
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#a0a0a0',
+                                callback: function(value) {
+                                    return 'M' + value;
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Magnitude',
+                                color: '#a0a0a0'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#a0a0a0',
+                                maxTicksLimit: 20
+                            }
+                        }
+                    },
+                    animation: {
+                        onComplete: function() {
+                            const chartInstance = magnitudeChart;
+                            if (!chartInstance) return;
+
+                            const chartCtx = chartInstance.ctx;
+                            chartCtx.font = 'bold 11px sans-serif';
+                            chartCtx.textAlign = 'center';
+                            chartCtx.textBaseline = 'bottom';
+
+                            chartInstance.data.datasets.forEach((dataset, i) => {
+                                const meta = chartInstance.getDatasetMeta(i);
+                                meta.data.forEach((bar, index) => {
+                                    const value = dataset.data[index];
+                                    const x = bar.x;
+                                    const y = bar.y - 5;
+
+                                    chartCtx.fillStyle = '#ffffff';
+                                    chartCtx.fillText('M' + value.toFixed(1), x, y);
+                                });
+                            });
+                        }
+                    }
+                }
+            });
+        }
+
+        // Start simulation
+        async function startSimulation() {
+            if (!selectedZone) return;
+
+            try {
+                // Reset any existing simulation
+                await fetch('/api/simulate/reset', { method: 'POST' });
+
+                // Start new simulation
+                const response = await fetch('/api/simulate/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ zone_id: selectedZone })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                // Update UI for simulation mode
+                isSimulating = true;
+                const demoBtn = document.getElementById('demoBtn');
+                demoBtn.textContent = '⏹ Dừng Demo';
+                demoBtn.classList.add('running');
+
+                // Load initial events
+                await loadEvents(selectedZone);
+
+                // Start interval - every 10 seconds add one event
+                simInterval = setInterval(async () => {
+                    await simulateNext();
+                }, 10000); // 10 seconds
+
+            } catch (error) {
+                console.error('Error starting simulation:', error);
+                alert('Lỗi bắt đầu mô phỏng: ' + error.message);
+            }
+        }
+
+        // Simulate next event
+        async function simulateNext() {
+            try {
+                const response = await fetch('/api/simulate/next', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ zone_id: selectedZone })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                if (data.finished) {
+                    // Simulation completed
+                    stopSimulation();
+                    return;
+                }
+
+                // Update events and chart
+                await loadEvents(selectedZone);
+
+                // Update prediction results
+                if (data.prediction) {
+                    showResults(data.prediction);
+                }
+
+            } catch (error) {
+                console.error('Error in simulation:', error);
+                stopSimulation();
+                alert('Lỗi trong quá trình mô phỏng: ' + error.message);
+            }
+        }
+
+        // Stop simulation
+        function stopSimulation() {
+            if (simInterval) {
+                clearInterval(simInterval);
+                simInterval = null;
+            }
+
+            isSimulating = false;
+
+            // Update UI
+            const demoBtn = document.getElementById('demoBtn');
+            demoBtn.textContent = '▶ Chạy Demo Real-time';
+            demoBtn.classList.remove('running');
+        }
+
+        // Show results
+        function showResults(data) {
+            const results = document.getElementById('results');
+            const predictions = data.predictions;
+
+            if (predictions && predictions.length > 0) {
+                const pred = predictions[0];
+                const details = zoneDetails[selectedZone];
+
+                // Update M5+ probability
+                const m5Prob = pred.prediction.m5_probability_7days * 100;
+                document.getElementById('m5ProbabilityFill').style.width = m5Prob + '%';
+                document.getElementById('m5ProbabilityText').textContent = m5Prob.toFixed(1) + '%';
+
+                // Update magnitude (predicted)
+                document.getElementById('magnitudeValue').textContent = 'M' + pred.prediction.next_magnitude.toFixed(1);
+
+                // Update ground truth magnitude
+                if (pred.ground_truth_mag && pred.ground_truth_mag.next_magnitude) {
+                    document.getElementById('gtMagnitudeValue').textContent = 'M' + pred.ground_truth_mag.next_magnitude.toFixed(1);
+                } else {
+                    document.getElementById('gtMagnitudeValue').textContent = 'N/A';
+                }
+            }
+
+            // Update timestamp
+            document.getElementById('resultsTime').textContent = data.timestamp;
+
+            // Show results
+            results.classList.add('show');
+        }
+    </script>
+</body>
+</html>

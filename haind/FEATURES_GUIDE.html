@@ -10,13 +10,13 @@
             --primary-dark: #4f46e5;
             --secondary: #8b5cf6;
             --success: #10b981;
-            --warning: #f59e0b;
             --danger: #ef4444;
-            --bg: #f8fafc;
-            --card-bg: #ffffff;
+            --warning: #f59e0b;
             --text: #1e293b;
             --text-light: #64748b;
             --border: #e2e8f0;
+            --card-bg: #ffffff;
+            --bg: #f8fafc;
         }
 
         * {
@@ -26,19 +26,28 @@
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
-            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
             background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
             padding: 20px;
         }
 
         .container {
-            max-width: 1600px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
-        /* Header */
+        /* Table wrapper for scrolling */
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        /* Hidden class for filter */
+        .hidden {
+            display: none !important;
+        }
+
         header {
             background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             color: white;
@@ -205,25 +214,6 @@
         }
 
         /* Table */
-        .table-section {
-            background: var(--card-bg);
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            border: 1px solid var(--border);
-            margin-bottom: 25px;
-        }
-
-        .table-header {
-            padding: 20px 25px;
-            border-bottom: 2px solid var(--border);
-        }
-
-        .table-title {
-            font-size: 1.3em;
-            font-weight: 600;
-        }
-
         table {
             width: 100%;
             border-collapse: collapse;
@@ -367,69 +357,6 @@
         .category-badge.lstm { background: #3b82f6; }
         .category-badge.target { background: var(--success); }
 
-        /* Workflow Steps */
-        .workflow {
-            background: var(--card-bg);
-            padding: 25px;
-            border-radius: 16px;
-            margin-bottom: 25px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            border: 1px solid var(--border);
-        }
-
-        .workflow-title {
-            font-size: 1.3em;
-            font-weight: 600;
-            margin-bottom: 20px;
-        }
-
-        .steps {
-            display: grid;
-            gap: 15px;
-        }
-
-        .step {
-            display: flex;
-            gap: 15px;
-            align-items: start;
-            padding: 15px;
-            background: #f8fafc;
-            border-radius: 10px;
-            border-left: 4px solid var(--primary);
-        }
-
-        .step-number {
-            background: var(--primary);
-            color: white;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            flex-shrink: 0;
-        }
-
-        .step-content h4 {
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-
-        .step-content p {
-            color: var(--text-light);
-            font-size: 0.9em;
-        }
-
-        .step-content code {
-            display: block;
-            margin-top: 8px;
-            padding: 10px;
-            background: #1e293b;
-            color: #e2e8f0;
-            border-radius: 5px;
-        }
-
         /* Footer */
         footer {
             background: var(--card-bg);
@@ -453,29 +380,24 @@
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
             th, td { padding: 8px 6px; font-size: 0.8em; }
         }
+
+        /* Preformatted text for project structure */
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 10px;
+            overflow-x: auto;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>📊 Features Guide - Earthquake LSTM Model</h1>
-            <p class="subtitle">31 Features (28 Input + 3 Targets) cho dự báo THỜI GIAN & ĐỘ LỚN động đất tiếp theo</p>
-            <div class="meta">File: haind/add_advanced_features_mp.py | Output: features_lstm.csv | Model: LSTM | Sort: Region → Time</div>
+            <p class="subtitle">Split LSTM: TimeLSTM (21 features) + MagLSTM (26 features) cho dự báo ĐỘNG ĐẤT</p>
+            <div class="meta">File: predict2/config.py | Models: TimeLSTM (binary) + MagLSTM (regression)</div>
         </header>
-
-        <!-- GPU Compatibility Warning -->
-        <div class="alert alert-warning">
-            <div class="alert-icon">⚠️</div>
-            <div class="alert-content">
-                <h4>GPU Compatibility Warning - RTX 5090</h4>
-                <p><strong>RTX 5090 (Blackwell)</strong> chưa được PyTorch/TensorFlow hỗ trợ chính thức (compute capability sm_120).</p>
-                <ul>
-                    <li><strong>PyTorch 2.6.0</strong>: Crash - không có kernel binary cho sm_120</li>
-                    <li><strong>TensorFlow 2.18</strong>: JIT compile từ PTX (30-60 phút lần đầu)</li>
-                    <li><strong>Giải pháp</strong>: Dùng Google Colab (T4/L4/A100) hoặc build từ source</li>
-                </ul>
-            </div>
-        </div>
 
         <!-- Stats -->
         <div class="stats-grid">
@@ -492,28 +414,24 @@
                 <div class="label">Sequence</div>
             </div>
             <div class="stat-card lstm">
-                <div class="number">5</div>
+                <div class="number">7</div>
                 <div class="label">LSTM Temporal</div>
             </div>
             <div class="stat-card target">
-                <div class="number">3</div>
+                <div class="number">2</div>
                 <div class="label">Targets</div>
             </div>
             <div class="stat-card total">
-                <div class="number">29</div>
-                <div class="label">Input + 3 Targets</div>
+                <div class="number">28</div>
+                <div class="label">Total Features</div>
             </div>
-        </div>
-
-        <!-- Data Configuration Info -->
-        <div class="alert alert-info">
-            <div class="alert-icon">ℹ️</div>
-            <div class="alert-content">
-                <h4>Data Configuration</h4>
-                <p><strong>TEST_MODE = False</strong>: Process full data (2000-2025, 3.1M events)</p>
-                <p><strong>END_YEAR = 2026</strong>: Full year range (đã fix từ 2006)</p>
-                <p><strong>Sequence Length = 5</strong>: Cần ít nhất 5 events để predict event thứ 6</p>
-                <p><strong>min_events filter</strong>: Chỉ giữ regions có ≥500 events (default: 500)</p>
+            <div class="stat-card" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);">
+                <div class="number">21</div>
+                <div class="label">TimeLSTM</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);">
+                <div class="number">26</div>
+                <div class="label">MagLSTM</div>
             </div>
         </div>
 
@@ -521,10 +439,9 @@
         <div class="filter-section">
             <div class="filter-title">🔍 Lọc theo mục đích dự báo:</div>
             <div class="filter-buttons">
-                <button class="filter-btn active" data-filter="all">Tất cả (29)</button>
-                <button class="filter-btn" data-filter="time">⏰ Thời gian (20)</button>
-                <button class="filter-btn" data-filter="mag">📏 Độ lớn (18)</button>
-                <button class="filter-btn" data-filter="both">🔄 Cả hai (15)</button>
+                <button class="filter-btn active" data-filter="all">Tất cả (28)</button>
+                <button class="filter-btn" data-filter="time">⏰ Thời gian (21)</button>
+                <button class="filter-btn" data-filter="mag">📏 Độ lớn (26)</button>
             </div>
         </div>
 
@@ -617,7 +534,7 @@
                             <td><code>region_code</code></td>
                             <td>Mã vùng grid-based: R{lat}_{lon}</td>
                             <td>Grid 0.5° ≈ 55km: floor((lat+90)/0.5)_floor((lon+180)/0.5)</td>
-                            <td><span class="importance importance-high"><span class="stars">⭐⭐⭐⭐</span> HIGH</span></td>
+                            <td><span class="importance importance-critical"><span class="stars">⭐⭐⭐⭐⭐</span> CRITICAL</span></td>
                         </tr>
                     </tbody>
                 </table>
@@ -680,6 +597,9 @@
                     </tbody>
                 </table>
             </div>
+            <p style="color: var(--text-light); font-size: 0.85em; margin-top: 15px;">
+                <strong>Note:</strong> regional_b_value chỉ dùng cho MagLSTM (không có trong TimeLSTM)
+            </p>
         </div>
 
         <!-- SEQUENCE FEATURES -->
@@ -748,12 +668,15 @@
                     </tbody>
                 </table>
             </div>
+            <p style="color: var(--text-light); font-size: 0.85em; margin-top: 15px;">
+                <strong>Note:</strong> sequence_id chỉ dùng cho TimeLSTM (không có trong MagLSTM)
+            </p>
         </div>
 
         <!-- LSTM TEMPORAL FEATURES -->
         <div class="category-section">
             <div class="category-header">
-                <h2 class="category-title">4️⃣ LSTM Temporal Features (5)</h2>
+                <h2 class="category-title">4️⃣ LSTM Temporal Features (7)</h2>
                 <span class="category-badge lstm">INPUT CHÍNH</span>
             </div>
             <p style="color: var(--text-light); font-size: 0.9em; margin-bottom: 15px;">
@@ -801,9 +724,23 @@
                         </tr>
                         <tr data-purpose="time,mag">
                             <td><span class="badge badge-both">Cả hai</span></td>
-                            <td><code>interval_lag3, lag4, lag5</code></td>
-                            <td>Khoảng cách 3-5 bước trước</td>
-                            <td>time[i-n] - time[i-n-1]</td>
+                            <td><code>interval_lag3</code></td>
+                            <td>Khoảng cách 3 bước trước</td>
+                            <td>time[i-3] - time[i-4]</td>
+                            <td><span class="importance importance-high"><span class="stars">⭐⭐⭐⭐</span> HIGH</span></td>
+                        </tr>
+                        <tr data-purpose="time,mag">
+                            <td><span class="badge badge-both">Cả hai</span></td>
+                            <td><code>interval_lag4</code></td>
+                            <td>Khoảng cách 4 bước trước</td>
+                            <td>time[i-4] - time[i-5]</td>
+                            <td><span class="importance importance-medium"><span class="stars">⭐⭐⭐</span> MEDIUM</span></td>
+                        </tr>
+                        <tr data-purpose="time,mag">
+                            <td><span class="badge badge-both">Cả hai</span></td>
+                            <td><code>interval_lag5</code></td>
+                            <td>Khoảng cách 5 bước trước</td>
+                            <td>time[i-5] - time[i-6]</td>
                             <td><span class="importance importance-medium"><span class="stars">⭐⭐⭐</span> MEDIUM</span></td>
                         </tr>
                     </tbody>
@@ -814,7 +751,7 @@
         <!-- TARGET VARIABLES -->
         <div class="category-section">
             <div class="category-header">
-                <h2 class="category-title">5️⃣ Target Variables (3)</h2>
+                <h2 class="category-title">5️⃣ Target Variables (2)</h2>
                 <span class="category-badge target">OUTPUT</span>
             </div>
             <p style="color: var(--text-light); font-size: 0.9em; margin-bottom: 15px;">
@@ -824,114 +761,127 @@
                 <table>
                     <thead>
                         <tr>
+                            <th>Model</th>
                             <th>Target</th>
-                            <th>Feature</th>
                             <th>Ý nghĩa</th>
-                            <th>Cách tính</th>
                             <th>Loại output</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr data-purpose="time">
-                            <td><span class="badge badge-target">Target 1</span></td>
-                            <td><code>target_time_to_next</code></td>
-                            <td>Thời gian đến trận tiếp theo (giây)</td>
-                            <td>time[i+1] - time[i]</td>
-                            <td>Regression</td>
+                            <td><span class="badge badge-target">TimeLSTM</span></td>
+                            <td><code>target_quake_in_7days</code></td>
+                            <td>Có động đất trong 7 ngày tới? (0/1)</td>
+                            <td>Binary Classification</td>
                         </tr>
                         <tr data-purpose="mag">
-                            <td><span class="badge badge-target">Target 2</span></td>
+                            <td><span class="badge badge-target">MagLSTM</span></td>
                             <td><code>target_next_mag</code></td>
                             <td>Độ lớn trận tiếp theo</td>
-                            <td>mag[i+1]</td>
                             <td>Regression</td>
-                        </tr>
-                        <tr data-purpose="mag">
-                            <td><span class="badge badge-target">Target 3</span></td>
-                            <td><code>target_next_mag_binary</code></td>
-                            <td>≥M5.0? (0/1)</td>
-                            <td>1 if mag[i+1] >= 5.0 else 0</td>
-                            <td>Classification</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <!-- LSTM ARCHITECTURE -->
+        <!-- MODEL FEATURES SUMMARY -->
         <div class="category-section">
             <div class="category-header">
-                <h2 class="category-title">🧠 LSTM Architecture</h2>
+                <h2 class="category-title">6️⃣ Model Features Summary</h2>
             </div>
-            <div style="padding: 20px; background: #f8fafc; border-radius: 10px;">
-                <h4 style="margin-bottom: 15px;">Input Sequence cho LSTM:</h4>
-                <pre style="background: #1e293b; color: #e2e8f0; padding: 20px; border-radius: 8px; overflow-x: auto;">
-<span style="color: #6366f1;"># LSTM Input (timesteps=5, features=27)</span>
-<span style="color: #6366f1;"># Data Sorting: region_code → time (regional analysis)</span>
-X = [
-    [interval_lag5, interval_lag4, interval_lag3, interval_lag2, interval_lag1],  <span style="color: #64748b;"># Temporal sequence</span>
-    [mag, depth, sig, mmi, cdi, felt,                                              <span style="color: #64748b;"># Original features</span>
-     latitude, longitude, region_code,                                               <span style="color: #64748b;"># Spatial + Region</span>
-     is_aftershock, mainshock_mag, density, stress, b_value,                        <span style="color: #64748b;"># Core</span>
-     seq_id, seq_pos, is_main, seq_mag, seq_len, time_since,                       <span style="color: #64748b;"># Sequence</span>
-     time_since_last, time_since_M5]                                                <span style="color: #64748b;"># Temporal context</span>
-]
-
-<span style="color: #6366f1;"># LSTM Output</span>
-y = [
-    target_time_to_next,     <span style="color: #64748b;"># Regression: seconds</span>
-    target_next_mag,          <span style="color: #64748b;"># Regression: magnitude</span>
-    target_next_mag_binary    <span style="color: #64748b;"># Classification: 0/1</span>
-]
-                </pre>
-                <p style="margin-top: 15px; font-size: 0.9em; color: var(--text-light);">
-                    <strong>Note:</strong> Data được sắp xếp theo region_code → time, cho phép LSTM học pattern riêng cho từng vùng địa lý.
-                </p>
+            <p style="color: var(--text-light); font-size: 0.9em; margin-bottom: 15px;">
+                Số lượng features từng model sử dụng
+            </p>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Model</th>
+                            <th>Original</th>
+                            <th>Core</th>
+                            <th>Sequence</th>
+                            <th>LSTM Temporal</th>
+                            <th>Total</th>
+                            <th>Target</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>TimeLSTM</strong></td>
+                            <td>4</td>
+                            <td>4</td>
+                            <td>6</td>
+                            <td>7</td>
+                            <td><strong>21</strong></td>
+                            <td>target_quake_in_7days</td>
+                        </tr>
+                        <tr>
+                            <td><strong>MagLSTM</strong></td>
+                            <td>9</td>
+                            <td>5</td>
+                            <td>5</td>
+                            <td>7</td>
+                            <td><strong>26</strong></td>
+                            <td>target_next_mag</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
+            <p style="color: var(--text-light); font-size: 0.85em; margin-top: 15px;">
+                <strong>Note:</strong> TimeLSTM không dùng latitude/longitude (spatial features ít quan trọng cho dự báo thời gian).<br>
+                MagLSTM không dùng sequence_id (ít quan trọng cho dự báo độ lớn).
+            </p>
         </div>
 
-        <!-- Training Parameters -->
+        <!-- PROJECT STRUCTURE -->
         <div class="category-section">
             <div class="category-header">
-                <h2 class="category-title">⚙️ Training Parameters Reference</h2>
+                <h2 class="category-title">📁 Project Structure</h2>
             </div>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
-                <div style="padding: 15px; background: #f8fafc; border-radius: 10px;">
-                    <h4 style="margin-bottom: 10px;">min_events (Region Filter)</h4>
-                    <ul style="margin-left: 20px; font-size: 0.9em; color: var(--text-light);">
-                        <li><strong>100</strong>: ~1,000 regions, ~880K events (default)</li>
-                        <li><strong>500</strong>: ~400 regions, ~750K events (recommended)</li>
-                        <li><strong>1000</strong>: ~200 regions, ~650K events (best quality)</li>
-                    </ul>
-                </div>
-                <div style="padding: 15px; background: #f8fafc; border-radius: 10px;">
-                    <h4 style="margin-bottom: 10px;">batch_size (GPU Memory)</h4>
-                    <ul style="margin-left: 20px; font-size: 0.9em; color: var(--text-light);">
-                        <li><strong>T4 (Free)</strong>: 64</li>
-                        <li><strong>L4 (Pro)</strong>: 128</li>
-                        <li><strong>A100 (Pro)</strong>: 256</li>
-                    </ul>
-                </div>
-                <div style="padding: 15px; background: #f8fafc; border-radius: 10px;">
-                    <h4 style="margin-bottom: 10px;">hidden_units (Model Size)</h4>
-                    <ul style="margin-left: 20px; font-size: 0.9em; color: var(--text-light);">
-                        <li><strong>[64, 32]</strong>: Fast training, ~67K params</li>
-                        <li><strong>[128, 64]</strong>: Balanced, ~135K params (default)</li>
-                        <li><strong>[256, 128]</strong>: Best quality, ~531K params</li>
-                    </ul>
-                </div>
-            </div>
+            <p style="color: var(--text-light); font-size: 0.9em; margin-bottom: 20px;">
+                Cấu trúc thư mục dự án earthquake prediction
+            </p>
+            <pre>haind/
+├── add_advanced_features_mp.py    # Feature engineering → features_lstm.csv
+├── features_lstm.csv              # 31 features (3.1M events)
+├── FEATURES_GUIDE.html            # Feature documentation
+│
+├── predict2/
+│   ├── config.py                  # Configuration constants
+│   ├── split_data.py              # Split data by model
+│   ├── data_processed/
+│   │   ├── features_time.csv      # TimeLSTM dataset (21 features)
+│   │   └── features_mag.csv       # MagLSTM dataset (26 features)
+│   │
+│   ├── data/
+│   │   ├── time_data.py           # Time data preparer
+│   │   └── mag_data.py            # Mag data preparer
+│   │
+│   ├── models/
+│   │   ├── time_model.py          # TimeLSTM architecture
+│   │   └── mag_model.py           # MagLSTM architecture
+│   │
+│   ├── train_time.py              # Train TimeLSTM (binary class.)
+│   ├── train_mag.py               # Train MagLSTM (regression)
+│   ├── evaluate.py                # Test & evaluate models
+│   ├── predict.py                 # Make predictions
+│   ├── demo.py                    # Flask demo app
+│   │
+│   ├── models/
+│   │   ├── time_model_*.pt        # Trained TimeLSTM
+│   │   ├── mag_model_*.pt         # Trained MagLSTM
+│   │   ├── time_scaler_*.pkl      # Feature scalers
+│   │   └── mag_scaler_*.pkl
+│   │
+│   ├── dashboard/                 # Evaluation plots
+│   │   └── plots/
+│   │
+│   ├── templates/
+│   │   └── demo.html              # Demo UI
+│   │
+│   └── input_events_*.json        # 5 seismic zones data</pre>
         </div>
-
-        <footer>
-            <p><strong>File:</strong> haind/add_advanced_features_mp.py</p>
-            <p><strong>Output:</strong> haind/features_lstm.csv (31 columns)</p>
-            <p><strong>Source:</strong> dongdat.csv (3.1M events)</p>
-            <p><strong>Region Code:</strong> R{lat:03d}_{lon:03d} (0.5° grid ≈ 55km)</p>
-            <p><strong>Sorting:</strong> region_code → time ASC (regional analysis)</p>
-            <p><strong>Data Range:</strong> 2000-2025 (Full data with END_YEAR=2026)</p>
-            <p><strong>Updated:</strong> 2025-03-25 | Version: 4.0 (Full data + Colab training)</p>
-        </footer>
     </div>
 
     <script>

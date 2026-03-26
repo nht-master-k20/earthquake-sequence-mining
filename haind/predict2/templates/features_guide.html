@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Features Guide - Earthquake Prediction System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #e0e0e0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            padding: 40px 0;
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(90deg, #ff6b6b, #feca57);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        .header p {
+            color: #a0a0a0;
+            font-size: 1.1em;
+        }
+        .section {
+            background: rgba(255,255,255,0.03);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        .section h2 {
+            color: #feca57;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+        }
+        .feature-group {
+            margin-bottom: 30px;
+        }
+        .feature-group h3 {
+            color: #10b981;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+        }
+        .feature-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .feature-table th {
+            background: rgba(255,255,255,0.05);
+            color: #feca57;
+            padding: 12px;
+            text-align: left;
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+        }
+        .feature-table td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .feature-table tr:hover {
+            background: rgba(255,255,255,0.02);
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+        .badge-time { background: #ef4444; }
+        .badge-mag { background: #3b82f6; }
+        .badge-original { background: #6b7280; }
+        .badge-core { background: #10b981; }
+        .badge-sequence { background: #f59e0b; }
+        .badge-temporal { background: #8b5cf6; }
+        .formula {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            margin: 10px 0;
+        }
+        .importance {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 5px 0;
+        }
+        .importance-bar {
+            flex: 1;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .importance-fill {
+            height: 100%;
+            border-radius: 4px;
+        }
+        .high { background: linear-gradient(90deg, #10b981, #059669); }
+        .medium { background: linear-gradient(90deg, #f59e0b, #d97706); }
+        .low { background: linear-gradient(90deg, #ef4444, #dc2626); }
+        .nav {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        .nav a {
+            color: #a0a0a0;
+            text-decoration: none;
+            padding: 10px 20px;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+        .nav a:hover {
+            color: white;
+            border-color: #feca57;
+            background: rgba(254,202,87,0.1);
+        }
+        .example {
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+        .example-title {
+            color: #feca57;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Earthquake Features Guide</h1>
+            <p>Chi tiết 29 features sử dụng trong hệ thống dự báo động đất LSTM</p>
+        </div>
+
+        <div class="nav">
+            <a href="#original">Original Features</a>
+            <a href="#core">Core Features</a>
+            <a href="#sequence">Sequence Features</a>
+            <a href="#temporal">Temporal Features</a>
+            <a href="#targets">Target Variables</a>
+            <a href="#models">Model Usage</a>
+        </div>
+
+        <!-- ORIGINAL FEATURES -->
+        <div class="section" id="original">
+            <h2>🔹 ORIGINAL FEATURES (10)</h2>
+            <p>Các features cơ bản từ dữ liệu thô USGS</p>
+
+            <table class="feature-table">
+                <tr>
+                    <th>Feature</th>
+                    <th>Type</th>
+                    <th>Đơn vị</th>
+                    <th>Mô tả</th>
+                </tr>
+                <tr>
+                    <td><code>time</code></td>
+                    <td>DateTime</td>
+                    <td>ISO 8601</td>
+                    <td>Thời gian xảy ra sự kiện</td>
+                </tr>
+                <tr>
+                    <td><code>latitude</code></td>
+                    <td>Float</td>
+                    <td>Độ (-90 đến 90)</td>
+                    <td>Vĩ độ của epicenter</td>
+                </tr>
+                <tr>
+                    <td><code>longitude</code></td>
+                    <td>Float</td>
+                    <td>Độ (-180 đến 180)</td>
+                    <td>Kinh độ của epicenter</td>
+                </tr>
+                <tr>
+                    <td><code>depth</code></td>
+                    <td>Float</td>
+                    <td>km</td>
+                    <td>Độ sâu của hypocenter</td>
+                </tr>
+                <tr>
+                    <td><code>mag</code></td>
+                    <td>Float</td>
+                    <td>Richter</td>
+                    <td>Magnitude của động đất</td>
+                </tr>
+                <tr>
+                    <td><code>sig</code></td>
+                    <td>Int</td>
+                    <td>-</td>
+                    <td>Số liệu ý nghĩa (10<sup>mag</sup>)</td>
+                </tr>
+                <tr>
+                    <td><code>mmi</code></td>
+                    <td>Int</td>
+                    <td>I-XII</td>
+                    <td>Modified Mercalli Intensity</td>
+                </tr>
+                <tr>
+                    <td><code>cdi</code></td>
+                    <td>Int</td>
+                    <td>I-X</td>
+                    <td>Community Determined Intensity</td>
+                </tr>
+                <tr>
+                    <td><code>felt</code></td>
+                    <td>Int</td>
+                    <td>số người</td>
+                    <td>Số lượng người cảm nhận</td>
+                </tr>
+                <tr>
+                    <td><code>region_code</code></td>
+                    <td>String</td>
+                    <td>-</td>
+                    <td>Mã vùng (R<sup>lat</sup>_<sup>lon</sup>)</td>
+                </tr>
+            </table>
+
+            <div class="example">
+                <div class="example-title">Ví dụ region_code:</div>
+                <code>R36_141</code> → Vùng có vĩ độ ≈ 36°, kinh độ ≈ 141°<br>
+                Grid size: 0.5° ≈ 55km
+            </div>
+        </div>
+
+        <!-- CORE FEATURES -->
+        <div class="section" id="core">
+            <h2>🔹 CORE FEATURES (5)</h2>
+            <p>Các features kỹ thuật quan trọng cho dự báo động đất</p>
+
+            <table class="feature-table">
+                <tr>
+                    <th>Feature</th>
+                    <th>Công thức</th>
+                    <th>Ý nghĩa</th>
+                    <th>Importance</th>
+                </tr>
+                <tr>
+                    <td><code>is_aftershock</code></td>
+                    <td>
+                        <div class="formula">1 nếu có event lớn hơn trong time window<br>ngược lại = 0</div>
+                    </td>
+                    <td>Xác định đây là aftershock hay independent event</td>
+                    <td>
+                        <div class="importance">
+                            <span style="width: 90%"></span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>mainshock_mag</code></td>
+                    <td>
+                        <div class="formula">max(mag) trong time window sau event</div>
+                    </td>
+                    <td>Magnitude của mainshock liên quan</td>
+                    <td>
+                        <div class="importance">
+                            <span style="width: 95%"></span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>seismicity_density_100km</code></td>
+                    <td>
+                        <div class="formula">count(events trong 100km) / area</div>
+                    </td>
+                    <td>Mật độ động đất trong vùng lân cận</td>
+                    <td>
+                        <div class="importance">
+                            <span style="width: 70%"></span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>coulomb_stress_proxy</code></td>
+                    <td>
+                        <div class="formula">Σ(10<sup>1.5 × mag<sub>j</sub></sup>)</div>
+                    </td>
+                    <td>Đại lượng stress tích lũy từ các event trước</td>
+                    <td>
+                        <div class="importance">
+                            <span style="width: 85%"></span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>regional_b_value</code></td>
+                    <td>
+                        <div class="formula">log<sub>10</sub>(N) - bM<sub>min</sub></div>
+                    </td>
+                    <td>Tham số Gutenberg-Richter (độ nguy hiểm)</td>
+                    <td>
+                        <div class="importance">
+                            <span style="width: 60%"></span>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+            <div class="example">
+                <div class="example-title">Coulomb Stress Proxy:</div>
+                Công thức dựa trên lý thuyết: Energy ∝ 10<sup>1.5M</sup><br>
+        Window size: 20 events gần nhất
+            </div>
+        </div>
+
+        <!-- SEQUENCE FEATURES -->
+        <div class="section" id="sequence">
+            <h2>🔹 SEQUENCE FEATURES (6)</h2>
+            <p>Các features mô tả đặc điểm của chuỗi sự kiện động đất</p>
+
+            <table class="feature-table">
+                <tr>
+                    <th>Feature</th>
+                    <th>Type</th>
+                    <th>Mô tả</th>
+                    <th>Importance</th>
+                </tr>
+                <tr>
+                    <td><code>sequence_id</code></td>
+                    <td>Int</td>
+                    <td>ID duy nhất cho mỗi chuỗi động đất có liên quan</td>
+                    <td>
+                        <div class="importance">
+                            <span style="width: 75%"></span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>seq_position</code></td>
+                    <td>Int</td>
+                    <td>Vị trí của event trong chuỗi (1, 2, 3, ...)</td>
+                    <td>
+                        <div class="importance">
+                            <span style="width: 80%"></span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>is_seq_mainshock</code></td>
+                    <td>Binary</td>
+                    <td>1 nếu là event lớn nhất trong chuỗi</td>
+                    <td>
+                        <div class="importance">
+                            <span style="width: 65%"></span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>seq_mainshock_mag</code></td>
+                    <td>Float</td>
+                    <td>Magnitude của mainshock trong chuỗi</td>
+                    <td>
+                        <div class="importance">
+                            <span style="width: 70%"></span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>seq_length</code></td>
+                    <td>Int</td>
+                    <td>Tổng số events trong chuỗi</td>
+                    <td>
+                        <div class="importance">
+                            <span style="width: 50%"></span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>time_since_seq_start_sec</code></td>
+                    <td>Float</td>
+                    <td>Thời gian (giây) từ đầu chuỗi đến event hiện tại</td>
+                    <td>
+                        <div class="importance">
+                            <span style="width: 55%"></span>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+            <div class="example">
+                <div class="example-title">Clustering Algorithm:</div>
+                <strong>Điều kiện:</strong><br>
+                - Khoảng cách: ≤ 50km<br>
+                - Time window: 2 ngày trước event<br>
+                - Event sau phải nhỏ hơn event trước
+            </div>
+        </div>
+
+        <!-- TEMPORAL FEATURES -->
+        <div class="section" id="temporal">
+            <h2>🔹 TEMPORAL FEATURES - LSTM CRITICAL (6)</h2>
+            <p>Các features thời gian QUAN TRỌNG cho LSTM model</p>
+
+            <table class="feature-table">
+                <tr>
+                    <th>Feature</th>
+                    <th>Công thức</th>
+                    <th>Ý nghĩa LSTM</th>
+                    <th>Importance</th>
+                </tr>
+                <tr>
+                    <td><code>time_since_last_event</code></td>
+                    <td>
+                        <div class="formula">t<sub>i</sub> - t<sub>i-1</sub> (giây)</div>
+                    </td>
+                    <td>Interval từ event gần nhất</td>
+                    <td>
+                        <div class="importance">
+                            <span style="width: 100%"></span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>time_since_last_M5</code></td>
+                    <td>
+                        <div class="formula">t<sub>i</sub> - t<sub>last M5+</sub> (giây)</div>
+                    </td>
+                    <td>Thời gian từ động đất nguy hiểm gần nhất</td>
+                    <td>
+                        <div class="importance">
+                            <span style="width: 95%"></span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>interval_lag1</code></td>
+                    <td>
+                        <div class="formula">t<sub>i</sub> - t<sub>i-1</sub></div>
+                    </td>
+                    <td>Lag 1 (interval trước đó 1 event)</td>
+                    <td>
+                        <div class="importance">
+                            <span style="width: 90%"></span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>interval_lag2</code></td>
+                    <td>
+                        <div class="formula">t<sub>i</sub> - t<sub>i-2</sub></div>
+                    </td>
+                    <td>Lag 2 (interval trước đó 2 events)</td>
+                    <td>
+                        <div class="importance">
+                            <span style="width: 85%"></span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>interval_lag3</code></td>
+                    <td>
+                        <div class="formula">t<sub>i</sub> - t<sub>i-3</sub></div>
+                    </td>
+                    <td>Lag 3</td>
+                    <td>
+                        <div class="importance">
+                            <span style="width: 75%"></span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>interval_lag4</code></td>
+                    <td>
+                        <div class="formula">t<sub>i</sub> - t<sub>i-4</sub></div>
+                    </td>
+                    <td>Lag 4</td>
+                    <td>
+                        <div class="importance">
+                            <span style="width: 65%"></span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>interval_lag5</code></td>
+                    <td>
+                        <div class="formula">t<sub>i</sub> - t<sub>i-5</sub></div>
+                    </td>
+                    <td>Lag 5</td>
+                    <td>
+                        <div class="importance">
+                            <span style="width: 55%"></span>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+            <div class="example">
+                <div class="example-title">Tại sao cần Lag Features?</div>
+                LSTM học pattern từ các khoảng thời gian:<br>
+                <strong>Short-term:</strong> interval_lag1-2 (nhịp ngắn)<br>
+                <strong>Medium-term:</strong> interval_lag3-4 (nhịp trung bình)<br>
+                <strong>Long-term:</strong> interval_lag5 (nhịp dài)<br>
+                <br>
+                Giúp model phát hiện: "Động đất sắp xảy ra khi các interval ngắn lại"
+            </div>
+        </div>
+
+        <!-- TARGET VARIABLES -->
+        <div class="section" id="targets">
+            <h2>🔹 TARGET VARIABLES (3)</h2>
+            <p>Các biến mục tiêu để train model</p>
+
+            <table class="feature-table">
+                <tr>
+                    <th>Target</th>
+                    <th>Type</th>
+                    <th>Model</th>
+                    <th>Range</th>
+                </tr>
+                <tr>
+                    <td><code>target_quake_in_7days</code></td>
+                    <td>Binary (0/1)</td>
+                    <td><span class="badge badge-time">TimeLSTM</span></td>
+                    <td>0 hoặc 1</td>
+                </tr>
+                <tr>
+                    <td><code>target_next_mag</code></td>
+                    <td>Float</td>
+                    <td><span class="badge badge-mag">MagLSTM</span></td>
+                    <td>3.0 - 9.0+</td>
+                </tr>
+                <tr>
+                    <td><code>target_next_mag_binary</code></td>
+                    <td>Binary (0/1)</td>
+                    <td><span class="badge badge-mag">MagLSTM</span></td>
+                    <td>0 hoặc 1</td>
+                </tr>
+            </table>
+
+            <div class="example">
+                <div class="example-title">Target Definition:</div>
+                <strong>target_quake_in_7days = 1</strong> nếu có động đất M5.0+ trong 7 ngày tới<br>
+                <strong>target_next_mag</strong> = magnitude của động đất tiếp theo<br>
+                <br>
+                Chỉ tính events có magnitude ≥ M3.0
+            </div>
+        </div>
+
+        <!-- MODEL USAGE -->
+        <div class="section" id="models">
+            <h2>🔹 FEATURE SPLIT BY MODEL</h2>
+
+            <div class="feature-group">
+                <h3><span class="badge badge-time">TimeLSTM</span> - Binary Classification</h3>
+                <p><strong>Câu hỏi:</strong> "Có động đất M5.0+ trong 7 ngày tới không?"</p>
+
+                <table class="feature-table">
+                    <tr>
+                        <th>Feature Group</th>
+                        <th>Features</th>
+                        <th>Count</th>
+                    </tr>
+                    <tr>
+                        <td>Original</td>
+                        <td>mag, depth, sig, region_code</td>
+                        <td>4</td>
+                    </tr>
+                    <tr>
+                        <td>Core</td>
+                        <td>is_aftershock, mainshock_mag, seismicity_density_100km, coulomb_stress_proxy</td>
+                        <td>4</td>
+                    </tr>
+                    <tr>
+                        <td>Sequence</td>
+                        <td>sequence_id, seq_position, is_seq_mainshock, seq_mainshock_mag, seq_length, time_since_seq_start_sec</td>
+                        <td>6</td>
+                    </tr>
+                    <tr>
+                        <td>Temporal</td>
+                        <td>time_since_last_event, time_since_last_M5, interval_lag1-5</td>
+                        <td>7</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Total</strong></td>
+                        <td></td>
+                        <td><strong>21</strong></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="feature-group">
+                <h3><span class="badge badge-mag">MagLSTM</span> - Regression</h3>
+                <p><strong>Câu hỏi:</strong> "Magnitude của động đất tiếp theo là bao nhiêu?"</p>
+
+                <table class="feature-table">
+                    <tr>
+                        <th>Feature Group</th>
+                        <th>Features</th>
+                        <th>Count</th>
+                    </tr>
+                    <tr>
+                        <td>Original</td>
+                        <td>mag, depth, latitude, longitude, sig, mmi, cdi, felt, region_code</td>
+                        <td>9</td>
+                    </tr>
+                    <tr>
+                        <td>Core</td>
+                        <td>is_aftershock, mainshock_mag, seismicity_density_100km, coulomb_stress_proxy, regional_b_value</td>
+                        <td>5</td>
+                    </tr>
+                    <tr>
+                        <td>Sequence</td>
+                        <td>seq_position, is_seq_mainshock, seq_mainshock_mag, seq_length, time_since_seq_start_sec</td>
+                        <td>5</td>
+                    </tr>
+                    <tr>
+                        <td>Temporal</td>
+                        <td>time_since_last_event, time_since_last_M5, interval_lag1-5</td>
+                        <td>7</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Total</strong></td>
+                        <td></td>
+                        <td><strong>26</strong></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- SUMMARY -->
+        <div class="section">
+            <h2>📊 FEATURE SUMMARY</h2>
+
+            <table class="feature-table">
+                <tr>
+                    <th>Category</th>
+                    <th>TimeLSTM</th>
+                    <th>MagLSTM</th>
+                    <th>Total Unique</th>
+                </tr>
+                <tr>
+                    <td>Original</td>
+                    <td>4</td>
+                    <td>9</td>
+                    <td>9</td>
+                </tr>
+                <tr>
+                    <td>Core</td>
+                    <td>4</td>
+                    <td>5</td>
+                    <td>5</td>
+                </tr>
+                <tr>
+                    <td>Sequence</td>
+                    <td>6</td>
+                    <td>5</td>
+                    <td>6</td>
+                </tr>
+                <tr>
+                    <td>Temporal</td>
+                    <td>7</td>
+                    <td>7</td>
+                    <td>7</td>
+                </tr>
+                <tr style="background: rgba(255,255,255,0.05);">
+                    <td><strong>TOTAL</strong></td>
+                    <td><strong>21</strong></td>
+                    <td><strong>26</strong></td>
+                    <td><strong>29</strong></td>
+                </tr>
+            </table>
+
+            <div class="example">
+                <div class="example-title">Key Insights:</div>
+                <ul>
+                    <li><strong>Temporal features</strong> (interval_lag) là QUAN TRỌNG NHẤT cho LSTM</li>
+                    <li><strong>Core features</strong> cung cấp context vật lý của động đất</li>
+                    <li><strong>Sequence features</strong> giúp model hiểu chuỗi sự kiện</li>
+                    <li>TimeLSTM dùng ít features hơn (21 vs 26) vì task classification đơn giản hơn</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔧 CÁCH SỬ DỤNG FEATURES</h2>
+
+            <h3>1. Thêm Features (Feature Engineering)</h3>
+            <div class="formula">
+                python add_advanced_features_mp.py
+            </div>
+            <p>Input: <code>dongdat.csv</code> → Output: <code>features_lstm.csv</code></p>
+
+            <h3>2. Tách Data theo Model</h3>
+            <div class="formula">
+                python split_data.py
+            </div>
+            <p>Input: <code>features_lstm.csv</code> → Output: <code>features_time.csv</code>, <code>features_mag.csv</code></p>
+
+            <h3>3. Train Models</h3>
+            <div class="formula">
+                python train_time.py  # TimeLSTM<br>
+                python train_mag.py   # MagLSTM
+            </div>
+
+            <h3>4. Predict</h3>
+            <div class="formula">
+                python predict.py
+            </div>
+        </div>
+
+        <div style="text-align: center; padding: 20px; color: #a0a0a0;">
+            <p>Generated: <span id="timestamp"></span> | Author: haind</p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('timestamp').textContent = new Date().toISOString().split('T')[0];
+    </script>
+</body>
+</html>

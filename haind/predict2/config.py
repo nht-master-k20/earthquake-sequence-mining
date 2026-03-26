@@ -56,14 +56,14 @@ TIME_FEATURES = [
     # Sequence (6 features)
     'sequence_id', 'seq_position', 'is_seq_mainshock', 'seq_mainshock_mag',
     'seq_length', 'time_since_seq_start_sec',
-    # LSTM Temporal (9 features)
+    # LSTM Temporal (7 features)
     'time_since_last_event', 'time_since_last_M5',
     'interval_lag1', 'interval_lag2', 'interval_lag3',
     'interval_lag4', 'interval_lag5'
 ]
 # Excluded: latitude, longitude (spatial features less important for time prediction)
 
-# Mag Model Features (25 input features)
+# Mag Model Features (26 input features)
 # Goal: Predict next_mag (magnitude)
 MAG_FEATURES = [
     # Original (9 features)
@@ -74,7 +74,7 @@ MAG_FEATURES = [
     # Sequence (5 features)
     'seq_position', 'is_seq_mainshock', 'seq_mainshock_mag',
     'seq_length', 'time_since_seq_start_sec',
-    # LSTM Temporal (9 features)
+    # LSTM Temporal (7 features)
     'time_since_last_event', 'time_since_last_M5',
     'interval_lag1', 'interval_lag2', 'interval_lag3',
     'interval_lag4', 'interval_lag5'

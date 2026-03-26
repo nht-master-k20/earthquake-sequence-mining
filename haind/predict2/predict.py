@@ -275,10 +275,6 @@ def predict_and_show(time_model, mag_model, time_scaler, mag_scaler, df, device)
     mag_proba = 1 / (1 + np.exp(-(mag_pred - 5.0)))  # Sigmoid centered at 5.0
     m5_proba = time_proba * mag_proba
 
-    # Get risk levels
-    risk_level, risk_emoji = get_risk_level(time_proba)
-    m5_risk_level, m5_risk_emoji = get_m5_risk_level(m5_proba)
-
     time_class = 1 if time_proba >= 0.5 else 0
     m5_class = 1 if m5_proba >= 0.5 else 0
 
@@ -308,15 +304,11 @@ def predict_and_show(time_model, mag_model, time_scaler, mag_scaler, df, device)
         'prediction': {
             # Time model (binary classification - any quake)
             'quake_probability_7days': float(time_proba),
-            'risk_level': risk_level,
-            'risk_emoji': risk_emoji,
             'predicted_class': int(time_class),
             # Mag model (regression)
             'next_magnitude': float(mag_pred),
             # M5+ prediction (combined)
             'm5_probability_7days': float(m5_proba),
-            'm5_risk_level': m5_risk_level,
-            'm5_risk_emoji': m5_risk_emoji,
             'm5_predicted_class': int(m5_class)
         }
     }
@@ -337,68 +329,45 @@ def predict_and_show(time_model, mag_model, time_scaler, mag_scaler, df, device)
     results.append(result)
 
     # Display final table
-    print(f"\n{'='*130}")
-    print(" DU BAO TRAN DAO DAT M5+ TRONG 7 NGAY TOI ".center(130))
-    print(f"{'='*130}\n")
+    print(f"\n{'='*90}")
+    print(" DU BAO TRAN DAO DAT M5+ TRONG 7 NGAY TOI ".center(90))
+    print(f"{'='*90}\n")
 
-    # Table header (always show GT column)
-    print(f"{'#':<4} {'Region':<10} {'Model':<15} {'Du Doan':<25} {'Thuc Te (GT)':<20} {'Dung/Sai':<8}")
-    print("-" * 130)
+    # Table header
+    print(f"{'#':<4} {'Region':<15} {'Model':<20} {'Du Doan':<25}")
+    print("-" * 70)
 
     for i, result in enumerate(results):
         region = result['region']
-        gt_mag = result.get('ground_truth_mag', {}).get('next_magnitude', None)
 
         # M5+ model row (main prediction)
         m5_prob_pct = result['prediction']['m5_probability_7days'] * 100
+        print(f"{i+1:<4} {region:<15} {'M5+ (7 ngay)':<20} {m5_prob_pct:>5.1f}%")
 
-        # Build GT string
-        if gt_mag is not None:
-            m5_gt_str = f"{gt_mag:.2f}"
-            m5_gt_label = 'Có M5+' if gt_mag >= 5 else 'Không'
-            m5_correct_str = '✓' if (result['prediction']['m5_predicted_class'] == 1 and gt_mag >= 5) or \
-                                    (result['prediction']['m5_predicted_class'] == 0 and gt_mag < 5) else '✗'
-        else:
-            m5_gt_str = "N/A"
-            m5_gt_label = "N/A"
-            m5_correct_str = "-"
-
-        print(f"{i+1:<4} {region:<10} {'M5+ (7 ngay)':<15} "
-              f"{m5_prob_pct:>5.1f}% ({result['prediction']['m5_risk_level']}) {result['prediction']['m5_risk_emoji']:<2} "
-              f"{m5_gt_label:<10} (Mag: {m5_gt_str:<5}) {m5_correct_str:<8}")
-
-        # Mag prediction row with actual mag
+        # Mag prediction row
         mag_pred = result['prediction']['next_magnitude']
-        if gt_mag is not None:
-            mag_error = abs(mag_pred - gt_mag)
-            print(f"{'':<4} {'':<10} {'Mag du bao':<15} "
-                  f"{mag_pred:>6.2f}     {mag_error:>8.3f}     {gt_mag:>8.2f}")
-        else:
-            print(f"{'':<4} {'':<10} {'Mag du bao':<15} {mag_pred:>20.2f}     N/A        N/A")
+        print(f"{'':<4} {'':<15} {'Mag du bao':<20} {mag_pred:>6.2f}")
         print()
 
     # Calculate summary metrics
-    m5_high_risk_count = sum(1 for r in results if r['prediction']['m5_risk_level'] in ['CRITICAL', 'HIGH'])
     avg_m5_proba = np.mean([r['prediction']['m5_probability_7days'] for r in results])
     avg_mag_pred = np.mean([r['prediction']['next_magnitude'] for r in results])
 
     summary = {
-        'm5_high_risk_count': int(m5_high_risk_count),
         'avg_m5_probability': float(avg_m5_proba),
         'avg_magnitude_prediction': float(avg_mag_pred),
         'n_predictions': int(n_predictions)
     }
 
     # Print summary
-    print(f"{'='*110}")
+    print(f"{'='*90}")
     print(f"{'TOM TAT':<20} DU BAO TRAN DAO DAT M5+ (7 NGAY)")
     print(f"{'Events su dung:':<20} {n_events_needed:>10,} (gan nhat)")
-    print(f"{'So du bao cao nguy:':<20} {m5_high_risk_count:>10,} / {n_predictions:,}")
     print(f"{'Xac suat M5+:':<20} {avg_m5_proba:>10.2%}")
     print()
     print(f"{'TOM TAT':<20} MAG DU BAO")
     print(f"{'Magnitude:':<20} {avg_mag_pred:>10.2f}")
-    print(f"{'='*110}\n")
+    print(f"{'='*90}\n")
 
     return results, summary
 

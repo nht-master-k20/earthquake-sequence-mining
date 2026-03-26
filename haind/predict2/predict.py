@@ -1,7 +1,8 @@
 """
-Earthquake Prediction - Binary Classification Version
-Time Model: Predicts probability of earthquake within 7 days
-Mag Model: Predicts next earthquake magnitude
+Earthquake M5+ Prediction (Within 7 Days)
+Combines Time Model (quake probability) + Mag Model (magnitude prediction)
+
+Logic: M5+ probability = time probability IF predicted magnitude >= 5.0
 
 Cách dùng:
     python predict2/predict.py
@@ -11,6 +12,7 @@ Output: predict2/prediction_results.json
 
 Author: haind
 Date: 2025-03-25
+Updated: 2026-03-26 (M5+ prediction)
 """
 
 import os
@@ -49,12 +51,29 @@ def get_risk_level(probability):
         return 'LOW', '🟢'
 
 
+def get_m5_risk_level(probability):
+    """Convert M5+ probability to risk level (more conservative)"""
+    if probability >= 0.5:
+        return 'CRITICAL', '🔴'
+    elif probability >= 0.2:
+        return 'HIGH', '🟠'
+    elif probability >= 0.1:
+        return 'MEDIUM', '🟡'
+    else:
+        return 'LOW', '🟢'
+
+
 def find_latest_models():
-    """Find latest trained models"""
+    """Find latest trained models (supports both full and subset models)"""
     import glob
 
-    time_models = glob.glob(str(MODEL_DIR / 'time_model_*.pt'))
-    mag_models = glob.glob(str(MODEL_DIR / 'mag_model_*.pt'))
+    # Find all time and mag models (including subset models)
+    time_models = glob.glob(str(MODEL_DIR / 'time_model*.pt'))
+    mag_models = glob.glob(str(MODEL_DIR / 'mag_model*.pt'))
+
+    # Filter out checkpoint/incomplete files
+    time_models = [m for m in time_models if os.path.getsize(m) > 1000]
+    mag_models = [m for m in mag_models if os.path.getsize(m) > 1000]
 
     if not time_models:
         raise FileNotFoundError("Khong tim thay time model. Train truoc: python predict2/train_time.py")
@@ -68,11 +87,11 @@ def find_latest_models():
     latest_mag = mag_models[0]
 
     # Find corresponding scalers
-    time_ts = os.path.basename(latest_time).replace('time_model_', '').replace('.pt', '')
-    mag_ts = os.path.basename(latest_mag).replace('mag_model_', '').replace('.pt', '')
+    time_basename = os.path.basename(latest_time).replace('time_model_', '').replace('.pt', '')
+    mag_basename = os.path.basename(latest_mag).replace('mag_model_', '').replace('.pt', '')
 
-    time_scaler = str(MODEL_DIR / f'time_scaler_{time_ts}.pkl')
-    mag_scaler = str(MODEL_DIR / f'mag_scaler_{mag_ts}.pkl')
+    time_scaler = str(MODEL_DIR / f'time_scaler_{time_basename}.pkl')
+    mag_scaler = str(MODEL_DIR / f'mag_scaler_{mag_basename}.pkl')
 
     if not os.path.exists(time_scaler):
         time_scaler = None
@@ -238,9 +257,18 @@ def predict_and_show(time_model, mag_model, time_scaler, mag_scaler, df, device)
             X_mag_tensor = torch.FloatTensor(X_mag[i:i+1]).to(device)
             mag_pred = mag_model(X_mag_tensor).cpu().numpy()[0]
 
-        # Get risk level for time prediction
+        # Calculate M5+ probability (combine time and mag)
+        # Sigmoid smoothing: mag càng gần 5.0 thì xác suất càng cao
+        # P(M5+) = P(time) * sigmoid(mag_pred - 5.0)
+        mag_proba = 1 / (1 + np.exp(-(mag_pred - 5.0)))  # Sigmoid centered at 5.0
+        m5_proba = time_proba * mag_proba
+
+        # Get risk levels
         risk_level, risk_emoji = get_risk_level(time_proba)
+        m5_risk_level, m5_risk_emoji = get_m5_risk_level(m5_proba)
+
         time_class = 1 if time_proba >= 0.5 else 0
+        m5_class = 1 if m5_proba >= 0.5 else 0
 
         # Calculate errors if ground truth available
         mag_error = None
@@ -265,13 +293,18 @@ def predict_and_show(time_model, mag_model, time_scaler, mag_scaler, df, device)
                 }
             },
             'prediction': {
-                # Time model (binary classification)
+                # Time model (binary classification - any quake)
                 'quake_probability_7days': float(time_proba),
                 'risk_level': risk_level,
                 'risk_emoji': risk_emoji,
                 'predicted_class': int(time_class),
                 # Mag model (regression)
-                'next_magnitude': float(mag_pred)
+                'next_magnitude': float(mag_pred),
+                # M5+ prediction (combined)
+                'm5_probability_7days': float(m5_proba),
+                'm5_risk_level': m5_risk_level,
+                'm5_risk_emoji': m5_risk_emoji,
+                'm5_predicted_class': int(m5_class)
             }
         }
 
@@ -291,81 +324,66 @@ def predict_and_show(time_model, mag_model, time_scaler, mag_scaler, df, device)
         results.append(result)
 
     # Display final table
-    print(f"\n{'='*110}")
-    print(" BANG TONG HOP KET QUA DU DOAN ".center(110))
-    print(f"{'='*110}\n")
+    print(f"\n{'='*130}")
+    print(" DU BAO TRAN DAO DAT M5+ TRONG 7 NGAY TOI ".center(130))
+    print(f"{'='*130}\n")
 
-    if has_ground_truth:
-        # Table header with ground truth
-        print(f"{'#':<4} {'Region':<12} {'Model':<12} {'Du Doan':<25} {'Thuc Te':<15} {'Dung/Sai':<10}")
-        print("-" * 110)
+    # Table header (always show GT column)
+    print(f"{'#':<4} {'Region':<10} {'Model':<15} {'Du Doan':<25} {'Thuc Te (GT)':<20} {'Dung/Sai':<8}")
+    print("-" * 130)
 
-        for i, result in enumerate(results):
-            region = result['region']
+    for i, result in enumerate(results):
+        region = result['region']
+        gt_mag = result.get('ground_truth_mag', {}).get('next_magnitude', None)
 
-            # Time model row (binary classification)
-            prob_pct = result['prediction']['quake_probability_7days'] * 100
-            gt_str = 'Có' if result['ground_truth_time']['quake_in_7days'] else 'Không'
-            correct_str = '✓' if result['ground_truth_time']['correct'] else '✗'
+        # M5+ model row (main prediction)
+        m5_prob_pct = result['prediction']['m5_probability_7days'] * 100
 
-            print(f"{i+1:<4} {region:<12} {'Time':<12} "
-                  f"{prob_pct:>5.1f}% ({result['prediction']['risk_level']}) {result['prediction']['risk_emoji']:<2} "
-                  f"{gt_str:<15} {correct_str:<10}")
+        # Build GT string
+        if gt_mag is not None:
+            m5_gt_str = f"{gt_mag:.2f}"
+            m5_gt_label = 'Có M5+' if gt_mag >= 5 else 'Không'
+            m5_correct_str = '✓' if (result['prediction']['m5_predicted_class'] == 1 and gt_mag >= 5) or \
+                                    (result['prediction']['m5_predicted_class'] == 0 and gt_mag < 5) else '✗'
+        else:
+            m5_gt_str = "N/A"
+            m5_gt_label = "N/A"
+            m5_correct_str = "-"
 
-            # Mag model row (regression)
-            if 'ground_truth_mag' in result:
-                mag_error = result['ground_truth_mag']['error']
-                print(f"{'':<4} {'':<12} {'Mag':<12} "
-                      f"{result['prediction']['next_magnitude']:>6.2f} "
-                      f"{result['ground_truth_mag']['next_magnitude']:>6.2f} "
-                      f"{mag_error:>6.3f}")
-            else:
-                print(f"{'':<4} {'':<12} {'Mag':<12} "
-                      f"{result['prediction']['next_magnitude']:>25.2f}")
-            print()
-    else:
-        # Table header without ground truth
-        print(f"{'#':<4} {'Region':<12} {'Model':<12} {'Du Doan':<35}")
-        print("-" * 70)
+        print(f"{i+1:<4} {region:<10} {'M5+ (7 ngay)':<15} "
+              f"{m5_prob_pct:>5.1f}% ({result['prediction']['m5_risk_level']}) {result['prediction']['m5_risk_emoji']:<2} "
+              f"{m5_gt_label:<10} (Mag: {m5_gt_str:<5}) {m5_correct_str:<8}")
 
-        for i, result in enumerate(results):
-            region = result['region']
-
-            # Time model row
-            prob_pct = result['prediction']['quake_probability_7days'] * 100
-            print(f"{i+1:<4} {region:<12} {'Time':<12} "
-                  f"{prob_pct:>5.1f}% ({result['prediction']['risk_level']}) {result['prediction']['risk_emoji']:<2}")
-
-            # Mag model row
-            print(f"{'':<4} {'':<12} {'Mag':<12} "
-                  f"{result['prediction']['next_magnitude']:>25.2f}")
-            print()
+        # Mag prediction row with actual mag
+        mag_pred = result['prediction']['next_magnitude']
+        if gt_mag is not None:
+            mag_error = abs(mag_pred - gt_mag)
+            print(f"{'':<4} {'':<10} {'Mag du bao':<15} "
+                  f"{mag_pred:>6.2f}     {mag_error:>8.3f}     {gt_mag:>8.2f}")
+        else:
+            print(f"{'':<4} {'':<10} {'Mag du bao':<15} {mag_pred:>20.2f}     N/A        N/A")
+        print()
 
     # Calculate summary metrics
-    time_accuracy = time_correct / n_predictions if n_predictions > 0 else 0
-
-    mag_mae = np.mean(mag_errors) if len(mag_errors) > 0 else None
-    mag_rmse = np.sqrt(np.mean(np.array(mag_errors) ** 2)) if len(mag_errors) > 0 else None
+    m5_high_risk_count = sum(1 for r in results if r['prediction']['m5_risk_level'] in ['CRITICAL', 'HIGH'])
+    avg_m5_proba = np.mean([r['prediction']['m5_probability_7days'] for r in results])
+    avg_mag_pred = np.mean([r['prediction']['next_magnitude'] for r in results])
 
     summary = {
-        'time_accuracy': float(time_accuracy),
-        'time_correct': int(time_correct),
-        'time_total': int(n_predictions),
-        'mag_mae': float(mag_mae) if mag_mae is not None else None,
-        'mag_rmse': float(mag_rmse) if mag_rmse is not None else None,
-        'n_samples': int(n_predictions)
+        'm5_high_risk_count': int(m5_high_risk_count),
+        'avg_m5_probability': float(avg_m5_proba),
+        'avg_magnitude_prediction': float(avg_mag_pred),
+        'n_predictions': int(n_predictions)
     }
 
     # Print summary
     print(f"{'='*110}")
-    print(f"{'TOM TAT':<20} Time Model - Binary Classification")
-    print(f"{'Accuracy:':<20} {time_accuracy:>10.2%}")
-    print(f"{'Correct:':<20} {time_correct:>10,} / {n_predictions:,}")
+    print(f"{'TOM TAT':<20} DU BAO TRAN DAO DAT M5+ (7 NGAY)")
+    print(f"{'So du bao cao nguy:':<20} {m5_high_risk_count:>10,} / {n_predictions:,}")
+    print(f"{'Xac suat trung binh:':<20} {avg_m5_proba:>10.2%}")
     print()
-    print(f"{'TOM TAT':<20} Mag Model - Regression")
-    if mag_mae is not None:
-        print(f"{'MAE:':<20} {mag_mae:>10.3f}")
-        print(f"{'RMSE:':<20} {mag_rmse:>10.3f}")
+    print(f"{'TOM TAT':<20} MAG DU BAO TRUNG BINH")
+    print(f"{'Magnitude:':<20} {avg_mag_pred:>10.2f}")
     print(f"{'='*110}\n")
 
     return results, summary

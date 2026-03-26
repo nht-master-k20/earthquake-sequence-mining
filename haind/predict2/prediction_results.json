@@ -1,418 +1,1406 @@
 {
-  "timestamp": "2026-03-25 23:07:38",
-  "n_predictions": 15,
+  "timestamp": "2026-03-26 10:03:23",
+  "n_predictions": 45,
   "summary": {
-    "time_mae_seconds": 55128523.566,
-    "time_mae_formatted": "638d 1h",
-    "time_rmse_seconds": 211385662.88139376,
-    "mag_mae": 0.635809144337972,
-    "mag_rmse": 0.755446795555349,
-    "n_samples": 15
+    "m5_high_risk_count": 13,
+    "avg_m5_probability": 0.1403988424481617,
+    "avg_magnitude_prediction": 4.102846331066555,
+    "n_predictions": 45
   },
   "predictions": [
     {
       "sequence_number": 1,
-      "region": "0.0",
+      "region": "R182_554",
       "input_events_summary": {
         "start_idx": 0,
         "end_idx": 4,
         "last_event": {
-          "magnitude": 0.75,
-          "depth_km": 2.00999999046326
+          "magnitude": 4.0,
+          "depth_km": 30.0
         }
       },
       "prediction": {
-        "time_to_next_seconds": 447652.15625,
-        "time_to_next_formatted": "5d 4h",
-        "next_magnitude": 1.226283073425293
+        "quake_probability_7days": 0.9945520758628845,
+        "risk_level": "HIGH",
+        "risk_emoji": "🔴",
+        "predicted_class": 1,
+        "next_magnitude": 3.571908473968506,
+        "m5_probability_7days": 0.192342609167099,
+        "m5_risk_level": "MEDIUM",
+        "m5_risk_emoji": "🟡",
+        "m5_predicted_class": 0
       },
-      "ground_truth": {
-        "time_to_next_seconds": 4942.95,
-        "time_to_next_formatted": "1h 22m",
-        "next_magnitude": 0.71
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 1
       },
-      "error": {
-        "time_absolute": 442709.20625,
-        "time_formatted": "5d 2h",
-        "mag_absolute": 0.516283073425293
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 1.6280915260314943
       }
     },
     {
       "sequence_number": 2,
-      "region": "0.0",
+      "region": "R182_554",
       "input_events_summary": {
         "start_idx": 1,
         "end_idx": 5,
         "last_event": {
-          "magnitude": 0.94,
-          "depth_km": 2.24000000953674
+          "magnitude": 4.6,
+          "depth_km": 23.1
         }
       },
       "prediction": {
-        "time_to_next_seconds": 655285.5,
-        "time_to_next_formatted": "7d 14h",
-        "next_magnitude": 1.4027018547058105
+        "quake_probability_7days": 0.9906123280525208,
+        "risk_level": "HIGH",
+        "risk_emoji": "🔴",
+        "predicted_class": 1,
+        "next_magnitude": 3.7077219486236572,
+        "m5_probability_7days": 0.21344472467899323,
+        "m5_risk_level": "HIGH",
+        "m5_risk_emoji": "🟠",
+        "m5_predicted_class": 0
       },
-      "ground_truth": {
-        "time_to_next_seconds": 1939.59,
-        "time_to_next_formatted": "32m 19s",
-        "next_magnitude": 0.38
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 1
       },
-      "error": {
-        "time_absolute": 653345.91,
-        "time_formatted": "7d 13h",
-        "mag_absolute": 1.0227018547058107
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 1.492278051376343
       }
     },
     {
       "sequence_number": 3,
-      "region": "0.0",
+      "region": "R181_554",
       "input_events_summary": {
         "start_idx": 2,
         "end_idx": 6,
         "last_event": {
-          "magnitude": 0.71,
-          "depth_km": 2.03999996185303
+          "magnitude": 4.3,
+          "depth_km": 21.8
         }
       },
       "prediction": {
-        "time_to_next_seconds": 560324.0,
-        "time_to_next_formatted": "6d 11h",
-        "next_magnitude": 1.9052009582519531
+        "quake_probability_7days": 0.4547266960144043,
+        "risk_level": "MEDIUM",
+        "risk_emoji": "🟡",
+        "predicted_class": 0,
+        "next_magnitude": 3.884603261947632,
+        "m5_probability_7days": 0.11225662380456924,
+        "m5_risk_level": "MEDIUM",
+        "m5_risk_emoji": "🟡",
+        "m5_predicted_class": 0
       },
-      "ground_truth": {
-        "time_to_next_seconds": 4085.01,
-        "time_to_next_formatted": "1h 8m",
-        "next_magnitude": 0.24
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 0
       },
-      "error": {
-        "time_absolute": 556238.99,
-        "time_formatted": "6d 10h",
-        "mag_absolute": 1.6652009582519531
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 1.3153967380523683
       }
     },
     {
       "sequence_number": 4,
-      "region": "0.0",
+      "region": "R184_553",
       "input_events_summary": {
         "start_idx": 3,
         "end_idx": 7,
         "last_event": {
-          "magnitude": 0.38,
-          "depth_km": 2.56
+          "magnitude": 5.0,
+          "depth_km": 22.7
         }
       },
       "prediction": {
-        "time_to_next_seconds": 436605.5625,
-        "time_to_next_formatted": "5d 1h",
-        "next_magnitude": 1.3734662532806396
+        "quake_probability_7days": 0.5073320865631104,
+        "risk_level": "MEDIUM",
+        "risk_emoji": "🟡",
+        "predicted_class": 1,
+        "next_magnitude": 4.119855880737305,
+        "m5_probability_7days": 0.14872334897518158,
+        "m5_risk_level": "MEDIUM",
+        "m5_risk_emoji": "🟡",
+        "m5_predicted_class": 0
       },
-      "ground_truth": {
-        "time_to_next_seconds": 4758.96,
-        "time_to_next_formatted": "1h 19m",
-        "next_magnitude": 1.08
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 1
       },
-      "error": {
-        "time_absolute": 431846.6025,
-        "time_formatted": "4d 23h",
-        "mag_absolute": 0.2934662532806396
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 1.0801441192626955
       }
     },
     {
       "sequence_number": 5,
-      "region": "0.0",
+      "region": "R185_554",
       "input_events_summary": {
         "start_idx": 4,
         "end_idx": 8,
         "last_event": {
-          "magnitude": 0.24,
-          "depth_km": 1.76
+          "magnitude": 4.2,
+          "depth_km": 30.0
         }
       },
       "prediction": {
-        "time_to_next_seconds": 488252.96875,
-        "time_to_next_formatted": "5d 15h",
-        "next_magnitude": 1.308749794960022
+        "quake_probability_7days": 0.6826756596565247,
+        "risk_level": "MEDIUM",
+        "risk_emoji": "🟡",
+        "predicted_class": 1,
+        "next_magnitude": 4.129189491271973,
+        "m5_probability_7days": 0.20144782960414886,
+        "m5_risk_level": "HIGH",
+        "m5_risk_emoji": "🟠",
+        "m5_predicted_class": 0
       },
-      "ground_truth": {
-        "time_to_next_seconds": 76.99,
-        "time_to_next_formatted": "1m 16s",
-        "next_magnitude": 0.51
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 1
       },
-      "error": {
-        "time_absolute": 488175.97875,
-        "time_formatted": "5d 15h",
-        "mag_absolute": 0.798749794960022
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 1.0708105087280275
       }
     },
     {
       "sequence_number": 6,
-      "region": "0.0",
+      "region": "R182_554",
       "input_events_summary": {
         "start_idx": 5,
         "end_idx": 9,
         "last_event": {
-          "magnitude": 1.08,
-          "depth_km": 0.430000007152557
+          "magnitude": 4.5,
+          "depth_km": 30.0
         }
       },
       "prediction": {
-        "time_to_next_seconds": 697912.3125,
-        "time_to_next_formatted": "8d 1h",
-        "next_magnitude": 1.449905514717102
+        "quake_probability_7days": 0.0953843966126442,
+        "risk_level": "LOW",
+        "risk_emoji": "🟢",
+        "predicted_class": 0,
+        "next_magnitude": 4.09909725189209,
+        "m5_probability_7days": 0.027553213760256767,
+        "m5_risk_level": "LOW",
+        "m5_risk_emoji": "🟢",
+        "m5_predicted_class": 0
       },
-      "ground_truth": {
-        "time_to_next_seconds": 7558.72,
-        "time_to_next_formatted": "2h 5m",
-        "next_magnitude": 0.85
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 0
       },
-      "error": {
-        "time_absolute": 690353.5925,
-        "time_formatted": "7d 23h",
-        "mag_absolute": 0.5999055147171021
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 1.1009027481079103
       }
     },
     {
       "sequence_number": 7,
-      "region": "0.0",
+      "region": "R182_554",
       "input_events_summary": {
         "start_idx": 6,
         "end_idx": 10,
         "last_event": {
-          "magnitude": 0.51,
-          "depth_km": 0.63
+          "magnitude": 4.8,
+          "depth_km": 23.0
         }
       },
       "prediction": {
-        "time_to_next_seconds": 600433.625,
-        "time_to_next_formatted": "6d 22h",
-        "next_magnitude": 2.0457913875579834
+        "quake_probability_7days": 0.21272940933704376,
+        "risk_level": "LOW",
+        "risk_emoji": "🟢",
+        "predicted_class": 0,
+        "next_magnitude": 4.153961181640625,
+        "m5_probability_7days": 0.06387508660554886,
+        "m5_risk_level": "LOW",
+        "m5_risk_emoji": "🟢",
+        "m5_predicted_class": 0
       },
-      "ground_truth": {
-        "time_to_next_seconds": 4746.64,
-        "time_to_next_formatted": "1h 19m",
-        "next_magnitude": 1.29
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 0
       },
-      "error": {
-        "time_absolute": 595686.985,
-        "time_formatted": "6d 21h",
-        "mag_absolute": 0.7557913875579834
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 1.0460388183593752
       }
     },
     {
       "sequence_number": 8,
-      "region": "0.0",
+      "region": "R182_554",
       "input_events_summary": {
         "start_idx": 7,
         "end_idx": 11,
         "last_event": {
-          "magnitude": 0.85,
-          "depth_km": 1.60000002384186
+          "magnitude": 4.7,
+          "depth_km": 22.3
         }
       },
       "prediction": {
-        "time_to_next_seconds": 661237.75,
-        "time_to_next_formatted": "7d 15h",
-        "next_magnitude": 1.3179254531860352
+        "quake_probability_7days": 0.23577143251895905,
+        "risk_level": "LOW",
+        "risk_emoji": "🟢",
+        "predicted_class": 0,
+        "next_magnitude": 4.288372039794922,
+        "m5_probability_7days": 0.07762520015239716,
+        "m5_risk_level": "LOW",
+        "m5_risk_emoji": "🟢",
+        "m5_predicted_class": 0
       },
-      "ground_truth": {
-        "time_to_next_seconds": 862.82,
-        "time_to_next_formatted": "14m 22s",
-        "next_magnitude": 1.26
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 0
       },
-      "error": {
-        "time_absolute": 660374.93,
-        "time_formatted": "7d 15h",
-        "mag_absolute": 0.05792545318603515
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 0.9116279602050783
       }
     },
     {
       "sequence_number": 9,
-      "region": "0.0",
+      "region": "R181_554",
       "input_events_summary": {
         "start_idx": 8,
         "end_idx": 12,
         "last_event": {
-          "magnitude": 1.29,
-          "depth_km": 1.77999997138977
+          "magnitude": 4.6,
+          "depth_km": 30.0
         }
       },
       "prediction": {
-        "time_to_next_seconds": 642770.9375,
-        "time_to_next_formatted": "7d 10h",
-        "next_magnitude": 1.1474405527114868
+        "quake_probability_7days": 0.28536880016326904,
+        "risk_level": "LOW",
+        "risk_emoji": "🟢",
+        "predicted_class": 0,
+        "next_magnitude": 4.1862640380859375,
+        "m5_probability_7days": 0.08763530850410461,
+        "m5_risk_level": "LOW",
+        "m5_risk_emoji": "🟢",
+        "m5_predicted_class": 0
       },
-      "ground_truth": {
-        "time_to_next_seconds": 914.65,
-        "time_to_next_formatted": "15m 14s",
-        "next_magnitude": 0.78
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 0
       },
-      "error": {
-        "time_absolute": 641856.2875,
-        "time_formatted": "7d 10h",
-        "mag_absolute": 0.3674405527114868
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 1.0137359619140627
       }
     },
     {
       "sequence_number": 10,
-      "region": "0.0",
+      "region": "R181_554",
       "input_events_summary": {
         "start_idx": 9,
         "end_idx": 13,
         "last_event": {
-          "magnitude": 1.26,
-          "depth_km": 1.91999995708466
+          "magnitude": 4.3,
+          "depth_km": 30.0
         }
       },
       "prediction": {
-        "time_to_next_seconds": 804700.25,
-        "time_to_next_formatted": "9d 7h",
-        "next_magnitude": 1.2216527462005615
+        "quake_probability_7days": 0.31807318329811096,
+        "risk_level": "LOW",
+        "risk_emoji": "🟢",
+        "predicted_class": 0,
+        "next_magnitude": 4.162167549133301,
+        "m5_probability_7days": 0.09605539590120316,
+        "m5_risk_level": "LOW",
+        "m5_risk_emoji": "🟢",
+        "m5_predicted_class": 0
       },
-      "ground_truth": {
-        "time_to_next_seconds": 770.0,
-        "time_to_next_formatted": "12m 50s",
-        "next_magnitude": 0.09
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 0
       },
-      "error": {
-        "time_absolute": 803930.25,
-        "time_formatted": "9d 7h",
-        "mag_absolute": 1.1316527462005614
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 1.0378324508666994
       }
     },
     {
       "sequence_number": 11,
-      "region": "0.0",
+      "region": "R182_554",
       "input_events_summary": {
         "start_idx": 10,
         "end_idx": 14,
         "last_event": {
-          "magnitude": 0.78,
-          "depth_km": 2.9300000667572
+          "magnitude": 4.3,
+          "depth_km": 30.0
         }
       },
       "prediction": {
-        "time_to_next_seconds": 546375.25,
-        "time_to_next_formatted": "6d 7h",
-        "next_magnitude": 1.1701366901397705
+        "quake_probability_7days": 0.8868634104728699,
+        "risk_level": "HIGH",
+        "risk_emoji": "🔴",
+        "predicted_class": 1,
+        "next_magnitude": 4.104122161865234,
+        "m5_probability_7days": 0.2571002244949341,
+        "m5_risk_level": "HIGH",
+        "m5_risk_emoji": "🟠",
+        "m5_predicted_class": 0
       },
-      "ground_truth": {
-        "time_to_next_seconds": 327.12,
-        "time_to_next_formatted": "5m 27s",
-        "next_magnitude": 0.72
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 1
       },
-      "error": {
-        "time_absolute": 546048.13,
-        "time_formatted": "6d 7h",
-        "mag_absolute": 0.45013669013977053
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 1.0958778381347658
       }
     },
     {
       "sequence_number": 12,
-      "region": "0.0",
+      "region": "R182_554",
       "input_events_summary": {
         "start_idx": 11,
         "end_idx": 15,
         "last_event": {
-          "magnitude": 0.09,
-          "depth_km": 3.24
+          "magnitude": 4.2,
+          "depth_km": 40.0
         }
       },
       "prediction": {
-        "time_to_next_seconds": 510187.4375,
-        "time_to_next_formatted": "5d 21h",
-        "next_magnitude": 1.0941177606582642
+        "quake_probability_7days": 0.9076717495918274,
+        "risk_level": "HIGH",
+        "risk_emoji": "🔴",
+        "predicted_class": 1,
+        "next_magnitude": 4.05219841003418,
+        "m5_probability_7days": 0.2535373568534851,
+        "m5_risk_level": "HIGH",
+        "m5_risk_emoji": "🟠",
+        "m5_predicted_class": 0
       },
-      "ground_truth": {
-        "time_to_next_seconds": 1327.52,
-        "time_to_next_formatted": "22m 7s",
-        "next_magnitude": 0.35
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 1
       },
-      "error": {
-        "time_absolute": 508859.9175,
-        "time_formatted": "5d 21h",
-        "mag_absolute": 0.7441177606582642
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 1.1478015899658205
       }
     },
     {
       "sequence_number": 13,
-      "region": "0.0",
+      "region": "R182_554",
       "input_events_summary": {
         "start_idx": 12,
         "end_idx": 16,
         "last_event": {
-          "magnitude": 0.72,
-          "depth_km": 1.38999998569489
+          "magnitude": 4.8,
+          "depth_km": 30.0
         }
       },
       "prediction": {
-        "time_to_next_seconds": 589553.5,
-        "time_to_next_formatted": "6d 19h",
-        "next_magnitude": 1.4529134035110474
+        "quake_probability_7days": 0.8101304769515991,
+        "risk_level": "HIGH",
+        "risk_emoji": "🔴",
+        "predicted_class": 1,
+        "next_magnitude": 4.182303428649902,
+        "m5_probability_7days": 0.2481047511100769,
+        "m5_risk_level": "HIGH",
+        "m5_risk_emoji": "🟠",
+        "m5_predicted_class": 0
       },
-      "ground_truth": {
-        "time_to_next_seconds": 3045.89,
-        "time_to_next_formatted": "50m 45s",
-        "next_magnitude": 2.1
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 1
       },
-      "error": {
-        "time_absolute": 586507.61,
-        "time_formatted": "6d 18h",
-        "mag_absolute": 0.6470865964889527
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 1.0176965713500978
       }
     },
     {
       "sequence_number": 14,
-      "region": "0.0",
+      "region": "R182_554",
       "input_events_summary": {
         "start_idx": 13,
         "end_idx": 17,
         "last_event": {
-          "magnitude": 0.35,
-          "depth_km": 1.67
+          "magnitude": 5.0,
+          "depth_km": 22.6
         }
       },
       "prediction": {
-        "time_to_next_seconds": 632420.6875,
-        "time_to_next_formatted": "7d 7h",
-        "next_magnitude": 1.6150894165039062
+        "quake_probability_7days": 0.8339253664016724,
+        "risk_level": "HIGH",
+        "risk_emoji": "🔴",
+        "predicted_class": 1,
+        "next_magnitude": 4.236030101776123,
+        "m5_probability_7days": 0.26500895619392395,
+        "m5_risk_level": "HIGH",
+        "m5_risk_emoji": "🟠",
+        "m5_predicted_class": 0
       },
-      "ground_truth": {
-        "time_to_next_seconds": 610.19,
-        "time_to_next_formatted": "10m 10s",
-        "next_magnitude": 1.14
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 1
       },
-      "error": {
-        "time_absolute": 631810.4975,
-        "time_formatted": "7d 7h",
-        "mag_absolute": 0.47508941650390635
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 0.9639698982238771
       }
     },
     {
       "sequence_number": 15,
-      "region": "0.0",
+      "region": "R184_552",
       "input_events_summary": {
         "start_idx": 14,
         "end_idx": 18,
         "last_event": {
-          "magnitude": 2.1,
-          "depth_km": 1.64999997615814
+          "magnitude": 4.6,
+          "depth_km": 22.9
         }
       },
       "prediction": {
-        "time_to_next_seconds": 553793.1875,
-        "time_to_next_formatted": "6d 9h",
-        "next_magnitude": 1.4284108877182007
+        "quake_probability_7days": 0.9676446318626404,
+        "risk_level": "HIGH",
+        "risk_emoji": "🔴",
+        "predicted_class": 1,
+        "next_magnitude": 4.231167793273926,
+        "m5_probability_7days": 0.30648380517959595,
+        "m5_risk_level": "HIGH",
+        "m5_risk_emoji": "🟠",
+        "m5_predicted_class": 0
       },
-      "ground_truth": {
-        "time_to_next_seconds": 819243901.79,
-        "time_to_next_formatted": "9481d 23h",
-        "next_magnitude": 1.44
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 1
       },
-      "error": {
-        "time_absolute": 818690108.6025,
-        "time_formatted": "9475d 13h",
-        "mag_absolute": 0.011589112281799263
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 0.9688322067260744
+      }
+    },
+    {
+      "sequence_number": 16,
+      "region": "R184_552",
+      "input_events_summary": {
+        "start_idx": 15,
+        "end_idx": 19,
+        "last_event": {
+          "magnitude": 4.2,
+          "depth_km": 30.0
+        }
+      },
+      "prediction": {
+        "quake_probability_7days": 0.28417521715164185,
+        "risk_level": "LOW",
+        "risk_emoji": "🟢",
+        "predicted_class": 0,
+        "next_magnitude": 4.156728267669678,
+        "m5_probability_7days": 0.08549302071332932,
+        "m5_risk_level": "LOW",
+        "m5_risk_emoji": "🟢",
+        "m5_predicted_class": 0
+      },
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 0
+      },
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 1.0432717323303224
+      }
+    },
+    {
+      "sequence_number": 17,
+      "region": "R184_552",
+      "input_events_summary": {
+        "start_idx": 16,
+        "end_idx": 20,
+        "last_event": {
+          "magnitude": 5.0,
+          "depth_km": 26.4
+        }
+      },
+      "prediction": {
+        "quake_probability_7days": 0.5208846926689148,
+        "risk_level": "MEDIUM",
+        "risk_emoji": "🟡",
+        "predicted_class": 1,
+        "next_magnitude": 4.2025227546691895,
+        "m5_probability_7days": 0.16176876425743103,
+        "m5_risk_level": "MEDIUM",
+        "m5_risk_emoji": "🟡",
+        "m5_predicted_class": 0
+      },
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 1
+      },
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 0.9974772453308107
+      }
+    },
+    {
+      "sequence_number": 18,
+      "region": "R182_554",
+      "input_events_summary": {
+        "start_idx": 17,
+        "end_idx": 21,
+        "last_event": {
+          "magnitude": 4.5,
+          "depth_km": 30.0
+        }
+      },
+      "prediction": {
+        "quake_probability_7days": 0.752620279788971,
+        "risk_level": "HIGH",
+        "risk_emoji": "🔴",
+        "predicted_class": 1,
+        "next_magnitude": 4.217106819152832,
+        "m5_probability_7days": 0.23609448969364166,
+        "m5_risk_level": "HIGH",
+        "m5_risk_emoji": "🟠",
+        "m5_predicted_class": 0
+      },
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 1
+      },
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 0.9828931808471681
+      }
+    },
+    {
+      "sequence_number": 19,
+      "region": "R182_552",
+      "input_events_summary": {
+        "start_idx": 18,
+        "end_idx": 22,
+        "last_event": {
+          "magnitude": 4.0,
+          "depth_km": 30.0
+        }
+      },
+      "prediction": {
+        "quake_probability_7days": 0.868587851524353,
+        "risk_level": "HIGH",
+        "risk_emoji": "🔴",
+        "predicted_class": 1,
+        "next_magnitude": 4.100033283233643,
+        "m5_probability_7days": 0.2510716915130615,
+        "m5_risk_level": "HIGH",
+        "m5_risk_emoji": "🟠",
+        "m5_predicted_class": 0
+      },
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 1
+      },
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 1.0999667167663576
+      }
+    },
+    {
+      "sequence_number": 20,
+      "region": "R184_552",
+      "input_events_summary": {
+        "start_idx": 19,
+        "end_idx": 23,
+        "last_event": {
+          "magnitude": 4.3,
+          "depth_km": 30.0
+        }
+      },
+      "prediction": {
+        "quake_probability_7days": 0.9847137331962585,
+        "risk_level": "HIGH",
+        "risk_emoji": "🔴",
+        "predicted_class": 1,
+        "next_magnitude": 4.272377967834473,
+        "m5_probability_7days": 0.3207377791404724,
+        "m5_risk_level": "HIGH",
+        "m5_risk_emoji": "🟠",
+        "m5_predicted_class": 0
+      },
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 1
+      },
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 0.9276220321655275
+      }
+    },
+    {
+      "sequence_number": 21,
+      "region": "R184_553",
+      "input_events_summary": {
+        "start_idx": 20,
+        "end_idx": 24,
+        "last_event": {
+          "magnitude": 4.9,
+          "depth_km": 39.5
+        }
+      },
+      "prediction": {
+        "quake_probability_7days": 0.8983480334281921,
+        "risk_level": "HIGH",
+        "risk_emoji": "🔴",
+        "predicted_class": 1,
+        "next_magnitude": 4.349052906036377,
+        "m5_probability_7days": 0.3079322576522827,
+        "m5_risk_level": "HIGH",
+        "m5_risk_emoji": "🟠",
+        "m5_predicted_class": 0
+      },
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 1
+      },
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 0.8509470939636232
+      }
+    },
+    {
+      "sequence_number": 22,
+      "region": "R182_554",
+      "input_events_summary": {
+        "start_idx": 21,
+        "end_idx": 25,
+        "last_event": {
+          "magnitude": 4.7,
+          "depth_km": 26.4
+        }
+      },
+      "prediction": {
+        "quake_probability_7days": 0.4786441922187805,
+        "risk_level": "MEDIUM",
+        "risk_emoji": "🟡",
+        "predicted_class": 0,
+        "next_magnitude": 4.275231838226318,
+        "m5_probability_7days": 0.15620259940624237,
+        "m5_risk_level": "MEDIUM",
+        "m5_risk_emoji": "🟡",
+        "m5_predicted_class": 0
+      },
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 0
+      },
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 0.9247681617736818
+      }
+    },
+    {
+      "sequence_number": 23,
+      "region": "R183_555",
+      "input_events_summary": {
+        "start_idx": 22,
+        "end_idx": 26,
+        "last_event": {
+          "magnitude": 4.5,
+          "depth_km": 30.0
+        }
+      },
+      "prediction": {
+        "quake_probability_7days": 0.7161546945571899,
+        "risk_level": "HIGH",
+        "risk_emoji": "🔴",
+        "predicted_class": 1,
+        "next_magnitude": 3.9863216876983643,
+        "m5_probability_7days": 0.1906837671995163,
+        "m5_risk_level": "MEDIUM",
+        "m5_risk_emoji": "🟡",
+        "m5_predicted_class": 0
+      },
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 1
+      },
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 1.213678312301636
+      }
+    },
+    {
+      "sequence_number": 24,
+      "region": "R182_554",
+      "input_events_summary": {
+        "start_idx": 23,
+        "end_idx": 27,
+        "last_event": {
+          "magnitude": 4.7,
+          "depth_km": 30.0
+        }
+      },
+      "prediction": {
+        "quake_probability_7days": 0.3063536286354065,
+        "risk_level": "LOW",
+        "risk_emoji": "🟢",
+        "predicted_class": 0,
+        "next_magnitude": 4.329367160797119,
+        "m5_probability_7days": 0.1036563292145729,
+        "m5_risk_level": "MEDIUM",
+        "m5_risk_emoji": "🟡",
+        "m5_predicted_class": 0
+      },
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 0
+      },
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 0.870632839202881
+      }
+    },
+    {
+      "sequence_number": 25,
+      "region": "R182_554",
+      "input_events_summary": {
+        "start_idx": 24,
+        "end_idx": 28,
+        "last_event": {
+          "magnitude": 4.4,
+          "depth_km": 24.7
+        }
+      },
+      "prediction": {
+        "quake_probability_7days": 0.5132859945297241,
+        "risk_level": "MEDIUM",
+        "risk_emoji": "🟡",
+        "predicted_class": 1,
+        "next_magnitude": 4.31909704208374,
+        "m5_probability_7days": 0.1724947988986969,
+        "m5_risk_level": "MEDIUM",
+        "m5_risk_emoji": "🟡",
+        "m5_predicted_class": 0
+      },
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 1
+      },
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 0.8809029579162599
+      }
+    },
+    {
+      "sequence_number": 26,
+      "region": "R183_554",
+      "input_events_summary": {
+        "start_idx": 25,
+        "end_idx": 29,
+        "last_event": {
+          "magnitude": 4.4,
+          "depth_km": 30.0
+        }
+      },
+      "prediction": {
+        "quake_probability_7days": 0.6705020070075989,
+        "risk_level": "MEDIUM",
+        "risk_emoji": "🟡",
+        "predicted_class": 1,
+        "next_magnitude": 4.122964382171631,
+        "m5_probability_7days": 0.19698843359947205,
+        "m5_risk_level": "MEDIUM",
+        "m5_risk_emoji": "🟡",
+        "m5_predicted_class": 0
+      },
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 1
+      },
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 1.0770356178283693
+      }
+    },
+    {
+      "sequence_number": 27,
+      "region": "R182_554",
+      "input_events_summary": {
+        "start_idx": 26,
+        "end_idx": 30,
+        "last_event": {
+          "magnitude": 4.6,
+          "depth_km": 30.0
+        }
+      },
+      "prediction": {
+        "quake_probability_7days": 0.20704829692840576,
+        "risk_level": "LOW",
+        "risk_emoji": "🟢",
+        "predicted_class": 0,
+        "next_magnitude": 4.001665115356445,
+        "m5_probability_7days": 0.05575166642665863,
+        "m5_risk_level": "LOW",
+        "m5_risk_emoji": "🟢",
+        "m5_predicted_class": 0
+      },
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 0
+      },
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 1.1983348846435549
+      }
+    },
+    {
+      "sequence_number": 28,
+      "region": "R187_550",
+      "input_events_summary": {
+        "start_idx": 27,
+        "end_idx": 31,
+        "last_event": {
+          "magnitude": 4.4,
+          "depth_km": 30.0
+        }
+      },
+      "prediction": {
+        "quake_probability_7days": 0.31491193175315857,
+        "risk_level": "LOW",
+        "risk_emoji": "🟢",
+        "predicted_class": 0,
+        "next_magnitude": 3.9713103771209717,
+        "m5_probability_7days": 0.08292835205793381,
+        "m5_risk_level": "LOW",
+        "m5_risk_emoji": "🟢",
+        "m5_predicted_class": 0
+      },
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 0
+      },
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 1.2286896228790285
+      }
+    },
+    {
+      "sequence_number": 29,
+      "region": "R183_554",
+      "input_events_summary": {
+        "start_idx": 28,
+        "end_idx": 32,
+        "last_event": {
+          "magnitude": 4.3,
+          "depth_km": 30.0
+        }
+      },
+      "prediction": {
+        "quake_probability_7days": 0.029829848557710648,
+        "risk_level": "LOW",
+        "risk_emoji": "🟢",
+        "predicted_class": 0,
+        "next_magnitude": 4.0796966552734375,
+        "m5_probability_7days": 0.00849840696901083,
+        "m5_risk_level": "LOW",
+        "m5_risk_emoji": "🟢",
+        "m5_predicted_class": 0
+      },
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 0
+      },
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 1.1203033447265627
+      }
+    },
+    {
+      "sequence_number": 30,
+      "region": "R182_554",
+      "input_events_summary": {
+        "start_idx": 29,
+        "end_idx": 33,
+        "last_event": {
+          "magnitude": 4.4,
+          "depth_km": 30.0
+        }
+      },
+      "prediction": {
+        "quake_probability_7days": 0.2628553807735443,
+        "risk_level": "LOW",
+        "risk_emoji": "🟢",
+        "predicted_class": 0,
+        "next_magnitude": 4.142425537109375,
+        "m5_probability_7days": 0.07829051464796066,
+        "m5_risk_level": "LOW",
+        "m5_risk_emoji": "🟢",
+        "m5_predicted_class": 0
+      },
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 0
+      },
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 1.0575744628906252
+      }
+    },
+    {
+      "sequence_number": 31,
+      "region": "R182_554",
+      "input_events_summary": {
+        "start_idx": 30,
+        "end_idx": 34,
+        "last_event": {
+          "magnitude": 4.7,
+          "depth_km": 23.7
+        }
+      },
+      "prediction": {
+        "quake_probability_7days": 0.07337436079978943,
+        "risk_level": "LOW",
+        "risk_emoji": "🟢",
+        "predicted_class": 0,
+        "next_magnitude": 4.224329948425293,
+        "m5_probability_7days": 0.02313154935836792,
+        "m5_risk_level": "LOW",
+        "m5_risk_emoji": "🟢",
+        "m5_predicted_class": 0
+      },
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 0
+      },
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 0.9756700515747072
+      }
+    },
+    {
+      "sequence_number": 32,
+      "region": "R183_554",
+      "input_events_summary": {
+        "start_idx": 31,
+        "end_idx": 35,
+        "last_event": {
+          "magnitude": 4.4,
+          "depth_km": 30.0
+        }
+      },
+      "prediction": {
+        "quake_probability_7days": 0.08898026496171951,
+        "risk_level": "LOW",
+        "risk_emoji": "🟢",
+        "predicted_class": 0,
+        "next_magnitude": 4.12148380279541,
+        "m5_probability_7days": 0.02611440420150757,
+        "m5_risk_level": "LOW",
+        "m5_risk_emoji": "🟢",
+        "m5_predicted_class": 0
+      },
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 0
+      },
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 1.07851619720459
+      }
+    },
+    {
+      "sequence_number": 33,
+      "region": "R181_554",
+      "input_events_summary": {
+        "start_idx": 32,
+        "end_idx": 36,
+        "last_event": {
+          "magnitude": 4.2,
+          "depth_km": 30.0
+        }
+      },
+      "prediction": {
+        "quake_probability_7days": 0.15763887763023376,
+        "risk_level": "LOW",
+        "risk_emoji": "🟢",
+        "predicted_class": 0,
+        "next_magnitude": 4.035818576812744,
+        "m5_probability_7days": 0.0435149148106575,
+        "m5_risk_level": "LOW",
+        "m5_risk_emoji": "🟢",
+        "m5_predicted_class": 0
+      },
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 0
+      },
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 1.164181423187256
+      }
+    },
+    {
+      "sequence_number": 34,
+      "region": "R183_553",
+      "input_events_summary": {
+        "start_idx": 33,
+        "end_idx": 37,
+        "last_event": {
+          "magnitude": 4.2,
+          "depth_km": 22.5
+        }
+      },
+      "prediction": {
+        "quake_probability_7days": 0.4781394302845001,
+        "risk_level": "MEDIUM",
+        "risk_emoji": "🟡",
+        "predicted_class": 0,
+        "next_magnitude": 4.027891159057617,
+        "m5_probability_7days": 0.13123030960559845,
+        "m5_risk_level": "MEDIUM",
+        "m5_risk_emoji": "🟡",
+        "m5_predicted_class": 0
+      },
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 0
+      },
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 1.172108840942383
+      }
+    },
+    {
+      "sequence_number": 35,
+      "region": "R184_549",
+      "input_events_summary": {
+        "start_idx": 34,
+        "end_idx": 38,
+        "last_event": {
+          "magnitude": 4.3,
+          "depth_km": 27.1
+        }
+      },
+      "prediction": {
+        "quake_probability_7days": 0.3629668354988098,
+        "risk_level": "LOW",
+        "risk_emoji": "🟢",
+        "predicted_class": 0,
+        "next_magnitude": 3.9055943489074707,
+        "m5_probability_7days": 0.09102830290794373,
+        "m5_risk_level": "LOW",
+        "m5_risk_emoji": "🟢",
+        "m5_predicted_class": 0
+      },
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 0
+      },
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 1.2944056510925295
+      }
+    },
+    {
+      "sequence_number": 36,
+      "region": "R183_554",
+      "input_events_summary": {
+        "start_idx": 35,
+        "end_idx": 39,
+        "last_event": {
+          "magnitude": 4.7,
+          "depth_km": 30.0
+        }
+      },
+      "prediction": {
+        "quake_probability_7days": 0.13204020261764526,
+        "risk_level": "LOW",
+        "risk_emoji": "🟢",
+        "predicted_class": 0,
+        "next_magnitude": 3.804718255996704,
+        "m5_probability_7days": 0.030675003305077553,
+        "m5_risk_level": "LOW",
+        "m5_risk_emoji": "🟢",
+        "m5_predicted_class": 0
+      },
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 0
+      },
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 1.395281744003296
+      }
+    },
+    {
+      "sequence_number": 37,
+      "region": "R183_554",
+      "input_events_summary": {
+        "start_idx": 36,
+        "end_idx": 40,
+        "last_event": {
+          "magnitude": 4.2,
+          "depth_km": 30.0
+        }
+      },
+      "prediction": {
+        "quake_probability_7days": 0.3371679186820984,
+        "risk_level": "LOW",
+        "risk_emoji": "🟢",
+        "predicted_class": 0,
+        "next_magnitude": 3.9808595180511475,
+        "m5_probability_7days": 0.08941520005464554,
+        "m5_risk_level": "LOW",
+        "m5_risk_emoji": "🟢",
+        "m5_predicted_class": 0
+      },
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 0
+      },
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 1.2191404819488527
+      }
+    },
+    {
+      "sequence_number": 38,
+      "region": "R183_554",
+      "input_events_summary": {
+        "start_idx": 37,
+        "end_idx": 41,
+        "last_event": {
+          "magnitude": 4.9,
+          "depth_km": 29.5
+        }
+      },
+      "prediction": {
+        "quake_probability_7days": 0.808174192905426,
+        "risk_level": "HIGH",
+        "risk_emoji": "🔴",
+        "predicted_class": 1,
+        "next_magnitude": 4.047886848449707,
+        "m5_probability_7days": 0.22504420578479767,
+        "m5_risk_level": "HIGH",
+        "m5_risk_emoji": "🟠",
+        "m5_predicted_class": 0
+      },
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 1
+      },
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 1.1521131515502931
+      }
+    },
+    {
+      "sequence_number": 39,
+      "region": "R185_552",
+      "input_events_summary": {
+        "start_idx": 38,
+        "end_idx": 42,
+        "last_event": {
+          "magnitude": 4.6,
+          "depth_km": 25.5
+        }
+      },
+      "prediction": {
+        "quake_probability_7days": 0.9570682048797607,
+        "risk_level": "HIGH",
+        "risk_emoji": "🔴",
+        "predicted_class": 1,
+        "next_magnitude": 4.115076065063477,
+        "m5_probability_7days": 0.279615581035614,
+        "m5_risk_level": "HIGH",
+        "m5_risk_emoji": "🟠",
+        "m5_predicted_class": 0
+      },
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 1
+      },
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 1.0849239349365236
+      }
+    },
+    {
+      "sequence_number": 40,
+      "region": "R185_551",
+      "input_events_summary": {
+        "start_idx": 39,
+        "end_idx": 43,
+        "last_event": {
+          "magnitude": 4.2,
+          "depth_km": 30.0
+        }
+      },
+      "prediction": {
+        "quake_probability_7days": 0.2010015994310379,
+        "risk_level": "LOW",
+        "risk_emoji": "🟢",
+        "predicted_class": 0,
+        "next_magnitude": 4.171785354614258,
+        "m5_probability_7days": 0.06110904738306999,
+        "m5_risk_level": "LOW",
+        "m5_risk_emoji": "🟢",
+        "m5_predicted_class": 0
+      },
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 0
+      },
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 1.0282146453857424
+      }
+    },
+    {
+      "sequence_number": 41,
+      "region": "R183_553",
+      "input_events_summary": {
+        "start_idx": 40,
+        "end_idx": 44,
+        "last_event": {
+          "magnitude": 4.1,
+          "depth_km": 30.0
+        }
+      },
+      "prediction": {
+        "quake_probability_7days": 0.17066310346126556,
+        "risk_level": "LOW",
+        "risk_emoji": "🟢",
+        "predicted_class": 0,
+        "next_magnitude": 4.137099266052246,
+        "m5_probability_7days": 0.050641484558582306,
+        "m5_risk_level": "LOW",
+        "m5_risk_emoji": "🟢",
+        "m5_predicted_class": 0
+      },
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 0
+      },
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 1.062900733947754
+      }
+    },
+    {
+      "sequence_number": 42,
+      "region": "R185_551",
+      "input_events_summary": {
+        "start_idx": 41,
+        "end_idx": 45,
+        "last_event": {
+          "magnitude": 4.6,
+          "depth_km": 30.0
+        }
+      },
+      "prediction": {
+        "quake_probability_7days": 0.2740674614906311,
+        "risk_level": "LOW",
+        "risk_emoji": "🟢",
+        "predicted_class": 0,
+        "next_magnitude": 4.224626541137695,
+        "m5_probability_7days": 0.08641837537288666,
+        "m5_risk_level": "LOW",
+        "m5_risk_emoji": "🟢",
+        "m5_predicted_class": 0
+      },
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 0
+      },
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 0.9753734588623049
+      }
+    },
+    {
+      "sequence_number": 43,
+      "region": "R184_551",
+      "input_events_summary": {
+        "start_idx": 42,
+        "end_idx": 46,
+        "last_event": {
+          "magnitude": 4.7,
+          "depth_km": 30.0
+        }
+      },
+      "prediction": {
+        "quake_probability_7days": 0.32382625341415405,
+        "risk_level": "LOW",
+        "risk_emoji": "🟢",
+        "predicted_class": 0,
+        "next_magnitude": 4.183403015136719,
+        "m5_probability_7days": 0.09924837946891785,
+        "m5_risk_level": "LOW",
+        "m5_risk_emoji": "🟢",
+        "m5_predicted_class": 0
+      },
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 0
+      },
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 1.0165969848632814
+      }
+    },
+    {
+      "sequence_number": 44,
+      "region": "R181_554",
+      "input_events_summary": {
+        "start_idx": 43,
+        "end_idx": 47,
+        "last_event": {
+          "magnitude": 4.2,
+          "depth_km": 30.0
+        }
+      },
+      "prediction": {
+        "quake_probability_7days": 0.1163213774561882,
+        "risk_level": "LOW",
+        "risk_emoji": "🟢",
+        "predicted_class": 0,
+        "next_magnitude": 3.968625783920288,
+        "m5_probability_7days": 0.03057132475078106,
+        "m5_risk_level": "LOW",
+        "m5_risk_emoji": "🟢",
+        "m5_predicted_class": 0
+      },
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 0
+      },
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 1.231374216079712
+      }
+    },
+    {
+      "sequence_number": 45,
+      "region": "R183_553",
+      "input_events_summary": {
+        "start_idx": 44,
+        "end_idx": 48,
+        "last_event": {
+          "magnitude": 4.2,
+          "depth_km": 30.0
+        }
+      },
+      "prediction": {
+        "quake_probability_7days": 0.3255588710308075,
+        "risk_level": "LOW",
+        "risk_emoji": "🟢",
+        "predicted_class": 0,
+        "next_magnitude": 4.0440216064453125,
+        "m5_probability_7days": 0.0904025211930275,
+        "m5_risk_level": "LOW",
+        "m5_risk_emoji": "🟢",
+        "m5_predicted_class": 0
+      },
+      "ground_truth_time": {
+        "quake_in_7days": 1,
+        "correct": 0
+      },
+      "ground_truth_mag": {
+        "next_magnitude": 5.2,
+        "error": 1.1559783935546877
       }
     }
   ]

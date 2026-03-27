@@ -1,5 +1,5 @@
 {
-  "input_csv": "data/data_with_region_code.csv",
+  "input_csv": "data/dongdat_full_with_region_code.csv",
   "output_dir": "hoigreen/pattern_discovering/outputs",
   "rows_after_filtering": 3119538,
   "event_type": "earthquake",

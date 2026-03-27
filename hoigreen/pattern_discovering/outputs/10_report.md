@@ -2,7 +2,7 @@
 
 ## Scope
 
-- Input file: `data/data_with_region_code.csv`
+- Input file: `data/dongdat_full_with_region_code.csv`
 - Filtered event type: `earthquake`
 - Rows after filtering: `3,119,538`
 - Distinct regions with grid size `2.5` degree: `3,611`

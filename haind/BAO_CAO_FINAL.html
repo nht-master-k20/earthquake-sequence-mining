@@ -455,15 +455,14 @@
 
         <p>Từ bảng metrics, ta thấy MagLSTM có train-test gap lớn hơn TimeLSTM. Training MAE (~0.40) thấp hơn test MAE (0.46) khoảng 15%, cho thấy một số overfitting. Validation MAE (~0.44) nằm giữa training và test, confirming generalization trend. RMSE cao hơn MAE trên cả ba tập (0.45 vs 0.40 cho training, 0.52 vs 0.44 cho validation, 0.58 vs 0.46 cho test) consistently confirms presence of outliers. Test loss (0.34) cao hơn validation loss (0.26) cho thấy model perform slightly worse on unseen data, nhưng gap vẫn trong giới hạn acceptable.</p>
 
-        <div class="two-figures">
-            <div class="figure">
-                <img src="file:///home/haind/Desktop/earthquake-sequence-mining/haind/predict2/dashboard/plots/MagLSTM_test_comparison_20260326_015503.png" alt="Predicted vs Actual">
-                <div class="figure-caption">Hình 4: Predicted vs Actual Magnitude - MagLSTM Test Set</div>
-            </div>
-            <div class="figure">
-                <img src="file:///home/haind/Desktop/earthquake-sequence-mining/haind/predict2/dashboard/plots/MagLSTM_test_error_dist_20260326_015503.png" alt="Error Distribution">
-                <div class="figure-caption">Hình 5: Error Distribution - MagLSTM Test Set</div>
-            </div>
+        <div class="figure">
+            <img src="file:///home/haind/Desktop/earthquake-sequence-mining/haind/predict2/dashboard/plots/MagLSTM_test_comparison_20260326_015503.png" alt="Predicted vs Actual">
+            <div class="figure-caption">Hình 4: Predicted vs Actual Magnitude - MagLSTM Test Set</div>
+        </div>
+
+        <div class="figure">
+            <img src="file:///home/haind/Desktop/earthquake-sequence-mining/haind/predict2/dashboard/plots/MagLSTM_test_error_dist_20260326_015503.png" alt="Error Distribution">
+            <div class="figure-caption">Hình 5: Error Distribution - MagLSTM Test Set</div>
         </div>
 
         <p>Hình 4 thể hiện scatter plot giữa predicted và actual magnitude. Points cluster quanh diagonal line (y = x) cho thấy good overall fit. Tuy nhiên, có visible scatter cho thấy uncertainty. Small magnitudes (< M1.5) có xu hướng under-predicted, large magnitudes (> M2.0) có xu hướng over-predicted. Hình 5 thể hiện error distribution. Mean gần 0 cho thấy no significant bias. Standard deviation ~0.4-0.5 magnitude. Distribution gần normal nhưng có heavy tails - có outliers ±1 magnitude hoặc hơn.</p>

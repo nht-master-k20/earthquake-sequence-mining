@@ -455,15 +455,14 @@
 
         <p>From the metrics table, MagLSTM shows a larger train-test gap than TimeLSTM. Training MAE (~0.40) is about 15% lower than test MAE (0.46), indicating some overfitting. Validation MAE (~0.44) lies between training and test, confirming the generalization trend. RMSE consistently higher than MAE across all three sets (0.45 vs 0.40 for training, 0.52 vs 0.44 for validation, 0.58 vs 0.46 for test) confirms the presence of outliers. Test loss (0.34) is higher than validation loss (0.26), showing the model performs slightly worse on unseen data, but the gap remains within acceptable limits.</p>
 
-        <div class="two-figures">
-            <div class="figure">
-                <img src="file:///home/haind/Desktop/earthquake-sequence-mining/haind/predict2/dashboard/plots/MagLSTM_test_comparison_20260326_015503.png" alt="Predicted vs Actual">
-                <div class="figure-caption">Figure 4: Predicted vs Actual Magnitude - MagLSTM Test Set</div>
-            </div>
-            <div class="figure">
-                <img src="file:///home/haind/Desktop/earthquake-sequence-mining/haind/predict2/dashboard/plots/MagLSTM_test_error_dist_20260326_015503.png" alt="Error Distribution">
-                <div class="figure-caption">Figure 5: Error Distribution - MagLSTM Test Set</div>
-            </div>
+        <div class="figure">
+            <img src="file:///home/haind/Desktop/earthquake-sequence-mining/haind/predict2/dashboard/plots/MagLSTM_test_comparison_20260326_015503.png" alt="Predicted vs Actual">
+            <div class="figure-caption">Figure 4: Predicted vs Actual Magnitude - MagLSTM Test Set</div>
+        </div>
+
+        <div class="figure">
+            <img src="file:///home/haind/Desktop/earthquake-sequence-mining/haind/predict2/dashboard/plots/MagLSTM_test_error_dist_20260326_015503.png" alt="Error Distribution">
+            <div class="figure-caption">Figure 5: Error Distribution - MagLSTM Test Set</div>
         </div>
 
         <p>Figure 4 shows the scatter plot between predicted and actual magnitude. Points cluster around the diagonal line (y = x), indicating good overall fit. However, visible scatter shows uncertainty. Small magnitudes (< M1.5) tend to be under-predicted, while large magnitudes (> M2.0) tend to be over-predicted. Figure 5 shows the error distribution. Mean near 0 indicates no significant bias. Standard deviation is ~0.4-0.5 magnitude. Distribution is approximately normal but with heavy tails - there are outliers of ±1 magnitude or more.</p>

@@ -46,7 +46,7 @@ EARLY_STOPPING_PATIENCE = 15
 # FEATURES (per FEATURES_GUIDE.html)
 # =============================================================================
 
-# Time Model Features (23 input features)
+# Time Model Features (21 input features)
 # Goal: Predict probability of earthquake in next 7 days (binary classification)
 TIME_FEATURES = [
     # Original (4 features)

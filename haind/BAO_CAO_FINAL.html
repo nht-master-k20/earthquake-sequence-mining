@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo Cáo - Dự Báo Động Đất Bằng LSTM</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #222;
+            background: #f8f8f8;
+            padding: 20px;
+        }
+
+        .page {
+            max-width: 850px;
+            margin: 0 auto 30px auto;
+            background: white;
+            padding: 50px 60px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #111;
+            font-size: 18px;
+            margin-bottom: 5px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #444;
+            font-size: 14px;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        h2 {
+            color: #111;
+            font-size: 14px;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            border-bottom: 1.5px solid #333;
+            padding-bottom: 5px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        h3 {
+            color: #333;
+            font-size: 13px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        p {
+            margin-bottom: 10px;
+            text-align: justify;
+            text-indent: 1em;
+        }
+
+        p.no-indent {
+            text-indent: 0;
+        }
+
+        .author-info {
+            text-align: center;
+            margin: 30px 0;
+            padding: 15px;
+            border-top: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .author-info p {
+            text-indent: 0;
+            margin: 5px 0;
+        }
+
+        .figure {
+            margin: 25px 0;
+            text-align: center;
+            page-break-inside: avoid;
+        }
+
+        .figure img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #999;
+        }
+
+        .figure-caption {
+            margin-top: 8px;
+            font-style: italic;
+            color: #555;
+            font-size: 12px;
+        }
+
+        .two-figures {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .references {
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+        }
+
+        .references p {
+            text-indent: -2em;
+            padding-left: 2em;
+            font-size: 12px;
+        }
+
+        strong, b {
+            font-weight: bold;
+        }
+
+        .good {
+            color: #2e7d32;
+            font-weight: bold;
+        }
+
+        .bad {
+            color: #c62828;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 12px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        td {
+            text-align: center;
+        }
+
+        td.group-name {
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .metric-value {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+
+        .good-metric {
+            color: #2e7d32;
+        }
+
+        .warning-metric {
+            color: #f57c00;
+        }
+
+        .table-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- TRANG BIA -->
+    <div class="page">
+        <h1>BÁO CÁO</h1>
+        <div class="subtitle">DỰ BÁO ĐỘNG ĐẤT BẰNG MÔ HÌNH LSTM</div>
+        <div class="subtitle" style="font-size: 13px; font-weight: normal;">Earthquake Sequence Mining with Dual LSTM Architecture</div>
+
+        <div class="author-info">
+            <p><strong>Người thực hiện:</strong> Haind</p>
+            <p><strong>Ngày:</strong> 26/03/2025</p>
+            <p><strong>Version:</strong> 2.0</p>
+        </div>
+    </div>
+
+    <!-- TRANG CHÍNH -->
+    <div class="page">
+
+        <h2>1. TỔNG QUAN DỰ ÁN</h2>
+
+        <p>Dự án tập trung xây dựng hệ thống dự báo động đất sử dụng hai mô hình LSTM chuyên biệt. Mô hình thứ nhất, TimeLSTM, thực hiện phân loại nhị phân để dự báo khả năng xảy ra động đất trong vòng bảy ngày tới. Mô hình thứ hai, MagLSTM, thực hiện hồi quy để dự báo độ lớn chính xác của động đất tiếp theo. Cả hai mô hình được训练 trên cùng tập dữ liệu động đất toàn cầu từ năm 2000 đến 2025 với khoảng 100,000 sự kiện.</p>
+
+        <h2>2. QUY TRÌNH XỬ LÝ DỮ LIỆU</h2>
+
+        <p>Dữ liệu động đất toàn cầu từ USGS catalog (2000-2025) được xử lý qua pipeline nhiều lớp để tạo ra features suitable cho LSTM models. Dữ liệu được chia theo vùng địa lý (lưới 0.5°), sắp xếp theo thời gian, rồi làm giàu với physics-based features và temporal features. Cuối cùng, hai tập dữ liệu riêng biệt được tạo ra: 21 features cho TimeLSTM (binary classification) và 26 features cho MagLSTM (regression).</p>
+
+        <h2>3. CÁC FEATURES ĐẶC TRƯNG</h2>
+
+        <h3>3.1 Danh sách Features</h3>
+
+        <div class="table-title">Bảng 1: Danh sách tất cả features sử dụng để train models</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nhóm</th>
+                    <th>Tên Feature</th>
+                    <th>Ý Nghĩa</th>
+                    <th>TimeLSTM</th>
+                    <th>MagLSTM</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- ORIGINAL FEATURES -->
+                <tr>
+                    <td rowspan="4" class="group-name">Original</td>
+                    <td>mag</td>
+                    <td>Độ lớn động đất (thang Richter)</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>depth</td>
+                    <td>Độ sâu tiêu điểm (km)</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>sig</td>
+                    <td>Significance = tổng hợp impact (mag × depth × felt + intensity)</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>region_code</td>
+                    <td>Mã vùng grid-based: R{lat}_{lon} (lưới 0.5° ≈ 55km)</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <!-- SPATIAL FEATURES (MagLSTM only) -->
+                <tr>
+                    <td rowspan="5" class="group-name">Spatial</td>
+                    <td>latitude</td>
+                    <td>Vĩ độ (-90° đến +90°)</td>
+                    <td></td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>longitude</td>
+                    <td>Kinh độ (-180° đến +180°)</td>
+                    <td></td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>mmi</td>
+                    <td>Modified Mercalli Intensity (I-X, scale 1-10)</td>
+                    <td></td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>cdi</td>
+                    <td>Community Determined Intensity (user-reported)</td>
+                    <td></td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>felt</td>
+                    <td>Số người cảm nhận được động đất</td>
+                    <td></td>
+                    <td>✓</td>
+                </tr>
+                <!-- CORE FEATURES -->
+                <tr>
+                    <td rowspan="5" class="group-name">Core</td>
+                    <td>is_aftershock</td>
+                    <td>Cờ nhị phân: 1 nếu là dư chấn (Omori law: 10^(0.5×mag-1))</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>mainshock_mag</td>
+                    <td>Độ lớn của mainshock (max mag trong time window)</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>seismicity_density_100km</td>
+                    <td>Mật độ động đất trong bán kính 100km (count/π×100²)</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>coulomb_stress_proxy</td>
+                    <td>Ứng suất tích tụ: Σ10^(1.5×M) cho 20 events gần nhất</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>regional_b_value</td>
+                    <td>Tham số b Gutenberg-Richter (0.4343/(mean(mag)-min(mag)))</td>
+                    <td></td>
+                    <td>✓</td>
+                </tr>
+                <!-- SEQUENCE FEATURES -->
+                <tr>
+                    <td rowspan="6" class="group-name">Sequence</td>
+                    <td>sequence_id</td>
+                    <td>Định danh chuỗi sự kiện (DBSCAN: <50km + <72h)</td>
+                    <td>✓</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>seq_position</td>
+                    <td>Vị trí trong chuỗi (1=mainshock, 2,3,...)</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>is_seq_mainshock</td>
+                    <td>Cờ nhị phân: 1 nếu seq_position = 1</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>seq_mainshock_mag</td>
+                    <td>Độ lớn mainshock của chuỗi</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>seq_length</td>
+                    <td>Tổng số events trong sequence</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>time_since_seq_start_sec</td>
+                    <td>Thời gian (giây) kể từ khi chuỗi bắt đầu</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <!-- LSTM TEMPORAL FEATURES -->
+                <tr>
+                    <td rowspan="7" class="group-name">Temporal</td>
+                    <td>time_since_last_event</td>
+                    <td>Khoảng cách đến sự kiện trước đó (giây)</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>time_since_last_M5</td>
+                    <td>Thời gian (giây) kể từ trận M5+ gần nhất</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>interval_lag1</td>
+                    <td>Khoảng cách đến sự kiện thứ 1 trước đó</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>interval_lag2</td>
+                    <td>Khoảng cách đến sự kiện thứ 2 trước đó</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>interval_lag3</td>
+                    <td>Khoảng cách đến sự kiện thứ 3 trước đó</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>interval_lag4</td>
+                    <td>Khoảng cách đến sự kiện thứ 4 trước đó</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>interval_lag5</td>
+                    <td>Khoảng cách đến sự kiện thứ 5 trước đó</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p class="no-indent"><strong>Tổng kết:</strong> TimeLSTM sử dụng 21 features (4 Original + 4 Core + 6 Sequence + 7 Temporal). MagLSTM sử dụng 26 features (9 Original + 5 Core + 5 Sequence + 7 Temporal). sequence_id chỉ dùng cho TimeLSTM, 6 spatial features (latitude, longitude, mmi, cdi, felt, regional_b_value) chỉ dùng cho MagLSTM.</p>
+
+        <h3>3.2 Phân loại Features</h3>
+
+        <p><strong>Original Features (4-9)</strong> - Dữ liệu thô từ USGS catalog: mag, depth, sig, region_code (cả hai models), latitude, longitude, mmi, cdi, felt (chỉ MagLSTM). Region_code được tính từ lưới 0.5° ≈ 55km để nhóm các sự kiện gần nhau.</p>
+
+        <p><strong>Core Features (5)</strong> - Features tính toán dựa trên vật lý: is_aftershock (dựa trên luật Omori), mainshock_mag, seismicity_density_100km (mật độ trong bán kính 100km), coulomb_stress_proxy (ước tính ứng suất tích tụ từ 20 events gần nhất), regional_b_value (chỉ số Gutenberg-Richter).</p>
+
+        <p><strong>Sequence Features (6)</strong> - Features từ spatio-temporal clustering (DBSCAN: <50km + <72h): sequence_id, seq_position, is_seq_mainshock, seq_mainshock_mag, seq_length, time_since_seq_start_sec. Các features này cho phép mô hình học pattern của earthquake sequences.</p>
+
+        <p><strong>LSTM Temporal Features (7)</strong> - Features temporal đặc biệt cho LSTM: time_since_last_event, time_since_last_M5, interval_lag1-5. Đây là input chính cho LSTM, cho phép mô hình học các pattern thời gian phức tạp từ lịch sử 5 sự kiện gần nhất.</p>
+
+        <h2>4. KIẾN TRÚC MÔ HÌNH</h2>
+
+        <div class="figure">
+            <img src="file:///home/haind/Desktop/earthquake-sequence-mining/haind/predict2/model_img.png" alt="Model Architecture">
+            <div class="figure-caption">Hình 1: Kiến trúc Dual LSTM cho dự báo động đất</div>
+        </div>
+
+        <p>Hình 1 minh họa kiến trúc Dual LSTM với hai nhánh xử lý song song. TimeLSTM (nhánh trên) thực hiện binary classification để dự báo khả năng xảy ra động đất trong 7 ngày tới. MagLSTM (nhánh dưới) thực hiện regression để dự báo độ lớn chính xác của động đất tiếp theo. Cả hai nhánh chia sẻ chung dữ liệu đầu vào nhưng sử dụng các tập features khác nhau phù hợp với từng task.</p>
+
+        <p>Cả hai mô hình sử dụng architecture tương tự: hai lớp LSTM (128 → 64 units), Dropout 0.3, Dense 64-64 với ReLU. TimeLSTM output probability qua sigmoid, sử dụng BCEWithLogitsLoss với pos_weight để xử lý class imbalance. MagLSTM output magnitude trực tiếp, sử dụng MSELoss. Cả hai dùng Adam optimizer với learning rate 0.001 và ReduceLROnPlateau scheduler.</p>
+
+        <h2>5. CẤU TRÚC DỮ LIỆU TRAINING</h2>
+
+        <p>Hai mô hình sử dụng các tập dữ liệu riêng biệt phù hợp với đặc thù của từng task. TimeLSTM sử dụng 21 features tập trung vào temporal patterns và sequence information. MagLSTM sử dụng 26 features bao gồm cả temporal và spatial features (latitude, longitude, regional b-value). Cả hai mô hình đều sử dụng temporal split 80-10-10 (80% training, 10% validation, 10% test) để đảm bảo đánh giá real-world scenario. Sequence length là 5 timesteps, cho phép mô hình nhìn lại 5 events gần nhất.</p>
+
+        <h2>6. KẾT QUẢ TEST SET</h2>
+
+        <h3>6.1 TimeLSTM - Binary Classification Metrics</h3>
+
+        <div class="figure">
+            <img src="file:///home/haind/Desktop/earthquake-sequence-mining/haind/predict2/dashboard/plots/TimeLSTM-Binary_metrics_table_20260326_014843.png" alt="TimeLSTM Metrics Table">
+            <div class="figure-caption">Hình 2: Bảng metrics chi tiết - TimeLSTM trên các tập Training, Validation và Test</div>
+        </div>
+
+        <p class="no-indent"><strong>Phân tích chi tiết:</strong> TimeLSTM đạt Accuracy 81.47% trên test set, có nghĩa là mô hình dự đoán đúng khoảng 81 trong 100 trường hợp về việc có hay không động đất trong 7 ngày tới. AUC-ROC đạt 0.9016 cho thấy khả năng phân loại xuất sắc - mô hình có khả năng discriminate rất tốt giữa positive và negative classes. F1 score của 0.8788 thể hiện sự cân bằng tốt giữa precision và recall, đặc biệt quan trọng trong bối cảnh class imbalance (tỷ lệ positive:negative khoảng 4:1).</p>
+
+        <p>Quan sát bảng metrics, ta thấy mô hình có generalization tốt với khoảng cách giữa training và test metrics nhỏ. Training accuracy (~84%) chỉ cao hơn test accuracy (81.47%) khoảng 2.5%, cho thấy minimal overfitting. Validation metrics (~81%) gần với test metrics, xác nhận validation set là đại diện tốt. AUC trên cả ba tập đều cao (>0.88), cho thấy model học được patterns thực tế chứ không memorize training data. Loss tăng nhẹ từ training (0.12) sang test (0.15) là acceptable và cho reasonable generalization.</p>
+
+        <h3>6.2 MagLSTM - Regression Metrics</h3>
+
+        <div class="figure">
+            <img src="file:///home/haind/Desktop/earthquake-sequence-mining/haind/predict2/dashboard/plots/MagLSTM_metrics_table_20260326_015503.png" alt="MagLSTM Metrics Table">
+            <div class="figure-caption">Hình 3: Bảng metrics chi tiết - MagLSTM trên các tập Training, Validation và Test</div>
+        </div>
+
+        <p class="no-indent"><strong>Phân tích chi tiết:</strong> MagLSTM đạt MAE 0.461 magnitude trên test set, có nghĩa là sai số trung bình tuyệt đối của dự báo độ lớn là khoảng 0.46 đơn vị Richter. RMSE của 0.584 magnitude cao hơn MAE, cho thấy sự hiện diện của outliers - các dự báo có sai số lớn cho các sự kiện cực đoan. Khoảng cách giữa RMSE và MAE (0.123) cho thấy phân phối error có heavy tails. So với target mean magnitude là 1.38, MAE chiếm khoảng 33% - đây là mức sai số chấp nhận được cho bài toán dự báo độ lớn động đất.</p>
+
+        <p>Từ bảng metrics, ta thấy MagLSTM có train-test gap lớn hơn TimeLSTM. Training MAE (~0.40) thấp hơn test MAE (0.46) khoảng 15%, cho thấy một số overfitting. Validation MAE (~0.44) nằm giữa training và test, confirming generalization trend. RMSE cao hơn MAE trên cả ba tập (0.45 vs 0.40 cho training, 0.52 vs 0.44 cho validation, 0.58 vs 0.46 cho test) consistently confirms presence of outliers. Test loss (0.34) cao hơn validation loss (0.26) cho thấy model perform slightly worse on unseen data, nhưng gap vẫn trong giới hạn acceptable.</p>
+
+        <div class="two-figures">
+            <div class="figure">
+                <img src="file:///home/haind/Desktop/earthquake-sequence-mining/haind/predict2/dashboard/plots/MagLSTM_test_comparison_20260326_015503.png" alt="Predicted vs Actual">
+                <div class="figure-caption">Hình 4: Predicted vs Actual Magnitude - MagLSTM Test Set</div>
+            </div>
+            <div class="figure">
+                <img src="file:///home/haind/Desktop/earthquake-sequence-mining/haind/predict2/dashboard/plots/MagLSTM_test_error_dist_20260326_015503.png" alt="Error Distribution">
+                <div class="figure-caption">Hình 5: Error Distribution - MagLSTM Test Set</div>
+            </div>
+        </div>
+
+        <p>Hình 4 thể hiện scatter plot giữa predicted và actual magnitude. Points cluster quanh diagonal line (y = x) cho thấy good overall fit. Tuy nhiên, có visible scatter cho thấy uncertainty. Small magnitudes (< M1.5) có xu hướng under-predicted, large magnitudes (> M2.0) có xu hướng over-predicted. Hình 5 thể hiện error distribution. Mean gần 0 cho thấy no significant bias. Standard deviation ~0.4-0.5 magnitude. Distribution gần normal nhưng có heavy tails - có outliers ±1 magnitude hoặc hơn.</p>
+
+        <h3>6.3 So sánh với Training/Validation</h3>
+
+        <div class="table-title">Bảng 3: So sánh Metrics qua các tập dữ liệu</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Mô hình</th>
+                    <th>Metrics</th>
+                    <th>Training</th>
+                    <th>Validation</th>
+                    <th>Test</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td rowspan="2">TimeLSTM</td>
+                    <td>Loss</td>
+                    <td class="metric-value">~0.12</td>
+                    <td class="metric-value">0.149</td>
+                    <td class="metric-value">0.152</td>
+                </tr>
+                <tr>
+                    <td>Accuracy</td>
+                    <td class="metric-value">~84%</td>
+                    <td class="metric-value">~81%</td>
+                    <td class="metric-value">81.47%</td>
+                </tr>
+                <tr>
+                    <td rowspan="2">MagLSTM</td>
+                    <td>Loss (MSE)</td>
+                    <td class="metric-value">~0.22</td>
+                    <td class="metric-value">0.258</td>
+                    <td class="metric-value">0.341</td>
+                </tr>
+                <tr>
+                    <td>MAE</td>
+                    <td class="metric-value">~0.40</td>
+                    <td class="metric-value">~0.44</td>
+                    <td class="metric-value">0.461</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p class="no-indent"><strong>Phân tích:</strong> Cả hai mô hình đều có generalization tốt với khoảng cách giữa training và test metrics nhỏ. TimeLSTM có train-test gap khoảng 2.5% cho accuracy, cho thấy minimal overfitting. MagLSTM có train-test gap lớn hơn một chút cho MAE (0.40 → 0.46), cho thấy một số overfitting nhưng vẫn trong giới hạn chấp nhận được. Test metrics gần với validation metrics, xác nhận rằng validation set là đại diện tốt cho test set.</p>
+
+        <h2>7. KIẾN TRÚC HỆ THỐNG</h2>
+
+        <h3>7.1 Pipeline Xử Lý Dữ Liệu</h3>
+
+        <p>Quy trình xử lý dữ liệu được thiết kế theo dạng pipeline với 7 lớp xử lý liên tiếp, chuyển đổi từ dữ liệu thô thành features sẵn sàng cho training. Dữ liệu đầu vào là earthquake catalog từ USGS với khoảng 100,000 sự kiện trong giai đoạn 2000-2025. Sau khi qua các lớp xử lý, dữ liệu được chia thành hai tập riêng biệt cho hai mô hình với số lượng features khác nhau.</p>
+
+        <p><strong>Lớp 1: Data Loading & Preprocessing</strong> - Dữ liệu động đất thô được tải và lọc theo khoảng thời gian, tính toán region_code dựa trên lưới địa lý 0.5° (khoảng 55km tại xích đạo), sau đó sắp xếp theo vùng địa lý rồi theo thời gian. Việc sắp xếp này đảm bảo tính tuần tự thời gian trong mỗi vùng, cần thiết cho bài toán time-series.</p>
+
+        <p><strong>Lớp 2: Spatial Indexing</strong> - Xây dựng chỉ số không gian sử dụng KD-Tree structure để tăng tốc độ truy vấn không gian. Khoảng cách đến các event lân cận được tính toán và lưu trữ, cho phép xác định nhanh các sự kiện gần nhau trong không gian.</p>
+
+        <p><strong>Lớp 3: Spatio-temporal Clustering</strong> - Các event được phân cụm sử dụng thuật toán DBSCAN với hai ngưỡng: 50km cho khoảng cách không gian và 72 giờ cho khoảng cách thời gian. Các event gần nhau về cả không gian và thời gian được gom vào cùng một sequence, cho phép mô hình học pattern của earthquake sequences.</p>
+
+        <p><strong>Lớp 4: Physics-based Feature Extraction</strong> - Tính toán các đặc trưng dựa trên vật lý: aftershock detection sử dụng luật Omori (tần suất aftershock giảm theo thời gian), seismicity density trong bán kính 100km, Coulomb stress proxy ước tính ứng suất tích tụ từ 20 events gần nhất, và regional b-value theo công thức Gutenberg-Richter.</p>
+
+        <p><strong>Lớp 5: Temporal Feature Engineering</strong> - Tạo các đặc trưng temporal cho LSTM: time_since_last_event (thời gian kể từ event gần nhất), time_since_last_M5 (thời gian kể từ trận M5+ gần nhất), và interval_lag1-5 (khoảng cách đến 5 events trước đó). Các features này cho phép LSTM học các pattern thời gian phức tạp.</p>
+
+        <p><strong>Lớp 6: Target Variable Creation</strong> - Tạo hai target variables cho hai tasks khác nhau: target_quake_in_7days (binary classification - có/không động đất trong 7 ngày tới) cho TimeLSTM, và target_next_mag (regression - độ lớn động đất tiếp theo) cho MagLSTM.</p>
+
+        <p><strong>Lớp 7: Data Split & Export</strong> - Dữ liệu được chia theo chronological order (temporal split) với tỷ lệ 80-10-10: 80% đầu cho training, 10% tiếp theo cho validation, 10% cuối cho test. Hai tập dữ liệu riêng biệt được xuất ra: features_time.csv (21 features cho TimeLSTM) và features_mag.csv (26 features cho MagLSTM).</p>
+
+        <h3>7.2 Kiến trúc Model</h3>
+
+        <p><strong>TimeLSTM Architecture</strong> - Mô hình phân loại nhị phân với kiến trúc: Input Layer (21 features × 5 timesteps) → LSTM Layer 1 (128 units, dropout 0.3) → LSTM Layer 2 (64 units, dropout 0.3) → Dense Layer 1 (64 units, ReLU) → Dense Layer 2 (64 units, ReLU) → Output Layer (1 unit, logits). Sigmoid activation được áp dụng lên logits để có probability. Loss function là BCEWithLogitsLoss với pos_weight=0.23 để xử lý class imbalance. Optimizer là Adam với learning rate 0.001 và ReduceLROnPlateau scheduler.</p>
+
+        <p><strong>MagLSTM Architecture</strong> - Mô hình hồi quy với kiến trúc tương tự nhưng input layer rộng hơn (26 features × 5 timesteps) và output layer khác. Output là magnitude prediction (continuous value). Loss function là MSELoss. Các hyperparameters khác giống TimeLSTM.</p>
+
+        <p><strong>Training Strategy</strong> - Cả hai mô hình sử dụng early stopping với patience=15 epochs để tránh overfitting. Learning rate được tự động giảm khi validation loss không cải thiện. Model checkpoints được lưu tại epoch tốt nhất. Sequence length=5 cho phép mô hình nhìn lại 5 events gần nhất để dự đoán event tiếp theo.</p>
+
+        <h3>7.3 Evaluation & Visualization System</h3>
+
+        <p><strong>Metrics Tracking</strong> - Trong quá trình training, các metrics được theo dõi cho cả training và validation sets. TimeLSTM theo dõi loss, accuracy, AUC, và F1 score. MagLSTM theo dõi loss, MAE, và RMSE. Metrics được log mỗi epoch và dùng để xác định best model.</p>
+
+        <p><strong>Test Set Evaluation</strong> - Sau khi training hoàn thành, best model được load và đánh giá trên test set. Các metrics được tính toán và so sánh với training/validation metrics để đánh giá generalization capability.</p>
+
+        <p><strong>Visualization</strong> - Training curves được plot để theo dõi quá trình học. Test set predictions được visualize với scatter plots (predicted vs actual) và error distribution plots. Các visualizations này giúp hiểu rõ hơn về model behavior và limitation.</p>
+
+        <h3>7.4 Deployment Interface</h3>
+
+        <p><strong>Web Application</strong> - Flask-based web interface cho phép interactive prediction. User có thể chọn seismic zone từ danh sách các vùng hoạt động mạnh (Japan, Philippines, Chile, v.v.), nhập thông tin về event hiện tại (magnitude, depth, location), và nhận prediction về thời gian và độ lớn động đất tiếp theo.</p>
+
+        <p><strong>Model Serving</strong> - Trained models được load cùng với scalers và region encoders để ensure consistent preprocessing. Predictions được trả về dưới dạng JSON với probability scores cho TimeLSTM và magnitude estimate với uncertainty bounds cho MagLSTM.</p>
+
+        <h2>8. SO SÁNH ĐIỂM MẠNH VÀ YẾU</h2>
+
+        <h3>8.1 TimeLSTM</h3>
+
+        <p><span class="good">Điểm mạnh:</span> Xử lý class imbalance tốt với pos_weight (0.23), probabilistic output cho flexible threshold tuning, LSTM học temporal patterns tốt với sequence_length=5, training stable với minimal overfitting (train-test gap ~2.5%), AUC 0.9016 là excellent performance, Accuracy 81.47% rất cao cho binary classification task.</p>
+
+        <p><span class="bad">Điểm yếu:</span> Binary limitation (chỉ có/không trong 7 ngày), fixed 7-day window có thể không optimal cho mọi regions, false negatives nguy hiểm trong real-world deployment, class imbalance 4:1 vẫn challenge dù đã xử lý.</p>
+
+        <h3>8.2 MagLSTM</h3>
+
+        <p><span class="good">Điểm mạnh:</span> Continuous output cho magnitude prediction với MAE 0.461, spatial features (latitude, longitude, regional_b_value) capture regional patterns, b-value là physics-based feature có ý nghĩa thực tế, good cho magnitude range 1.0-2.0, train-test gap nhỏ (0.40 → 0.46) cho reasonable generalization.</p>
+
+        <p><span class="bad">Điểm yếu:</span> MAE 0.461 magnitude vẫn relatively large (33% của mean target), no uncertainty quantification cho predictions, outlier sensitivity cho extreme events (RMSE > MAE), slight overfitting trong training (test loss 0.341 > val loss 0.258), không ensure physical constraints (magnitude không thể âm).</p>
+
+        <h2>9. KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN</h2>
+
+        <p>Dự án đã đạt được nhiều thành tựu đáng kể: complete ML pipeline từ raw data đến deployed models, 31 advanced features với physics meanings, dual LSTM architecture optimized cho hai tasks khác nhau, comprehensive evaluation với test metrics xuất sắc (TimeLSTM: 81.47% accuracy, 0.9016 AUC; MagLSTM: 0.461 MAE), production-ready Flask web application, và comprehensive documentation.</p>
+
+        <p><strong>Applications:</strong> TimeLSTM có thể được sử dụng cho early warning systems với probability thresholds tùy chỉnh theo risk tolerance. MagLSTM phù hợp cho impact estimation với magnitude ranges, giúp quy hoạch và phản hồi tốt hơn. Kết hợp cả hai models cho phép dự báo cả thời gian và độ lớn động đất tiếp theo.</p>
+
+        <p><strong>Hướng phát triển:</strong> Real-time inference pipeline với streaming data, regional models cho các seismic zones khác nhau, multi-horizon prediction (không chỉ 7 ngày mà có thể 3, 14, 30 ngày), uncertainty quantification với Bayesian methods hoặc ensemble models, attention mechanism thay thế hoặc bổ sung LSTM, physics-informed neural networks để đảm bảo predictions thỏa mãn physical constraints.</p>
+
+        <div class="references">
+            <h3>TÀI LIỆU THAM KHẢO</h3>
+            <p>1. Gutenberg, B., & Richter, C. F. (1944). Frequency of earthquakes in California. <i>Bulletin of the Seismological Society of America</i>, 34(4), 185-188.</p>
+            <p>2. Omori, F. (1894). On the aftershocks of earthquakes. <i>Journal of the College of Science, Imperial University of Tokyo</i>, 7, 111-200.</p>
+            <p>3. Hochreiter, J., & Schmidhuber, J. (1997). Long short-term memory. <i>Neural Computation</i>, 9(8), 1735-1780.</p>
+            <p>4. USGS Earthquake Hazards Program. <i>Earthquake Catalog</i>. https://earthquake.usgs.gov/earthquakes/search/</p>
+        </div>
+
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report - Earthquake Prediction with LSTM Models</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #222;
+            background: #f8f8f8;
+            padding: 20px;
+        }
+
+        .page {
+            max-width: 850px;
+            margin: 0 auto 30px auto;
+            background: white;
+            padding: 50px 60px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #111;
+            font-size: 18px;
+            margin-bottom: 5px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #444;
+            font-size: 14px;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        h2 {
+            color: #111;
+            font-size: 14px;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            border-bottom: 1.5px solid #333;
+            padding-bottom: 5px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        h3 {
+            color: #333;
+            font-size: 13px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        p {
+            margin-bottom: 10px;
+            text-align: justify;
+            text-indent: 1em;
+        }
+
+        p.no-indent {
+            text-indent: 0;
+        }
+
+        .author-info {
+            text-align: center;
+            margin: 30px 0;
+            padding: 15px;
+            border-top: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .author-info p {
+            text-indent: 0;
+            margin: 5px 0;
+        }
+
+        .figure {
+            margin: 25px 0;
+            text-align: center;
+            page-break-inside: avoid;
+        }
+
+        .figure img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #999;
+        }
+
+        .figure-caption {
+            margin-top: 8px;
+            font-style: italic;
+            color: #555;
+            font-size: 12px;
+        }
+
+        .two-figures {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .references {
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+        }
+
+        .references p {
+            text-indent: -2em;
+            padding-left: 2em;
+            font-size: 12px;
+        }
+
+        strong, b {
+            font-weight: bold;
+        }
+
+        .good {
+            color: #2e7d32;
+            font-weight: bold;
+        }
+
+        .bad {
+            color: #c62828;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 12px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        td {
+            text-align: center;
+        }
+
+        td.group-name {
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .metric-value {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+
+        .good-metric {
+            color: #2e7d32;
+        }
+
+        .warning-metric {
+            color: #f57c00;
+        }
+
+        .table-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- COVER PAGE -->
+    <div class="page">
+        <h1>REPORT</h1>
+        <div class="subtitle">EARTHQUAKE PREDICTION USING LSTM MODELS</div>
+        <div class="subtitle" style="font-size: 13px; font-weight: normal;">Earthquake Sequence Mining with Dual LSTM Architecture</div>
+
+        <div class="author-info">
+            <p><strong>Author:</strong> Haind</p>
+            <p><strong>Date:</strong> 26/03/2025</p>
+            <p><strong>Version:</strong> 2.0</p>
+        </div>
+    </div>
+
+    <!-- MAIN PAGE -->
+    <div class="page">
+
+        <h2>1. PROJECT OVERVIEW</h2>
+
+        <p>This project focuses on building an earthquake prediction system using two specialized LSTM models. The first model, TimeLSTM, performs binary classification to predict the likelihood of an earthquake occurring within the next seven days. The second model, MagLSTM, performs regression to predict the exact magnitude of the next earthquake. Both models are trained on the same global earthquake dataset from 2000 to 2025 with approximately 100,000 events.</p>
+
+        <h2>2. DATA PROCESSING PIPELINE</h2>
+
+        <p>Global earthquake data from the USGS catalog (2000-2025) is processed through a multi-layer pipeline to generate features suitable for LSTM models. Data is divided by geographic regions (0.5° grid), sorted by time, and enriched with physics-based features and temporal features. Finally, two separate datasets are created: 21 features for TimeLSTM (binary classification) and 26 features for MagLSTM (regression).</p>
+
+        <h2>3. FEATURE ENGINEERING</h2>
+
+        <h3>3.1 Feature List</h3>
+
+        <div class="table-title">Table 1: Complete List of Features Used for Model Training</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Group</th>
+                    <th>Feature Name</th>
+                    <th>Meaning</th>
+                    <th>TimeLSTM</th>
+                    <th>MagLSTM</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- ORIGINAL FEATURES -->
+                <tr>
+                    <td rowspan="4" class="group-name">Original</td>
+                    <td>mag</td>
+                    <td>Magnitude of current earthquake (Richter scale)</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>depth</td>
+                    <td>Depth of hypocenter (km)</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>sig</td>
+                    <td>Significance = combined impact (mag × depth × felt + intensity)</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>region_code</td>
+                    <td>Grid-based region code: R{lat}_{lon} (0.5° grid ≈ 55km)</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <!-- SPATIAL FEATURES (MagLSTM only) -->
+                <tr>
+                    <td rowspan="5" class="group-name">Spatial</td>
+                    <td>latitude</td>
+                    <td>Latitude (-90° to +90°)</td>
+                    <td></td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>longitude</td>
+                    <td>Longitude (-180° to +180°)</td>
+                    <td></td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>mmi</td>
+                    <td>Modified Mercalli Intensity (I-X, scale 1-10)</td>
+                    <td></td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>cdi</td>
+                    <td>Community Determined Intensity (user-reported)</td>
+                    <td></td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>felt</td>
+                    <td>Number of people who felt the earthquake</td>
+                    <td></td>
+                    <td>✓</td>
+                </tr>
+                <!-- CORE FEATURES -->
+                <tr>
+                    <td rowspan="5" class="group-name">Core</td>
+                    <td>is_aftershock</td>
+                    <td>Binary flag: 1 if aftershock (Omori law: 10^(0.5×mag-1))</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>mainshock_mag</td>
+                    <td>Magnitude of mainshock (max mag in time window)</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>seismicity_density_100km</td>
+                    <td>Earthquake density within 100km radius (count/π×100²)</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>coulomb_stress_proxy</td>
+                    <td>Accumulated stress: Σ10^(1.5×M) for 20 most recent events</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>regional_b_value</td>
+                    <td>Gutenberg-Richter b parameter (0.4343/(mean(mag)-min(mag)))</td>
+                    <td></td>
+                    <td>✓</td>
+                </tr>
+                <!-- SEQUENCE FEATURES -->
+                <tr>
+                    <td rowspan="6" class="group-name">Sequence</td>
+                    <td>sequence_id</td>
+                    <td>Event sequence ID (DBSCAN: <50km + <72h)</td>
+                    <td>✓</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>seq_position</td>
+                    <td>Position in sequence (1=mainshock, 2,3,...)</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>is_seq_mainshock</td>
+                    <td>Binary flag: 1 if seq_position = 1</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>seq_mainshock_mag</td>
+                    <td>Mainshock magnitude of sequence</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>seq_length</td>
+                    <td>Total number of events in sequence</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>time_since_seq_start_sec</td>
+                    <td>Time (seconds) since sequence started</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <!-- LSTM TEMPORAL FEATURES -->
+                <tr>
+                    <td rowspan="7" class="group-name">Temporal</td>
+                    <td>time_since_last_event</td>
+                    <td>Time interval to previous event (seconds)</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>time_since_last_M5</td>
+                    <td>Time (seconds) since last M5+ earthquake</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>interval_lag1</td>
+                    <td>Time interval to 1st previous event</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>interval_lag2</td>
+                    <td>Time interval to 2nd previous event</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>interval_lag3</td>
+                    <td>Time interval to 3rd previous event</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>interval_lag4</td>
+                    <td>Time interval to 4th previous event</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>interval_lag5</td>
+                    <td>Time interval to 5th previous event</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p class="no-indent"><strong>Summary:</strong> TimeLSTM uses 21 features (4 Original + 4 Core + 6 Sequence + 7 Temporal). MagLSTM uses 26 features (9 Original + 5 Core + 5 Sequence + 7 Temporal). sequence_id is only used by TimeLSTM, 6 spatial features (latitude, longitude, mmi, cdi, felt, regional_b_value) are only used by MagLSTM.</p>
+
+        <h3>3.2 Feature Categories</h3>
+
+        <p><strong>Original Features (4-9)</strong> - Raw data from USGS catalog: mag, depth, sig, region_code (both models), latitude, longitude, mmi, cdi, felt (MagLSTM only). Region_code is calculated from 0.5° grid (~55km) to group spatially proximate events.</p>
+
+        <p><strong>Core Features (5)</strong> - Physics-based computed features: is_aftershock (based on Omori's law), mainshock_mag, seismicity_density_100km (density within 100km radius), coulomb_stress_proxy (estimated accumulated stress from 20 most recent events), regional_b_value (Gutenberg-Richter index).</p>
+
+        <p><strong>Sequence Features (6)</strong> - Features from spatio-temporal clustering (DBSCAN: <50km + <72h): sequence_id, seq_position, is_seq_mainshock, seq_mainshock_mag, seq_length, time_since_seq_start_sec. These features allow the model to learn earthquake sequence patterns.</p>
+
+        <p><strong>LSTM Temporal Features (7)</strong> - Special temporal features for LSTM: time_since_last_event, time_since_last_M5, interval_lag1-5. These are the primary LSTM inputs, enabling the model to learn complex temporal patterns from the history of the 5 most recent events.</p>
+
+        <h2>4. MODEL ARCHITECTURE</h2>
+
+        <div class="figure">
+            <img src="file:///home/haind/Desktop/earthquake-sequence-mining/haind/predict2/model_img.png" alt="Model Architecture">
+            <div class="figure-caption">Figure 1: Dual LSTM Architecture for Earthquake Prediction</div>
+        </div>
+
+        <p>Figure 1 illustrates the Dual LSTM architecture with two parallel processing branches. TimeLSTM (upper branch) performs binary classification to predict the probability of an earthquake occurring within 7 days. MagLSTM (lower branch) performs regression to predict the exact magnitude of the next earthquake. Both branches share the same input data but use different feature sets optimized for each task.</p>
+
+        <p>Both models use similar architecture: two LSTM layers (128 → 64 units), Dropout 0.3, Dense 64-64 with ReLU. TimeLSTM outputs probability through sigmoid, using BCEWithLogitsLoss with pos_weight to handle class imbalance. MagLSTM outputs magnitude directly, using MSELoss. Both use Adam optimizer with learning rate 0.001 and ReduceLROnPlateau scheduler.</p>
+
+        <h2>5. TRAINING DATA STRUCTURE</h2>
+
+        <p>The two models use separate datasets optimized for each task's characteristics. TimeLSTM uses 21 features focusing on temporal patterns and sequence information. MagLSTM uses 26 features including both temporal and spatial features (latitude, longitude, regional b-value). Both models employ temporal split 80-10-10 (80% training, 10% validation, 10% test) to ensure real-world scenario evaluation. Sequence length is 5 timesteps, allowing models to look back at the 5 most recent events.</p>
+
+        <h2>6. TEST SET RESULTS</h2>
+
+        <h3>6.1 TimeLSTM - Binary Classification Metrics</h3>
+
+        <div class="figure">
+            <img src="file:///home/haind/Desktop/earthquake-sequence-mining/haind/predict2/dashboard/plots/TimeLSTM-Binary_metrics_table_20260326_014843.png" alt="TimeLSTM Metrics Table">
+            <div class="figure-caption">Figure 2: Detailed Metrics Table - TimeLSTM on Training, Validation and Test Sets</div>
+        </div>
+
+        <p class="no-indent"><strong>Detailed Analysis:</strong> TimeLSTM achieves 81.47% accuracy on the test set, meaning the model correctly predicts approximately 81 out of 100 cases regarding whether an earthquake will occur within 7 days. The AUC-ROC of 0.9016 demonstrates excellent classification capability - the model can effectively discriminate between positive and negative classes. The F1 score of 0.8788 shows good balance between precision and recall, particularly important in the context of class imbalance (positive:negative ratio approximately 4:1).</p>
+
+        <p>Observing the metrics table, the model demonstrates good generalization with small gaps between training and test metrics. Training accuracy (~84%) is only about 2.5% higher than test accuracy (81.47%), indicating minimal overfitting. Validation metrics (~81%) are close to test metrics, confirming the validation set is representative. AUC across all three sets is high (>0.88), showing the model learned real patterns rather than memorizing training data. The slight increase in loss from training (0.12) to test (0.15) is acceptable and indicates reasonable generalization.</p>
+
+        <h3>6.2 MagLSTM - Regression Metrics</h3>
+
+        <div class="figure">
+            <img src="file:///home/haind/Desktop/earthquake-sequence-mining/haind/predict2/dashboard/plots/MagLSTM_metrics_table_20260326_015503.png" alt="MagLSTM Metrics Table">
+            <div class="figure-caption">Figure 3: Detailed Metrics Table - MagLSTM on Training, Validation and Test Sets</div>
+        </div>
+
+        <p class="no-indent"><strong>Detailed Analysis:</strong> MagLSTM achieves MAE of 0.461 magnitude on the test set, meaning the average absolute error of magnitude predictions is approximately 0.46 Richter units. The RMSE of 0.584 magnitude is higher than MAE, indicating the presence of outliers - predictions with large errors for extreme events. The gap between RMSE and MAE (0.123) shows the error distribution has heavy tails. Compared to the target mean magnitude of 1.38, MAE accounts for approximately 33% - an acceptable error level for earthquake magnitude prediction.</p>
+
+        <p>From the metrics table, MagLSTM shows a larger train-test gap than TimeLSTM. Training MAE (~0.40) is about 15% lower than test MAE (0.46), indicating some overfitting. Validation MAE (~0.44) lies between training and test, confirming the generalization trend. RMSE consistently higher than MAE across all three sets (0.45 vs 0.40 for training, 0.52 vs 0.44 for validation, 0.58 vs 0.46 for test) confirms the presence of outliers. Test loss (0.34) is higher than validation loss (0.26), showing the model performs slightly worse on unseen data, but the gap remains within acceptable limits.</p>
+
+        <div class="two-figures">
+            <div class="figure">
+                <img src="file:///home/haind/Desktop/earthquake-sequence-mining/haind/predict2/dashboard/plots/MagLSTM_test_comparison_20260326_015503.png" alt="Predicted vs Actual">
+                <div class="figure-caption">Figure 4: Predicted vs Actual Magnitude - MagLSTM Test Set</div>
+            </div>
+            <div class="figure">
+                <img src="file:///home/haind/Desktop/earthquake-sequence-mining/haind/predict2/dashboard/plots/MagLSTM_test_error_dist_20260326_015503.png" alt="Error Distribution">
+                <div class="figure-caption">Figure 5: Error Distribution - MagLSTM Test Set</div>
+            </div>
+        </div>
+
+        <p>Figure 4 shows the scatter plot between predicted and actual magnitude. Points cluster around the diagonal line (y = x), indicating good overall fit. However, visible scatter shows uncertainty. Small magnitudes (< M1.5) tend to be under-predicted, while large magnitudes (> M2.0) tend to be over-predicted. Figure 5 shows the error distribution. Mean near 0 indicates no significant bias. Standard deviation is ~0.4-0.5 magnitude. Distribution is approximately normal but with heavy tails - there are outliers of ±1 magnitude or more.</p>
+
+        <h3>6.3 Comparison with Training/Validation</h3>
+
+        <div class="table-title">Table 3: Metrics Comparison Across Datasets</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Model</th>
+                    <th>Metrics</th>
+                    <th>Training</th>
+                    <th>Validation</th>
+                    <th>Test</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td rowspan="2">TimeLSTM</td>
+                    <td>Loss</td>
+                    <td class="metric-value">~0.12</td>
+                    <td class="metric-value">0.149</td>
+                    <td class="metric-value">0.152</td>
+                </tr>
+                <tr>
+                    <td>Accuracy</td>
+                    <td class="metric-value">~84%</td>
+                    <td class="metric-value">~81%</td>
+                    <td class="metric-value">81.47%</td>
+                </tr>
+                <tr>
+                    <td rowspan="2">MagLSTM</td>
+                    <td>Loss (MSE)</td>
+                    <td class="metric-value">~0.22</td>
+                    <td class="metric-value">0.258</td>
+                    <td class="metric-value">0.341</td>
+                </tr>
+                <tr>
+                    <td>MAE</td>
+                    <td class="metric-value">~0.40</td>
+                    <td class="metric-value">~0.44</td>
+                    <td class="metric-value">0.461</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p class="no-indent"><strong>Analysis:</strong> Both models demonstrate good generalization with small gaps between training and test metrics. TimeLSTM shows a train-test gap of approximately 2.5% for accuracy, indicating minimal overfitting. MagLSTM shows a slightly larger train-test gap for MAE (0.40 → 0.46), indicating some overfitting but still within acceptable limits. Test metrics are close to validation metrics, confirming that the validation set is representative of the test set.</p>
+
+        <h2>7. SYSTEM ARCHITECTURE</h2>
+
+        <h3>7.1 Data Processing Pipeline</h3>
+
+        <p>The data processing pipeline is designed as a 7-layer sequential pipeline, transforming raw data into training-ready features. Input data is the earthquake catalog from USGS with approximately 100,000 events from 2000-2025. After processing, data is split into two separate datasets for the two models with different feature counts.</p>
+
+        <p><strong>Layer 1: Data Loading & Preprocessing</strong> - Raw earthquake data is loaded and filtered by time period. Region_code is calculated based on a 0.5° geographic grid (~55km at equator), then data is sorted by geographic region and time. This sorting ensures temporal order within each region, essential for time-series problems.</p>
+
+        <p><strong>Layer 2: Spatial Indexing</strong> - Spatial index is built using KD-Tree structure to accelerate spatial queries. Distances to neighboring events are calculated and stored, enabling rapid identification of spatially proximate events.</p>
+
+        <p><strong>Layer 3: Spatio-temporal Clustering</strong> - Events are clustered using DBSCAN algorithm with two thresholds: 50km for spatial distance and 72 hours for temporal distance. Events close in both space and time are grouped into the same sequence, allowing the model to learn earthquake sequence patterns.</p>
+
+        <p><strong>Layer 4: Physics-based Feature Extraction</strong> - Physics-based features are calculated: aftershock detection using Omori's law (aftershock frequency decreases over time), seismicity density within 100km radius, Coulomb stress proxy estimating accumulated stress from the 20 most recent events, and regional b-value according to Gutenberg-Richter formula.</p>
+
+        <p><strong>Layer 5: Temporal Feature Engineering</strong> - Temporal features for LSTM are created: time_since_last_event (time since the most recent event), time_since_last_M5 (time since the most recent M5+ event), and interval_lag1-5 (intervals to the 5 previous events). These features allow LSTM to learn complex temporal patterns.</p>
+
+        <p><strong>Layer 6: Target Variable Creation</strong> - Two target variables are created for different tasks: target_quake_in_7days (binary classification - earthquake within 7 days or not) for TimeLSTM, and target_next_mag (regression - next earthquake magnitude) for MagLSTM.</p>
+
+        <p><strong>Layer 7: Data Split & Export</strong> - Data is split chronologically (temporal split) with 80-10-10 ratio: first 80% for training, next 10% for validation, final 10% for test. Two separate datasets are exported: features_time.csv (21 features for TimeLSTM) and features_mag.csv (26 features for MagLSTM).</p>
+
+        <h3>7.2 Model Architecture</h3>
+
+        <p><strong>TimeLSTM Architecture</strong> - Binary classification model with architecture: Input Layer (21 features × 5 timesteps) → LSTM Layer 1 (128 units, dropout 0.3) → LSTM Layer 2 (64 units, dropout 0.3) → Dense Layer 1 (64 units, ReLU) → Dense Layer 2 (64 units, ReLU) → Output Layer (1 unit, logits). Sigmoid activation is applied to logits to produce probability. Loss function is BCEWithLogitsLoss with pos_weight=0.23 to handle class imbalance. Optimizer is Adam with learning rate 0.001 and ReduceLROnPlateau scheduler.</p>
+
+        <p><strong>MagLSTM Architecture</strong> - Regression model with similar architecture but wider input layer (26 features × 5 timesteps) and different output layer. Output is magnitude prediction (continuous value). Loss function is MSELoss. Other hyperparameters are identical to TimeLSTM.</p>
+
+        <p><strong>Training Strategy</strong> - Both models use early stopping with patience=15 epochs to prevent overfitting. Learning rate is automatically reduced when validation loss stops improving. Model checkpoints are saved at the best epoch. Sequence length=5 allows models to look back at the 5 most recent events to predict the next event.</p>
+
+        <h3>7.3 Evaluation & Visualization System</h3>
+
+        <p><strong>Metrics Tracking</strong> - During training, metrics are tracked for both training and validation sets. TimeLSTM tracks loss, accuracy, AUC, and F1 score. MagLSTM tracks loss, MAE, and RMSE. Metrics are logged each epoch and used to determine the best model.</p>
+
+        <p><strong>Test Set Evaluation</strong> - After training completion, the best model is loaded and evaluated on the test set. Metrics are calculated and compared with training/validation metrics to assess generalization capability.</p>
+
+        <p><strong>Visualization</strong> - Training curves are plotted to monitor the learning process. Test set predictions are visualized with scatter plots (predicted vs actual) and error distribution plots. These visualizations help understand model behavior and limitations.</p>
+
+        <h3>7.4 Deployment Interface</h3>
+
+        <p><strong>Web Application</strong> - Flask-based web interface enables interactive prediction. Users can select a seismic zone from a list of highly active regions (Japan, Philippines, Chile, etc.), enter current event information (magnitude, depth, location), and receive predictions about timing and magnitude of the next earthquake.</p>
+
+        <p><strong>Model Serving</strong> - Trained models are loaded together with scalers and region encoders to ensure consistent preprocessing. Predictions are returned as JSON with probability scores for TimeLSTM and magnitude estimates with uncertainty bounds for MagLSTM.</p>
+
+        <h2>8. STRENGTHS AND WEAKNESSES</h2>
+
+        <h3>8.1 TimeLSTM</h3>
+
+        <p><span class="good">Strengths:</span> Excellent class imbalance handling with pos_weight (0.23), probabilistic output enables flexible threshold tuning, LSTM effectively learns temporal patterns with sequence_length=5, stable training with minimal overfitting (train-test gap ~2.5%), AUC 0.9016 is excellent performance, Accuracy 81.47% is very high for binary classification task.</p>
+
+        <p><span class="bad">Weaknesses:</span> Binary limitation (yes/no within 7 days), fixed 7-day window may not be optimal for all regions, false negatives are dangerous in real-world deployment, class imbalance 4:1 remains a challenge despite handling.</p>
+
+        <h3>8.2 MagLSTM</h3>
+
+        <p><span class="good">Strengths:</span> Continuous output for magnitude prediction with MAE 0.461, spatial features (latitude, longitude, regional_b_value) capture regional patterns, b-value is a physics-based feature with practical significance, good for magnitude range 1.0-2.0, small train-test gap (0.40 → 0.46) indicates reasonable generalization.</p>
+
+        <p><span class="bad">Weaknesses:</span> MAE 0.461 magnitude is still relatively large (33% of mean target), no uncertainty quantification for predictions, outlier sensitivity for extreme events (RMSE > MAE), slight overfitting during training (test loss 0.341 > val loss 0.258), does not ensure physical constraints (magnitude cannot be negative).</p>
+
+        <h2>9. CONCLUSION AND FUTURE DIRECTIONS</h2>
+
+        <p>This project has achieved significant milestones: complete ML pipeline from raw data to deployed models, 31 advanced features with physical meanings, dual LSTM architecture optimized for two different tasks, comprehensive evaluation with excellent test metrics (TimeLSTM: 81.47% accuracy, 0.9016 AUC; MagLSTM: 0.461 MAE), production-ready Flask web application, and comprehensive documentation.</p>
+
+        <p><strong>Applications:</strong> TimeLSTM can be used for early warning systems with probability thresholds customizable according to risk tolerance. MagLSTM is suitable for impact estimation with magnitude ranges, aiding better planning and response. Combining both models enables prediction of both timing and magnitude of the next earthquake.</p>
+
+        <p><strong>Future Directions:</strong> Real-time inference pipeline with streaming data, regional models for different seismic zones, multi-horizon prediction (not just 7 days but 3, 14, 30 days), uncertainty quantification with Bayesian methods or ensemble models, attention mechanism to replace or supplement LSTM, physics-informed neural networks to ensure predictions satisfy physical constraints.</p>
+
+        <div class="references">
+            <h3>REFERENCES</h3>
+            <p>1. Gutenberg, B., & Richter, C. F. (1944). Frequency of earthquakes in California. <i>Bulletin of the Seismological Society of America</i>, 34(4), 185-188.</p>
+            <p>2. Omori, F. (1894). On the aftershocks of earthquakes. <i>Journal of the College of Science, Imperial University of Tokyo</i>, 7, 111-200.</p>
+            <p>3. Hochreiter, J., & Schmidhuber, J. (1997). Long short-term memory. <i>Neural Computation</i>, 9(8), 1735-1780.</p>
+            <p>4. USGS Earthquake Hazards Program. <i>Earthquake Catalog</i>. https://earthquake.usgs.gov/earthquakes/search/</p>
+        </div>
+
+    </div>
+
+</body>
+</html>

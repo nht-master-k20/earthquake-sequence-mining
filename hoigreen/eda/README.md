@@ -2,7 +2,7 @@
 
 Giai đoạn này tập trung vào 4 nhóm phân tích chính:
 
-1. Phân tích phân bố (Distribution)
+1. Phân tích phân bố các biến số chính (Distribution)
 2. Mối quan hệ giữa các biến (Relationship between variables)
 3. Phân tích theo thời gian (Temporal analysis)
 4. Phân tích theo không gian (Spatial analysis)
@@ -28,7 +28,7 @@ Giai đoạn này tập trung vào 4 nhóm phân tích chính:
 - `04_monthly_summary.csv`
 - `05_region_summary.csv`
 - `06_report.md`
-- Bộ ảnh `.png` cho các phân tích distribution / relationship / temporal / spatial
+- Bộ ảnh `.png` cho các phân tích numeric distribution / relationship / temporal / spatial
 
 ## Insight dự kiến
 

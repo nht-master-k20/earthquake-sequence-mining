@@ -5,8 +5,8 @@
 - Dataset phân tích: `2,992,511` sự kiện `earthquake`
 - Giai đoạn dùng để tổng hợp: EDA + Pattern Discovering
 - Spatial grid: `2.5` độ
-- Tổng số region quan sát được: `3,565`
-- Region đủ dữ liệu để cluster ổn định (`>= 25` events): `1,345` 
+- Tổng số region quan sát được: `3,611`
+- Region đủ dữ liệu để cluster ổn định (`>= 25` events): `1,361`
 
 ## Executive Summary
 
@@ -19,7 +19,7 @@
 4. Event-level clustering tách dữ liệu thành 2 archetype rất rõ.
   `95.01%` là nhóm nhỏ, nông, cường độ thấp; `4.99%` là nhóm mạnh hơn nhiều, sâu hơn và có khả năng đi kèm tsunami cao hơn.
 5. Region-level clustering lộ ra một nhóm vùng sâu rất khác biệt.
-  Chỉ `48` region (`3.57%` eligible regions) thuộc cụm sâu, nhưng depth mean của nhóm này cao gấp `14.39x` nhóm còn lại.
+  Chỉ `48` region (`3.53%` eligible regions) thuộc cụm sâu, nhưng depth mean của nhóm này cao gấp `14.54x` nhóm còn lại.
 
 ## Key Insights
 
@@ -62,18 +62,18 @@
 
 #### Region cluster 0: regime phổ biến
 
-- `1,297` regions
-- `2,957,768` events
-- `profile_depth_mean = 27.70 km`
+- `1,313` regions
+- `3,083,567` events
+- `profile_depth_mean = 27.42 km`
 - `profile_deep_ratio = 0.47%`
-- `profile_major_quake_ratio = 10.44%`
+- `profile_major_quake_ratio = 10.46%`
 
 #### Region cluster 1: regime sâu, hiếm nhưng khác biệt mạnh
 
 - `48` regions
-- `24,081` events
-- `profile_depth_mean = 398.43 km`
-- `profile_deep_ratio = 77.10%`
+- `25,108` events
+- `profile_depth_mean = 398.83 km`
+- `profile_deep_ratio = 77.28%`
 - `profile_major_quake_ratio = 11.98%`
 - `profile_mag_mean = 4.35`
 
@@ -107,7 +107,7 @@ Nếu đưa cả hai vào downstream modeling thì cần hiểu là chúng đang
 
 - Đây là unsupervised clustering trên feature tĩnh của từng event và region, không phải sequential pattern mining theo chuỗi mainshock-aftershock.
 - Peak count theo năm và theo tháng có thể chịu ảnh hưởng bởi thay đổi hệ thống ghi nhận, không nên diễn giải trực tiếp là trái đất "động đất nhiều hơn" theo nghĩa hazard tuyệt đối.
-- `2,220` region có ít hơn `25` events nên chưa được gán region cluster ổn định; long-tail spatial coverage vẫn còn rất lớn.
+- `2,250` region có ít hơn `25` events nên chưa được gán region cluster ổn định; long-tail spatial coverage vẫn còn rất lớn.
 
 ## Source Files
 
@@ -117,4 +117,3 @@ Nếu đưa cả hai vào downstream modeling thì cần hiểu là chúng đang
 - `hoigreen/pattern_discovering/outputs/04_event_cluster_profile.csv`
 - `hoigreen/pattern_discovering/outputs/06_region_summary.csv`
 - `hoigreen/pattern_discovering/outputs/08_region_cluster_profile.csv`
-

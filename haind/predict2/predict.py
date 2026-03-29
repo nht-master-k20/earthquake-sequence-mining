@@ -263,11 +263,9 @@ def predict_and_show(time_model, mag_model, time_scaler, mag_scaler, df, device)
         X_time_tensor = torch.FloatTensor(X_time[0:1]).to(device)
         time_logits = time_model(X_time_tensor).cpu().numpy()[0]
         time_proba = 1 / (1 + np.exp(-time_logits))  # Sigmoid
-        time_proba += 0.5
 
         X_mag_tensor = torch.FloatTensor(X_mag[0:1]).to(device)
         mag_pred = mag_model(X_mag_tensor).cpu().numpy()[0]
-        mag_pred += 1
 
     # Calculate M5+ probability (combine time and mag)
     # Sigmoid smoothing: mag càng gần 5.0 thì xác suất càng cao
